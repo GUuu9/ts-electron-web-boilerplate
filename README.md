@@ -68,6 +68,9 @@ src/
 | **UdpClient** | **Desktop 전용** | `dgram` (Node.js 내장) | 비연결형 패킷 통신 |
 | **Database** | **Desktop 전용** | `sqlite3` (예정) | 로컬 SQLite 데이터베이스 관리 |
 | **Route/API** | **Desktop 전용** | `express` (예정) | 로컬 서버 엔드포인트 제공 |
+| **BluetoothService** | 전 플랫폼 공용 | `Web Bluetooth API` | 블루투스 LE 장치 검색 및 통신 |
+| **UsbService** | 전 플랫폼 공용 | `Web MediaDevices API` | 전용 USB 기기, 게임패드, 커스텀 컨트롤러 연결 |
+| **MediaService** | 전 플랫폼 공용 | `WebHID API` | 마이크, 헤드셋 목록 확인 및 오디오 스트림 획득 |
 
 ---
 
@@ -121,6 +124,24 @@ npm install
 
 ---
 
+## 🏗 Dependency Injection (DI) 가이드
+
+애플리케이션의 **의존성 주입(Dependency Injection)**과 **객체 생명주기**를 중앙에서 관리하는 핵심 인프라 [DEVICE_GUIDE.md](./src/core/di/DI_GUIDE.md)
+
+---
+
+## 🔌 Device Control 가이드  
+
+블루투스, USB, HID, 미디어(마이크/헤드셋) 장치를 연결하고 제어하는 인프라 계층 [DEVICE_GUIDE.md](./src/core/device/DEVICE_GUIDE.md)
+
+---
+
+## 🌐 Network Infra 가이드
+
+다양한 프로토콜(HTTP, TCP, UDP, Socket.io)을 통한 외부 통신을 담당하는 인프라 계층 [DEVICE_GUIDE.md](./src/core/network/NETWORK_GUIDE.md)
+
+---
+
 ## 📜 변경 이력 (Changelog)
 
-프로젝트의 상세한 개발 단계, 실행 명령어, 핵심 코드 변경 내역은 [CHANGELOG.md](./CHANGELOG.md)에서 확인하실 수 있습니다.
+프로젝트의 상세한 개발 단계, 실행 명령어, 핵심 코드 변경 내역은 [CHANGELOG.md](./CHANGELOG.md)
