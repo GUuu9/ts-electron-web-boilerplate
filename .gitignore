@@ -8,6 +8,7 @@ release/
 .env
 .env.local
 .env.*.local
+GITHUB_GUIDE.md
 
 # 운영체제 생성 파일
 .DS_Store
