@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>com.apple.security.app-sandbox</key>
+    <true/>
+    <!-- 외부 네트워크로 데이터를 보낼 때 필요한 권한 (HttpClient, Socket.io 등) -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+    <!-- 외부에서 들어오는 연결을 받을 때 필요한 권한 (TCP/UDP 서버 등) -->
+    <key>com.apple.security.network.server</key>
+    <true/>
+    <!-- 하드웨어 자원 접근 시 필요 (예시) -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+  </dict>
+</plist>

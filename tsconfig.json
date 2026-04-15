@@ -19,6 +19,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
+    "types": ["node", "web-bluetooth", "w3c-web-usb", "w3c-web-hid"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]

@@ -55,6 +55,22 @@ src/
 
 ---
 
+## 🛠 코어 기능 및 호환성 (Core Features & Compatibility)
+
+이 프로젝트의 코어 기능들은 실행 환경(Web vs Desktop)에 따라 사용 가능 여부가 다릅니다.
+
+| 기능 (Core) | 호환성 (Web/OS) | 사용 패키지 (Dependencies) | 용도 |
+| :--- | :--- | :--- | :--- |
+| **DI Container** | 전 플랫폼 공용 | 자체 구현 (TypeScript) | 객체 생명주기 및 의존성 주입 관리 |
+| **HttpClient** | 전 플랫폼 공용 | `axios` | REST API 통신 (HTTP/HTTPS) |
+| **SocketClient** | 전 플랫폼 공용 | `socket.io-client` | 실시간 양방향 이벤트 통신 |
+| **TcpClient** | **Desktop 전용** | `net` (Node.js 내장) | 저수준 스트림 통신 |
+| **UdpClient** | **Desktop 전용** | `dgram` (Node.js 내장) | 비연결형 패킷 통신 |
+| **Database** | **Desktop 전용** | `sqlite3` (예정) | 로컬 SQLite 데이터베이스 관리 |
+| **Route/API** | **Desktop 전용** | `express` (예정) | 로컬 서버 엔드포인트 제공 |
+
+---
+
 ## ⚙️ 실행 및 빌드 가이드 (Developer Guide)
 
 ### 1. 환경 설치 (Node.js v22 권장)
@@ -72,6 +88,27 @@ npm install
 ### 2. 개발 모드 실행
 - **Web 브라우저 실행**: `npm run dev` (http://localhost:5173)
 - **데스크탑 앱 실행**: `npm run electron:dev` (Vite 서버 구동 후 실행)
+
+### 3. 빌드 및 배포
+- **웹 전용 빌드**: `npm run build:web` (`dist/` 폴더 생성)
+- **플랫폼별 앱 배포**: `npm run dist` (`release/` 폴더에 dmg, exe, AppImage 생성)
+
+---
+
+## 🎨 앱 커스터마이징 (Customizing)
+
+애플리케이션의 이름과 아이콘을 본인의 브랜드에 맞춰 수정하는 방법입니다.
+
+### 1. 앱 이름(표시명) 수정
+-   **데스크탑 앱 이름**: `package.json`의 `"productName": "My App Name"` 필드를 수정하세요. (설치 파일명 및 창 제목에 반영됨)
+-   **웹 탭 제목**: `src/renderer/index.html`의 `<title>My App Name</title>` 태그를 수정하세요.
+
+### 2. 아이콘 수정
+-   **데스크탑 앱 아이콘 (Electron)**: 
+    -   `build/` 폴더에 `icon.png` (1024x1024 권장) 파일을 넣으세요.
+    -   macOS: `icon.icns`, Windows: `icon.ico` 파일을 직접 넣어두면 우선적으로 사용됩니다.
+-   **웹 브라우저 아이콘 (Favicon)**: 
+    -   `src/renderer/public/favicon.ico` 파일을 교체하세요.
 
 ---
 

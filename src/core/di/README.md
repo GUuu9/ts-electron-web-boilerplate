@@ -64,6 +64,32 @@ controller.handleRequest();
 
 ---
 
+## 🌍 환경별 의존성 조건부 등록 (Web vs Desktop)
+
+이 프로젝트는 **Web**과 **Electron(Desktop)** 환경을 동시에 지원합니다. `TcpClient`나 `UdpClient`처럼 Node.js 전용 모듈(`net`, `dgram`)을 사용하는 클래스는 웹 브라우저 환경에서 에러를 유발할 수 있습니다.
+
+### 1. 사용하지 않는 경우 (주석 처리)
+특정 네트워크 클라이언트를 사용하지 않는다면 `container.ts`에서 등록 코드를 **주석 처리**하거나 삭제하여 자원을 절약하고 에러를 방지하세요.
+
+### 2. 조건부 등록 (권장)
+플랫폼을 감지하여 데스크탑 환경에서만 특정 의존성을 등록하는 방식입니다.
+
+```typescript
+// src/core/di/container.ts 생성자 내 예시
+const isElectron = typeof process !== 'undefined' && process.versions && process.versions.electron;
+
+if (isElectron) {
+  // Node.js 전용 모듈을 사용하는 클래스는 데스크탑 환경에서만 등록
+  this.services.set('TcpClient', new TcpClient());
+  this.services.set('UdpClient', new UdpClient());
+} else {
+  // 웹 환경에서는 대체 서비스를 등록하거나 빈 객체로 처리 가능
+  console.warn('TCP/UDP Client는 웹 환경에서 지원되지 않습니다.');
+}
+```
+
+---
+
 ## ⚠️ 주의 사항
 - 컨테이너에 등록되지 않은 키(Key)로 요청할 경우 에러가 발생합니다.
 - 순환 참조(Circular Dependency)가 발생하지 않도록 설계 시 주의하십시오.

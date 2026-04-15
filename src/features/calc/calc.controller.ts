@@ -1,4 +1,5 @@
-import { CalcService } from '../../shared/calc.service';
+import { CalcService } from '@/shared/calc.service.js';
+
 
 /**
  * 계산과 관련된 입출력을 관리하는 컨트롤러

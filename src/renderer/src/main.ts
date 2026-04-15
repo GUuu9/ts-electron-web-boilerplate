@@ -1,5 +1,5 @@
-import { container } from '../../core/di';
-import { CalcController } from '../../features/calc/calc.controller';
+import { container } from '@/core/di/index.js';
+import { CalcController } from '@/features/calc/calc.controller.js';
 
 // 렌더러의 전역 타입 정의 (TypeScript가 electronAPI를 인식하도록 함)
 declare global {

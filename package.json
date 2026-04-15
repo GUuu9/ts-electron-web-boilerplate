@@ -2,6 +2,8 @@
   "name": "ts-electron-web-boilerplate",
   "version": "1.0.0",
   "description": "TypeScript + Electron + Web 통합 개발 보일러플레이트",
+  "productName": "My Cross Platform App",
+  "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
@@ -22,8 +24,12 @@
   "devDependencies": {
     "@types/dotenv": "^8.2.3",
     "@types/node": "^22.13.4",
-    "electron": "^34.2.0",
-    "electron-builder": "^25.1.8",
+    "@types/socket.io-client": "^3.0.0",
+    "@types/w3c-web-hid": "^1.0.7",
+    "@types/w3c-web-usb": "^1.0.14",
+    "@types/web-bluetooth": "^0.0.21",
+    "electron": "^41.2.0",
+    "electron-builder": "^26.8.1",
     "typescript": "^5.7.3",
     "vite": "^6.1.0",
     "vitest": "^3.0.5"
@@ -43,7 +49,11 @@
         "dmg",
         "zip"
       ],
-      "category": "public.app-category.developer-tools"
+      "category": "public.app-category.developer-tools",
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.inherit.plist",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
     },
     "win": {
       "target": [
@@ -62,6 +72,8 @@
     }
   },
   "dependencies": {
-    "dotenv": "^17.4.2"
+    "axios": "^1.15.0",
+    "dotenv": "^17.4.2",
+    "socket.io-client": "^4.8.3"
   }
 }
