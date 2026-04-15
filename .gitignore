@@ -1,0 +1,28 @@
+# 의존성 패키지
+node_modules/
+dist/
+dist-electron/
+release/
+
+# 환경 변수 및 설정 (절대 커밋 금지)
+.env
+.env.local
+.env.*.local
+
+# 운영체제 생성 파일
+.DS_Store
+Thumbs.db
+
+# 로그 파일
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+*.log
+
+# 빌드 결과물 및 임시 파일
+release/
+out/
+*.dmg
+*.exe
+*.AppImage

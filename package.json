@@ -1,0 +1,67 @@
+{
+  "name": "ts-electron-web-boilerplate",
+  "version": "1.0.0",
+  "description": "TypeScript + Electron + Web 통합 개발 보일러플레이트",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "electron:dev": "npm run build:electron && electron .",
+    "build:web": "vite build",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "dist": "npm run build:web && npm run build:electron && electron-builder --mac --win --linux",
+    "test": "vitest"
+  },
+  "keywords": [
+    "typescript",
+    "electron",
+    "web",
+    "cross-platform"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/dotenv": "^8.2.3",
+    "@types/node": "^22.13.4",
+    "electron": "^34.2.0",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0",
+    "vitest": "^3.0.5"
+  },
+  "build": {
+    "appId": "com.example.yourapp",
+    "productName": "MyCrossPlatformApp",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist-electron/**/*",
+      "dist/**/*"
+    ],
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.developer-tools"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "zip"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "snap"
+      ],
+      "category": "Development"
+    }
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
+  }
+}

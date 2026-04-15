@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cross-Platform App (Mac, Win, Linux, Web)</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: white;
+      text-align: center;
+    }
+    #app {
+      padding: 2rem;
+      border-radius: 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>크로스 플랫폼 앱에 오신 것을 환영합니다!</h1>
+    <p id="platform-info">플랫폼 정보 확인 중...</p>
+    <div id="status">로딩 중...</div>
+  </div>
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>
