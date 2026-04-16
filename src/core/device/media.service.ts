@@ -37,4 +37,11 @@ export class MediaService {
   public onDeviceChange(callback: () => void): void {
     navigator.mediaDevices.ondevicechange = callback;
   }
+
+  /**
+   * 스트림 사용을 중지하고 자원을 해제합니다.
+   */
+  public stopStream(stream: MediaStream): void {
+    stream.getTracks().forEach(track => track.stop());
+  }
 }

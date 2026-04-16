@@ -43,7 +43,17 @@ export class TcpClient {
    */
   public onData(callback: (data: Buffer) => void): void {
     if (this.client) {
+      this.client.removeAllListeners('data');
       this.client.on('data', callback);
+    }
+  }
+
+  /**
+   * 연결 종료 시 콜백을 등록합니다.
+   */
+  public onClose(callback: () => void): void {
+    if (this.client) {
+      this.client.on('close', callback);
     }
   }
 

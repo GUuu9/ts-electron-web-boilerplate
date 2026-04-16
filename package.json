@@ -11,6 +11,9 @@
     "build:web": "vite build",
     "build:electron": "tsc -p tsconfig.electron.json",
     "dist": "npm run build:web && npm run build:electron && electron-builder --mac --win --linux",
+    "dist:win": "npm run build:web && npm run build:electron && electron-builder --win",
+    "dist:mac": "npm run build:web && npm run build:electron && electron-builder --mac",
+    "dist:linux": "npm run build:web && npm run build:electron && electron-builder --linux",
     "test": "vitest"
   },
   "keywords": [
@@ -50,6 +53,12 @@
         "zip"
       ],
       "category": "public.app-category.developer-tools",
+      "extendInfo": {
+        "NSBluetoothAlwaysUsageDescription": "이 앱은 주변 블루투스 장치를 탐색하고 데이터를 송수신하기 위해 권한이 필요합니다.",
+        "NSBluetoothPeripheralUsageDescription": "이 앱은 주변 블루투스 장치와 통신하기 위해 권한이 필요합니다.",
+        "NSMicrophoneUsageDescription": "이 앱은 오디오 장치 테스트를 위해 마이크 접근 권한이 필요합니다.",
+        "NSCameraUsageDescription": "이 앱은 카메라 장치 테스트를 위해 카메라 접근 권한이 필요합니다."
+      },
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.inherit.plist",
       "hardenedRuntime": true,

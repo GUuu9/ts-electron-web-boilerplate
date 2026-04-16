@@ -4,14 +4,32 @@
   <dict>
     <key>com.apple.security.app-sandbox</key>
     <true/>
-    <!-- 외부 네트워크로 데이터를 보낼 때 필요한 권한 (HttpClient, Socket.io 등) -->
+    <!-- 네트워크 권한 -->
     <key>com.apple.security.network.client</key>
     <true/>
-    <!-- 외부에서 들어오는 연결을 받을 때 필요한 권한 (TCP/UDP 서버 등) -->
     <key>com.apple.security.network.server</key>
     <true/>
-    <!-- 하드웨어 자원 접근 시 필요 (예시) -->
+    
+    <!-- 하드웨어 접근 권한 (추가됨) -->
+    <key>com.apple.security.device.bluetooth</key>
+    <true/>
+    <key>com.apple.security.device.usb</key>
+    <true/>
+    <key>com.apple.security.device.audio-input</key>
+    <true/>
+    <key>com.apple.security.device.camera</key>
+    <true/>
+
+    <!-- 파일 시스템 접근 -->
     <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+
+    <!-- Hardened Runtime 필수 플래그 (안정성) -->
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+    <true/>
+    <key>com.apple.security.cs.disable-library-validation</key>
     <true/>
   </dict>
 </plist>

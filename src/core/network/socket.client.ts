@@ -46,6 +46,16 @@ export class SocketClient {
   }
 
   /**
+   * 특정 이벤트 리스너를 제거합니다.
+   * @param event 이벤트명
+   */
+  public off(event: string): void {
+    if (this.socket) {
+      this.socket.off(event);
+    }
+  }
+
+  /**
    * 연결을 해제합니다.
    */
   public disconnect(): void {

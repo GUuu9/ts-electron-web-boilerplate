@@ -1,7 +1,7 @@
-import { CalcService } from '@/shared/calc.service.js';
-import { CalcController } from '@/features/calc/calc.controller.js';
-import { HttpClient, SocketClient, TcpClient, UdpClient } from '@/core/network/index.js';
-import { BluetoothService, UsbService, MediaService } from '@/core/device/index.js';
+import { CalcService } from '../../shared/calc.service.js';
+import { CalcController } from '../../features/calc/calc.controller.js';
+import { HttpClient, SocketClient, TcpClient, UdpClient } from '../network/index.js';
+import { BluetoothService, UsbService, MediaService } from '../device/index.js';
 
 /**
  * 간단한 의존성 주입(DI) 컨테이너 클래스

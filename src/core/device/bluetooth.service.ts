@@ -13,23 +13,41 @@ export class BluetoothService {
     try {
       // filters가 있으면 filters를 사용하고, 없으면 모든 장치 허용(acceptAllDevices)을 사용합니다.
       const options: RequestDeviceOptions = filters 
-        ? { filters, optionalServices: ['battery_service'] }
-        : { acceptAllDevices: true, optionalServices: ['battery_service'] };
+        ? { filters, optionalServices: ['battery_service', 'device_information'] }
+        : { acceptAllDevices: true, optionalServices: ['battery_service', 'device_information'] };
 
       this.device = await navigator.bluetooth.requestDevice(options);
       return this.device;
     } catch (err) {
-      console.error('Bluetooth Request Device Error:', err);
-      return null;
+      // console.error('Bluetooth Request Device Error:', err);
+      throw err;
     }
   }
 
   /**
-   * 장치에 연결합니다.
+   * 장치에 연결하고 GATT 서버를 반환합니다.
    */
   public async connect(): Promise<BluetoothRemoteGATTServer | undefined> {
     if (!this.device || !this.device.gatt) return undefined;
-    return await this.device.gatt.connect();
+    try {
+      return await this.device.gatt.connect();
+    } catch (err) {
+      console.error('Bluetooth Connection Error:', err);
+      return undefined;
+    }
+  }
+
+  /**
+   * 연결된 장치에서 사용 가능한 서비스 목록을 가져옵니다.
+   */
+  public async getServices(): Promise<BluetoothRemoteGATTService[]> {
+    if (!this.device || !this.device.gatt?.connected) return [];
+    try {
+      return await this.device.gatt.getPrimaryServices();
+    } catch (err) {
+      console.error('Error fetching services:', err);
+      return [];
+    }
   }
 
   /**

@@ -11,11 +11,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "types": ["node", "web-bluetooth", "w3c-web-usb", "w3c-web-hid"],
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    }
+    "types": ["node", "web-bluetooth", "w3c-web-usb", "w3c-web-hid"]
   },
   "include": ["src/core/**/*.ts", "src/main.ts", "src/preload.ts"],
   "exclude": ["node_modules", "src/renderer/**/*"]

@@ -19,11 +19,7 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    "types": ["node", "web-bluetooth", "w3c-web-usb", "w3c-web-hid"],
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    }
+    "types": ["node", "web-bluetooth", "w3c-web-usb", "w3c-web-hid"]
   },
   "include": ["src/renderer/**/*.ts", "src/shared/**/*.ts"],
   "exclude": ["node_modules", "src/main.ts", "src/preload.ts"]

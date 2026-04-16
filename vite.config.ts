@@ -25,9 +25,4 @@ export default defineConfig({
       external: ['net', 'dgram', 'path', 'fs', 'url'],
     },
   },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-    },
-  },
 });

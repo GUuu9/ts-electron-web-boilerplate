@@ -49,10 +49,9 @@ private constructor() {
 필요한 곳에서 `container.get()`을 통해 인스턴스를 가져옵니다.
 
 ```typescript
-import { container } from '@/core/di';
+import { container } from '../core/di/index.js';
 
 const controller = container.get<MyController>('MyController');
-controller.handleRequest();
 ```
 
 ---
@@ -76,7 +75,7 @@ controller.handleRequest();
 
 ```typescript
 // src/core/di/container.ts 생성자 내 예시
-const isElectron = typeof process !== 'undefined' && process.versions && process.versions.electron;
+const isElectron = typeof process !== 'undefined' && process.versions && !!process.versions.electron;
 
 if (isElectron) {
   // Node.js 전용 모듈을 사용하는 클래스는 데스크탑 환경에서만 등록

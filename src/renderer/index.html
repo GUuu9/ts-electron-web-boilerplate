@@ -4,34 +4,85 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
-  <title>My Cross Platform App</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-      color: white;
-      text-align: center;
-    }
-    #app {
-      padding: 2rem;
-      border-radius: 1rem;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-    }
-  </style>
+  <title>Core Dashboard - My Cross Platform App</title>
+  <!-- Lucide Icons (CDN) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
   <div id="app">
-    <h1>크로스 플랫폼 앱에 오신 것을 환영합니다!</h1>
-    <p id="platform-info">플랫폼 정보 확인 중...</p>
-    <div id="status">로딩 중...</div>
+    <header>
+      <h1>Core Dashboard</h1>
+      <p class="subtitle" id="platform-status">Detecting platform...</p>
+    </header>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard-view" class="grid">
+      <div class="card" onclick="showTest('network')">
+        <i data-lucide="globe" size="48"></i>
+        <h3>Network</h3>
+        <p>HTTP, TCP, UDP, Socket.io</p>
+        <span class="badge">Desktop + Web</span>
+      </div>
+
+      <div class="card" onclick="showTest('device')">
+        <i data-lucide="cpu" size="48"></i>
+        <h3>Device Control</h3>
+        <p>Bluetooth, USB, HID, Media</p>
+        <span class="badge">Hardware Access</span>
+      </div>
+
+      <div class="card" onclick="showTest('shared')">
+        <i data-lucide="layers" size="48"></i>
+        <h3>Shared Logic</h3>
+        <p>Calculation & Pure Business Logic</p>
+        <span class="badge">Universal Code</span>
+      </div>
+
+      <div class="card" onclick="showTest('database')">
+        <i data-lucide="database" size="48"></i>
+        <h3>Database</h3>
+        <p>SQLite Local Storage</p>
+        <span class="badge">Desktop Only</span>
+      </div>
+    </div>
+
+    <!-- Test Detail View -->
+    <div id="detail-view">
+      <button class="back-btn" onclick="showDashboard()">
+        <i data-lucide="arrow-left" size="18"></i> Back to Dashboard
+      </button>
+
+      <div class="test-area">
+        <h2 id="test-title">Test Name</h2>
+        <p id="test-desc" style="color: var(--text-dim); margin-bottom: 2rem;">Description goes here.</p>
+        
+        <div id="test-content">
+          <!-- Dynamic Content -->
+        </div>
+
+        <div class="log-panel" id="log-panel">
+          > Ready to test...
+        </div>
+      </div>
+    </div>
   </div>
+
+  <!-- 장치 선택 모달 -->
+  <div id="device-picker-modal" class="modal">
+    <div class="modal-content">
+      <h3 id="modal-title">🔍 장치 탐색 중...</h3>
+      <p id="modal-desc">연결할 블루투스 장치를 선택하세요.</p>
+      <div id="device-list-container" class="device-list">
+        <!-- 장치 버튼들이 여기에 동적으로 추가됨 -->
+      </div>
+      <button class="primary" style="background: #ef4444; margin-top: 1rem;" onclick="window.deviceController.cancelScan()">Cancel</button>
+    </div>
+  </div>
+
   <script type="module" src="./src/main.ts"></script>
+  <script>
+    // Lucide 아이콘 초기화
+    lucide.createIcons();
+  </script>
 </body>
 </html>

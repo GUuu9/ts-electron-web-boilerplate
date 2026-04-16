@@ -63,14 +63,15 @@ src/
 | :--- | :--- | :--- | :--- |
 | **DI Container** | 전 플랫폼 공용 | 자체 구현 (TypeScript) | 객체 생명주기 및 의존성 주입 관리 |
 | **HttpClient** | 전 플랫폼 공용 | `axios` | REST API 통신 (HTTP/HTTPS) |
-| **SocketClient** | 전 플랫폼 공용 | `socket.io-client` | 실시간 양방향 이벤트 통신 |
-| **TcpClient** | **Desktop 전용** | `net` (Node.js 내장) | 저수준 스트림 통신 |
-| **UdpClient** | **Desktop 전용** | `dgram` (Node.js 내장) | 비연결형 패킷 통신 |
+| **SocketClient** | 전 플랫폼 공용 | `socket.io-client` | 실시간 양방향 이벤트 통신 (JSON, N회 수신 지원) |
+| **TcpClient** | **Desktop 전용** | `net` (Node.js 내장) | 저수준 스트림 통신 (IPC 브릿지 방식) |
+| **UdpClient** | **Desktop 전용** | `dgram` (Node.js 내장) | 비연결형 패킷 통신 (IPC 브릿지 방식) |
 | **Database** | **Desktop 전용** | `sqlite3` (예정) | 로컬 SQLite 데이터베이스 관리 |
 | **Route/API** | **Desktop 전용** | `express` (예정) | 로컬 서버 엔드포인트 제공 |
 | **BluetoothService** | 전 플랫폼 공용 | `Web Bluetooth API` | 블루투스 LE 장치 검색 및 통신 |
 | **UsbService** | 전 플랫폼 공용 | `Web MediaDevices API` | 전용 USB 기기, 게임패드, 커스텀 컨트롤러 연결 |
 | **MediaService** | 전 플랫폼 공용 | `WebHID API` | 마이크, 헤드셋 목록 확인 및 오디오 스트림 획득 |
+| **LoggerService** |  |  |  |
 
 ---
 
@@ -126,7 +127,7 @@ npm install
 
 ## 🏗 Dependency Injection (DI) 가이드
 
-애플리케이션의 **의존성 주입(Dependency Injection)**과 **객체 생명주기**를 중앙에서 관리하는 핵심 인프라 [DEVICE_GUIDE.md](./src/core/di/DI_GUIDE.md)
+애플리케이션의 **의존성 주입(Dependency Injection)**과 **객체 생명주기**를 중앙에서 관리하는 핵심 인프라 [DI_GUIDE.md](./src/core/di/DI_GUIDE.md)
 
 ---
 
@@ -138,7 +139,19 @@ npm install
 
 ## 🌐 Network Infra 가이드
 
-다양한 프로토콜(HTTP, TCP, UDP, Socket.io)을 통한 외부 통신을 담당하는 인프라 계층 [DEVICE_GUIDE.md](./src/core/network/NETWORK_GUIDE.md)
+다양한 프로토콜(HTTP, TCP, UDP, Socket.io)을 통한 외부 통신을 담당하는 인프라 계층 [NETWORK_GUIDE.md](./src/core/network/NETWORK_GUIDE.md)
+
+---
+
+## 🔒 OS별 권한 설정 가이드 (Permissions)
+
+macOS Sandbox, Windows 방화벽 등 운영체제별 네트워크 및 하드웨어 접근 권한 가이드 [PERMISSION_GUIDE.md](./PERMISSION_GUIDE.md)
+
+---
+
+## 🖥 Renderer Architecture 가이드
+
+Vite 기반의 렌더러 프로세스 내부 구조와 UI 레이어드 아키텍처 및 IPC 통신 원칙 [RENDERER_GUIDE.md](./src/renderer/RENDERER_GUIDE.md)
 
 ---
 

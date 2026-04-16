@@ -1,4 +1,4 @@
-import { CalcService } from '@/shared/calc.service.js';
+import { CalcService } from '../../shared/calc.service.js';
 
 
 /**

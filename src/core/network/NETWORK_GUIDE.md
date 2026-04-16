@@ -19,10 +19,11 @@
 
 ### 1. HttpClient (REST API)
 ```typescript
-import { HttpClient } from '@/core/network';
+import { HttpClient } from './http.client.js';
 
 export class MyService {
   constructor(private readonly http: HttpClient) {}
+```
 
   public async fetchData() {
     const response = await this.http.get('/users');
