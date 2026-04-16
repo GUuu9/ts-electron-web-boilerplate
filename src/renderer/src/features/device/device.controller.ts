@@ -162,7 +162,7 @@ export class DeviceController {
   private async startCameraTest(deviceId: string, label: string) {
     this.logger.log(`[Media] Camera Test: ${label}`);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: deviceId } } });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: deviceId } });
       this.initModalRefs();
       if (this.modalTitle) this.modalTitle.innerText = '📷 카메라 테스트';
       if (this.listContainer) {
