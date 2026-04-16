@@ -1,5 +1,7 @@
 import { CalcService } from '../../shared/calc.service.js';
 import { CalcController } from '../../features/calc/calc.controller.js';
+import { AuditLogger } from '../logger/audit-logger.service.js';
+import { PersistenceService } from '../persistence/persistence.service.js';
 import { HttpClient } from '../network/http.client.js';
 import { SocketClient } from '../network/socket.client.js';
 import { TcpClient } from '../network/tcp.client.js';
@@ -8,11 +10,18 @@ import { BluetoothService } from '../device/bluetooth.service.js';
 import { UsbService } from '../device/usb.service.js';
 import { MediaService } from '../device/media.service.js';
 
+/**
+ * 간단한 의존성 주입(DI) 컨테이너 클래스
+ * 메인 프로세스용 (Node.js 서비스 포함)
+ */
 export class MainDIContainer {
   private static instance: MainDIContainer;
   private readonly services = new Map<string, any>();
 
   private constructor() {
+    this.services.set('AuditLogger', new AuditLogger());
+    this.services.set('PersistenceService', new PersistenceService());
+
     this.services.set('HttpClient', new HttpClient());
     this.services.set('SocketClient', new SocketClient());
     this.services.set('TcpClient', new TcpClient());
@@ -26,11 +35,17 @@ export class MainDIContainer {
     this.services.set('CalcController', new CalcController(calcService));
   }
 
+  /**
+   * 싱글톤 인스턴스를 가져옵니다.
+   */
   public static getInstance(): MainDIContainer {
     if (!MainDIContainer.instance) MainDIContainer.instance = new MainDIContainer();
     return MainDIContainer.instance;
   }
 
+  /**
+   * 등록된 서비스나 컨트롤러를 가져옵니다.
+   */
   public get<T>(key: string): T {
     const service = this.services.get(key);
     if (!service) throw new Error(`${key}가 컨테이너에 등록되지 않았습니다.`);

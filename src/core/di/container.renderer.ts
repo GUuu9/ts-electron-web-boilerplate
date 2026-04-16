@@ -5,6 +5,7 @@ import { SocketClient } from '../network/socket.client.js';
 import { BluetoothService } from '../device/bluetooth.service.js';
 import { UsbService } from '../device/usb.service.js';
 import { MediaService } from '../device/media.service.js';
+import { DeviceWatcherService } from '../device/device-watcher.service.js';
 
 export class RendererDIContainer {
   private static instance: RendererDIContainer;
@@ -16,6 +17,7 @@ export class RendererDIContainer {
     this.services.set('BluetoothService', new BluetoothService());
     this.services.set('UsbService', new UsbService());
     this.services.set('MediaService', new MediaService());
+    this.services.set('DeviceWatcherService', new DeviceWatcherService());
 
     const calcService = new CalcService();
     this.services.set('CalcService', calcService);

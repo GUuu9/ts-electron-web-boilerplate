@@ -9,6 +9,20 @@
 | **BluetoothService** | Web Bluetooth | 블루투스 LE 장치 검색 및 통신 |
 | **UsbService** | WebUSB / WebHID | 전용 USB 기기, 게임패드, 커스텀 컨트롤러 연결 |
 | **MediaService** | MediaDevices | 마이크, 헤드셋 목록 확인 및 오디오 스트림 획득 |
+| **DeviceWatcherService** | **USB/Media Events** | **장치 연결/해제 상태 실시간 모니터링** |
+
+---
+
+## 📡 실시간 장치 모니터링 (DeviceWatcherService)
+
+`DeviceWatcherService`는 백그라운드에서 동작하며, 하드웨어 장치의 상태 변화를 실시간으로 감지합니다.
+
+- **기능**: USB 장치 연결(`connect`)/해제(`disconnect`) 및 미디어 장치 목록 변화(`devicechange`) 자동 감지.
+- **활용**: 별도의 스캔 버튼 없이도 사용자에게 장치 상태 변화를 실시간으로 알림.
+
+```typescript
+// 서비스는 컨테이너에 등록 시 자동으로 리스너가 가동됩니다.
+```
 
 ---
 

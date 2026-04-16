@@ -71,7 +71,8 @@ src/
 | **BluetoothService** | 전 플랫폼 공용 | `Web Bluetooth API` | 블루투스 LE 장치 검색 및 통신 |
 | **UsbService** | 전 플랫폼 공용 | `Web MediaDevices API` | 전용 USB 기기, 게임패드, 커스텀 컨트롤러 연결 |
 | **MediaService** | 전 플랫폼 공용 | `WebHID API` | 마이크, 헤드셋 목록 확인 및 오디오 스트림 획득 |
-| **LoggerService** |  |  |  |
+| **DeviceWatcherService** | **Desktop 전용** | `USB/Media Events` | 하드웨어 장치 연결/해제 실시간 모니터링 |
+| **PersistenceService** | **Desktop 전용** | `electron-store`, `crypto` | 암호화된 사용자 데이터 영구 저장 |
 
 ---
 

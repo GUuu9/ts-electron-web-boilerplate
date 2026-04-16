@@ -71,16 +71,31 @@ function bootstrap() {
   document.getElementById('card-shared')?.addEventListener('click', () => uiRouter.showTestDetail('shared'));
   document.getElementById('card-database')?.addEventListener('click', () => uiRouter.showTestDetail('database'));
 
-  // 5. 플랫폼 상태 업데이트
+  // 5. 플랫폼 상태 업데이트 및 데스크탑 환경 제어
   const platformStatus = document.getElementById('platform-status');
+  const isElectron = !!window.electronAPI;
+
   if (platformStatus) {
-    const isElectron = !!window.electronAPI;
     const platform = window.electronAPI ? window.electronAPI.platform : 'Web Browser';
     platformStatus.innerText = isElectron ? `Running on Desktop (${platform})` : 'Running on Web Browser';
   }
 
-  // 5. 초기 화면 설정
+  // 데스크탑 OS인 경우에만 드래그 및 리셋 방지
+  if (isElectron) {
+    // 텍스트 선택 방지
+    document.addEventListener('selectstart', (e) => e.preventDefault());
+
+    // 페이지 리셋 단축키 (Cmd+R / Ctrl+R) 방지
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+        e.preventDefault();
+      }
+    });
+  }
+
+  // 6. 초기 화면 설정
   uiRouter.showDashboard();
-}
+  }
+
 
 window.addEventListener('DOMContentLoaded', bootstrap);
