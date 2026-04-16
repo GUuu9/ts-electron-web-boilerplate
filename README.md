@@ -64,8 +64,8 @@ src/
 | **DI Container** | 전 플랫폼 공용 | 자체 구현 (TypeScript) | 객체 생명주기 및 의존성 주입 관리 |
 | **HttpClient** | 전 플랫폼 공용 | `axios` | REST API 통신 (HTTP/HTTPS) |
 | **SocketClient** | 전 플랫폼 공용 | `socket.io-client` | 실시간 양방향 이벤트 통신 (JSON, N회 수신 지원) |
-| **TcpClient** | **Desktop 전용** | `net` (Node.js 내장) | 저수준 스트림 통신 (IPC 브릿지 방식) |
-| **UdpClient** | **Desktop 전용** | `dgram` (Node.js 내장) | 비연결형 패킷 통신 (IPC 브릿지 방식) |
+| **TcpClient** | **Desktop 전용** | `net` (Node.js) | IPC 브릿지를 통한 저수준 스트림 통신 |
+| **UdpClient** | **Desktop 전용** | `dgram` (Node.js) | IPC 브릿지를 통한 비연결형 패킷 통신 |
 | **Database** | **Desktop 전용** | `sqlite3` (예정) | 로컬 SQLite 데이터베이스 관리 |
 | **Route/API** | **Desktop 전용** | `express` (예정) | 로컬 서버 엔드포인트 제공 |
 | **BluetoothService** | 전 플랫폼 공용 | `Web Bluetooth API` | 블루투스 LE 장치 검색 및 통신 |

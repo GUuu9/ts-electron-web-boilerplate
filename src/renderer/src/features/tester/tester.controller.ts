@@ -1,7 +1,9 @@
-import { container } from '../../../../core/di/index.js';
+import { container } from '../../../../core/di/container.renderer.js';
 import { CalcController } from '../../../../features/calc/calc.controller.js';
-import type { BluetoothService, UsbService, MediaService } from '../../../../core/device/index.js';
-import type { HttpClient } from '../../../../core/network/index.js';
+import type { BluetoothService } from '../../../../core/device/bluetooth.service.js';
+import type { UsbService } from '../../../../core/device/usb.service.js';
+import type { MediaService } from '../../../../core/device/media.service.js';
+import type { HttpClient } from '../../../../core/network/http.client.js';
 import type { UILoggerService } from '../../core/ui-logger.service.js';
 
 export class TesterController {

@@ -10,9 +10,16 @@
 src/renderer/src/
 ├── core/                # UI 인프라 (라우터, 로거, 공통 서비스)
 ├── features/            # 도메인 기반 UI 기능 컨트롤러
-├── styles/              # 분리된 CSS 스타일 시트 (main.css, components.css)
-└── main.ts              # 진입점 및 부트스트래핑 (DI 조립, 스타일 임포트)
+├── styles/              # 분리된 CSS 스타일 시트
+└── main.ts              # 진입점 및 렌더러 전용 DI 컨테이너 조립
 ```
+
+---
+
+## 🛠 아키텍처 규칙
+
+1. **배럴 파일(`index.ts`) 금지**: `src/core` 하위에서는 의존성 순환 및 불필요한 모듈 로딩을 방지하기 위해 배럴 파일을 사용하지 않으며, 명시적으로 개별 파일을 임포트합니다.
+2. **환경 분리 (DI Container)**: 렌더러는 Node.js 전용 모듈(`net`, `dgram`)을 직접 참조할 수 없습니다. 따라서 `container.renderer.ts`는 UI에서 사용 가능한 서비스들만 등록/관리하며, 메인 프로세스 전용 서비스는 IPC 브릿지를 통해서만 간접 호출합니다.
 
 ---
 

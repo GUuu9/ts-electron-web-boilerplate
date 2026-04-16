@@ -40,6 +40,11 @@
 - **경로 별칭 제거**: `tsconfig` 및 `vite.config`에서 `@/` 별칭 설정을 삭제하여 표준 모듈 시스템과의 호환성 강화.
 - **상대 경로 전환**: 소스 코드 내 모든 임포트 문을 표준 상대 경로(`./`, `../`)로 일괄 변환 및 가이드 문서 업데이트.
 
+### 9. 아키텍처 안정화 (Architecture Hardening)
+- **DI 컨테이너 이원화**: `container.ts`를 `container.main.ts`와 `container.renderer.ts`로 분리하여 플랫폼 의존성(Node.js vs Browser) 문제를 근본적으로 해결.
+- **배럴 파일 제거**: `src/core/` 하위의 모든 `index.ts`를 제거하고 명시적 임포트(Explicit Import) 방식으로 전환하여 의존성 순환 및 불필요한 모듈 로딩 방지.
+- **모듈 로드 에러 해결**: 렌더러가 Node.js 전용 모듈(`net`, `dgram`)을 참조하던 문제를 완벽히 차단하여 빌드 후 실행 파일 안정성 확보.
+
 ---
 
 ## 📅 2026년 4월 15일 (수)

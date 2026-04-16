@@ -22,7 +22,7 @@
     "web",
     "cross-platform"
   ],
-  "author": "",
+  "author": "Developer <developer@example.com>",
   "license": "ISC",
   "devDependencies": {
     "@types/dotenv": "^8.2.3",
@@ -52,6 +52,7 @@
         "dmg",
         "zip"
       ],
+      "identity": null,
       "category": "public.app-category.developer-tools",
       "extendInfo": {
         "NSBluetoothAlwaysUsageDescription": "이 앱은 주변 블루투스 장치를 탐색하고 데이터를 송수신하기 위해 권한이 필요합니다.",
@@ -61,7 +62,7 @@
       },
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.inherit.plist",
-      "hardenedRuntime": true,
+      "hardenedRuntime": false,
       "gatekeeperAssess": false
     },
     "win": {

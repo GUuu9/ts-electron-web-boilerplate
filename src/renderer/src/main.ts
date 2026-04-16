@@ -65,7 +65,13 @@ function bootstrap() {
     uiRouter.showTestDetail(type);
   };
 
-  // 4. 플랫폼 상태 업데이트
+  // 4. 이벤트 바인딩
+  document.getElementById('card-network')?.addEventListener('click', () => uiRouter.showTestDetail('network'));
+  document.getElementById('card-device')?.addEventListener('click', () => uiRouter.showTestDetail('device'));
+  document.getElementById('card-shared')?.addEventListener('click', () => uiRouter.showTestDetail('shared'));
+  document.getElementById('card-database')?.addEventListener('click', () => uiRouter.showTestDetail('database'));
+
+  // 5. 플랫폼 상태 업데이트
   const platformStatus = document.getElementById('platform-status');
   if (platformStatus) {
     const isElectron = !!window.electronAPI;

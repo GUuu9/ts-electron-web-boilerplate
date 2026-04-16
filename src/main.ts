@@ -2,14 +2,15 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import 'dotenv/config';
-import { TcpClient } from './core/network/tcp.client.js';
-import { UdpClient } from './core/network/udp.client.js';
+import { container } from './core/di/container.main.js';
+import type { TcpClient } from './core/network/tcp.client.js';
+import type { UdpClient } from './core/network/udp.client.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const tcpClient = new TcpClient();
-const udpClient = new UdpClient();
+const tcpClient = container.get<TcpClient>('TcpClient');
+const udpClient = container.get<UdpClient>('UdpClient');
 
 let mainWindow: BrowserWindow | null = null;
 let selectBluetoothCallback: ((id: string) => void) | null = null;
