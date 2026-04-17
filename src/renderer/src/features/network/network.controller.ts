@@ -100,16 +100,9 @@ export class NetworkController {
       } catch (e) { this.logger.log(`[Socket Emit] JSON Parse failed`, true); }
     }
     this.socket.emit(event, finalData);
-    }
+  }
 
-    public testSocketListen(): void {
-    const event = (document.getElementById('socket-listen-event') as HTMLInputElement)?.value || 'response';
-    const maxCount = parseInt((document.getElementById('socket-listen-count') as HTMLInputElement)?.value || '1');
-    this.socket.listen(event, maxCount);
-    }
-
-    public testSocketDisconnect(): void {
-
+  public testSocketListen(): void {
     const event = (document.getElementById('socket-listen-event') as HTMLInputElement)?.value || 'response';
     const maxCount = parseInt((document.getElementById('socket-listen-count') as HTMLInputElement)?.value || '1');
     this.socket.listen(event, maxCount);
