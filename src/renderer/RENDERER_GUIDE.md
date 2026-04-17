@@ -16,10 +16,30 @@ src/renderer/src/
 
 ---
 
-## 🛠 아키텍처 규칙
+## 🛠 아키텍처 및 리팩토링 규칙
 
 1. **배럴 파일(`index.ts`) 금지**: `src/core` 하위에서는 의존성 순환 및 불필요한 모듈 로딩을 방지하기 위해 배럴 파일을 사용하지 않으며, 명시적으로 개별 파일을 임포트합니다.
-2. **환경 분리 (DI Container)**: 렌더러는 Node.js 전용 모듈(`net`, `dgram`)을 직접 참조할 수 없습니다. 따라서 `container.renderer.ts`는 UI에서 사용 가능한 서비스들만 등록/관리하며, 메인 프로세스 전용 서비스는 IPC 브릿지를 통해서만 간접 호출합니다.
+2. **환경 분리 (DI Container)**: 렌더러는 Node.js 전용 모듈(`net`, `dgram`)을 직접 참조할 수 없습니다. 
+3. **단일 책임 원칙 (SRP) 및 허브-위임 (Hub-Delegate) 패턴**: 
+   - **허브 컨트롤러 (Hub Controller)**: 화면(View) 단위의 진입점입니다. DOM 요소 접근, 입력값 추출, 공통 UI(모달, 로딩바 등) 관리 및 세부 컨트롤러로의 업무 위임을 담당합니다.
+   - **세부 컨트롤러 (Sub-domain Controller)**: 특정 도메인(예: Bluetooth, Http)의 순수 비즈니스 로직을 담당합니다. UI 요소에 의존하지 않으며, 주입받은 Core 서비스를 호출하여 기능을 수행합니다.
+   - **이점**: UI 변경 시 허브만 수정하면 되고, 비즈니스 로직 변경 시 세부 컨트롤러만 수정하면 되므로 유지보수성이 극대화됩니다.
+
+---
+
+## 📐 컨트롤러 설계 원칙 (Hub-Delegate Flow)
+
+새로운 대단위 기능(예: Database)을 추가할 때는 다음 흐름을 권장합니다.
+
+1.  **Flow**: `HTML Event` → `HubController` (입력값 추출/UI 제어) → `SubController` (로직 수행) → `Core Service`
+2.  **의존성 주입 (DI)**: `main.ts`에서 하위 컨트롤러를 먼저 생성하고, 이를 허브 컨트롤러의 생성자로 주입합니다.
+
+### 💡 실제 적용 사례: Shared Data Converter
+- **Shared Logic**: `src/shared/converter.service.ts` (플랫폼 독립적)
+- **UI Controller**: `src/renderer/src/features/shared/converter.controller.ts` (UI 연동)
+- **Hub**: `window.sharedController` (사용자 입력 추출 및 서비스 결과 출력)
+
+---
 
 ---
 

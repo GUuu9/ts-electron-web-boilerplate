@@ -1,33 +1,24 @@
-import { container } from '../../../../core/di/container.renderer.js';
-import type { BluetoothService } from '../../../../core/device/bluetooth.service.js';
-import type { UsbService } from '../../../../core/device/usb.service.js';
-import type { MediaService } from '../../../../core/device/media.service.js';
 import type { UILoggerService } from '../../core/ui-logger.service.js';
-
-const SERVICE_NAMES: Record<string, string> = {
-  '0000180d': 'Heart Rate',
-  '0000180f': 'Battery Service',
-  '00001812': 'HID (Input Device)'
-};
+import { BluetoothController } from './bluetooth.controller.js';
+import { UsbController } from './usb.controller.js';
+import { MediaController } from './media.controller.ts';
 
 export class DeviceController {
   private modal: HTMLElement | null = null;
   private listContainer: HTMLElement | null = null;
   private modalTitle: HTMLElement | null = null;
-  
-  private activeStream: MediaStream | null = null;
-  private audioInterval: any = null;
 
-  constructor(private readonly logger: UILoggerService) {}
+  constructor(
+    private readonly logger: UILoggerService,
+    private readonly bluetooth: BluetoothController,
+    private readonly usb: UsbController,
+    private readonly media: MediaController
+  ) {}
 
   private initModalRefs() {
     this.modal = document.getElementById('device-picker-modal');
     this.listContainer = document.getElementById('device-list-container');
     this.modalTitle = document.getElementById('modal-title');
-  }
-
-  private get electronAPI() {
-    return (window as any).electronAPI;
   }
 
   private renderDeviceList(list: any[], type: 'bt' | 'usb' | 'hid') {
@@ -38,9 +29,10 @@ export class DeviceController {
       item.className = 'device-item';
       item.innerHTML = `<div class="device-info"><span>${device.deviceName}</span><small>${device.deviceId}</small></div>`;
       item.onclick = () => {
-        if (type === 'bt') this.electronAPI.devices.selectBluetooth(device.deviceId);
-        else if (type === 'usb') this.electronAPI.devices.selectUsb(device.deviceId);
-        else if (type === 'hid') this.electronAPI.devices.selectHid(device.deviceId);
+        const api = (window as any).electronAPI;
+        if (type === 'bt') api.devices.selectBluetooth(device.deviceId);
+        else if (type === 'usb') api.devices.selectUsb(device.deviceId);
+        else if (type === 'hid') api.devices.selectHid(device.deviceId);
         if (this.modal) this.modal.style.display = 'none';
       };
       this.listContainer?.appendChild(item);
@@ -51,18 +43,13 @@ export class DeviceController {
     this.initModalRefs();
     if (this.modalTitle) this.modalTitle.innerText = '🔍 Bluetooth 장치 탐색';
     if (this.modal) this.modal.style.display = 'flex';
+    
     try {
-      if (this.electronAPI?.devices) this.electronAPI.devices.onBluetoothList((list: any[]) => this.renderDeviceList(list, 'bt'));
-      const bt = container.get<BluetoothService>('BluetoothService');
-      const device = await bt.requestDevice();
-      if (!device) return;
-      const server = await bt.connect();
-      if (server?.connected) {
-        this.logger.log(`[BT] Connected to ${device.name}`);
-        const services = await bt.getServices();
-        services.forEach(s => this.logger.log(`• Service: ${SERVICE_NAMES[s.uuid.substring(0, 8)] || 'Custom'}`));
-      }
-    } catch (err: any) {
+      await this.bluetooth.testBluetooth(
+        (list) => this.renderDeviceList(list, 'bt'),
+        () => { if (this.modal) this.modal.style.display = 'none'; }
+      );
+    } catch (err) {
       this.cancelScan();
     }
   }
@@ -71,25 +58,36 @@ export class DeviceController {
     this.initModalRefs();
     if (this.modalTitle) this.modalTitle.innerText = '🔍 USB 장치 탐색';
     if (this.modal) this.modal.style.display = 'flex';
+    
     try {
-      if (this.electronAPI?.devices) this.electronAPI.devices.onUsbList((list: any[]) => this.renderDeviceList(list, 'usb'));
-      await container.get<UsbService>('UsbService').requestUsbDevice();
-    } catch (err) { this.cancelScan(); }
+      await this.usb.testUsb(
+        (list) => this.renderDeviceList(list, 'usb'),
+        () => { if (this.modal) this.modal.style.display = 'none'; }
+      );
+    } catch (err) {
+      this.cancelScan();
+    }
   }
 
   public async testHid() {
     this.initModalRefs();
     if (this.modalTitle) this.modalTitle.innerText = '🔍 HID 장치 탐색';
     if (this.modal) this.modal.style.display = 'flex';
+    
     try {
-      if (this.electronAPI?.devices) this.electronAPI.devices.onHidList((list: any[]) => this.renderDeviceList(list, 'hid'));
-      await container.get<UsbService>('UsbService').requestHidDevice();
-    } catch (err) { this.cancelScan(); }
+      await this.usb.testHid(
+        (list) => this.renderDeviceList(list, 'hid'),
+        () => { if (this.modal) this.modal.style.display = 'none'; }
+      );
+    } catch (err) {
+      this.cancelScan();
+    }
   }
 
   public cancelScan() {
     if (this.modal) this.modal.style.display = 'none';
-    if (this.electronAPI?.devices) this.electronAPI.devices.cancelSelect();
+    this.bluetooth.cancelScan();
+    this.usb.cancelScan();
   }
 
   public async testMedia(): Promise<void> {
@@ -101,11 +99,7 @@ export class DeviceController {
     };
 
     try {
-      const media = container.get<MediaService>('MediaService');
-      const tempStream = await media.getAudioStream();
-      if (tempStream) media.stopStream(tempStream);
-
-      const devices = await media.enumerateDevices();
+      const devices = await this.media.enumerateDevices();
       const listArea = document.getElementById('media-list');
       if (!listArea) return;
       listArea.innerHTML = '';
@@ -131,9 +125,9 @@ export class DeviceController {
 
         item.querySelector('.test-btn')?.addEventListener('click', (e) => {
           e.stopPropagation();
-          if (d.kind === 'audioinput') this.startMicrophoneTest(d.deviceId, label);
-          else if (d.kind === 'videoinput') this.startCameraTest(d.deviceId, label);
-          else if (d.kind === 'audiooutput') this.startSpeakerTest(d.deviceId, label);
+          if (d.kind === 'audioinput') this.media.startMicrophoneTest(d.deviceId, label);
+          else if (d.kind === 'videoinput') this.handleCameraTest(d.deviceId, label);
+          else if (d.kind === 'audiooutput') this.media.startSpeakerTest(d.deviceId, label);
         });
 
         item.querySelector('.set-btn')?.addEventListener('click', (e) => {
@@ -146,13 +140,13 @@ export class DeviceController {
 
         listArea.appendChild(item);
       });
-    } catch (err: any) { this.logger.log(`Media Error: ${err.message}`, true); }
+    } catch (err: any) {
+      this.logger.log(`Media Error: ${err.message}`, true);
+    }
   }
 
-  private async startCameraTest(deviceId: string, label: string) {
-    this.logger.log(`[Media] Camera Test: ${label}`);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: deviceId } });
+  private async handleCameraTest(deviceId: string, label: string) {
+    await this.media.startCameraTest(deviceId, label, (stream) => {
       this.initModalRefs();
       if (this.modalTitle) this.modalTitle.innerText = '📷 카메라 테스트';
       if (this.listContainer) {
@@ -161,51 +155,10 @@ export class DeviceController {
         video.srcObject = stream;
       }
       if (this.modal) this.modal.style.display = 'flex';
+      
       setTimeout(() => {
-        stream.getTracks().forEach(t => t.stop());
         if (this.modal) this.modal.style.display = 'none';
-        this.logger.log(`[Media] Camera test ended.`);
       }, 5000);
-    } catch (e: any) { this.logger.log(`Camera Test Error: ${e.message}`, true); }
-  }
-
-  private async startSpeakerTest(deviceId: string, label: string) {
-    this.logger.log(`[Media] Speaker Test (Beep): ${label}`);
-    try {
-      const audio = new Audio('https://www.soundjay.com/buttons/beep-01a.mp3');
-      if ((audio as any).setSinkId) await (audio as any).setSinkId(deviceId);
-      audio.play();
-      this.logger.log(`[Media] Playing test sound to: ${label}`);
-    } catch (e: any) { this.logger.log(`Speaker Test Error: ${e.message}`, true); }
-  }
-
-  private async startMicrophoneTest(deviceId: string, label: string) {
-    this.stopMicrophoneTest();
-    this.logger.log(`[Media] Mic Test: ${label}`);
-    try {
-      const stream = await container.get<MediaService>('MediaService').getAudioStream(deviceId);
-      if (!stream) return;
-      this.activeStream = stream;
-      const audioContext = new AudioContext();
-      const analyser = audioContext.createAnalyser();
-      audioContext.createMediaStreamSource(stream).connect(analyser);
-      analyser.fftSize = 64;
-      const dataArray = new Uint8Array(analyser.frequencyBinCount);
-      this.audioInterval = setInterval(() => {
-        analyser.getByteFrequencyData(dataArray);
-        const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-        if (average > 2) console.log(`[Mic Level] ${'█'.repeat(Math.round(average / 5))}`);
-      }, 100);
-      setTimeout(() => this.stopMicrophoneTest(), 5000);
-    } catch (err: any) { this.logger.log(`Mic Test Error: ${err.message}`, true); }
-  }
-
-  private stopMicrophoneTest() {
-    if (this.audioInterval) clearInterval(this.audioInterval);
-    if (this.activeStream) {
-      container.get<MediaService>('MediaService').stopStream(this.activeStream);
-      this.activeStream = null;
-      this.logger.log(`[Media] Mic test ended.`);
-    }
+    });
   }
 }

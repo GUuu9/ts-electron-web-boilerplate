@@ -21,15 +21,36 @@
 ### 2. 폴더 구조 가이드
 ```text
 src/
-├── core/             # 앱의 핵심 인프라 (DB, DI, Network, Route)
-├── features/         # 도메인 기반 기능 모듈 (회원가입, 게시판 등)
-├── shared/           # 플랫폼 공용 서비스 및 유틸리티 (비즈니스 로직)
-├── renderer/         # 프론트엔드 UI 소스 (Vite 기반)
-│   ├── public/       # 정적 자산
-│   └── src/          # UI 스크립트 및 컴포넌트
-├── main.ts           # Electron 메인 프로세스 (데스크탑 진입점)
-└── preload.ts        # Electron 보안 브릿지 (API 노출)
+├── core/             # [Main] 앱의 핵심 인프라 (TCP/UDP/Socket 서버, DB, DI, Logger)
+├── features/         # [Main] 도메인 기반 백엔드 로직 (OS 수준의 서비스 처리)
+├── shared/           # [Shared] 플랫폼 공용 비즈니스 로직 및 타입 정의
+├── renderer/         # [Renderer] 프론트엔드 UI 소스
+│   ├── public/       # 정적 자산 (Favicon 등)
+│   ├── src/          # UI 소스 코드
+│   │   ├── core/     # [Renderer] UI 인프라 (Router, UI Logger)
+│   │   ├── features/ # [Renderer] UI Hub & Sub 컨트롤러 (SRP 적용)
+│   │   ├── styles/   # 글로벌 및 컴포넌트 CSS 스타일
+│   │   └── main.ts   # Renderer 진입점 및 의존성 주입(DI) 조립
+│   └── index.html    # 앱의 메인 HTML 템플릿
+├── main.ts           # Electron 메인 프로세스 진입점 (창 관리 및 IPC 핸들러)
+└── preload.ts        # 보안 브릿지 (Main-Renderer 간 안전한 API 노출)
 ```
+
+### 💡 프로세스별 구조 이해 (Main vs Renderer)
+이 프로젝트는 **Main(Node.js)**과 **Renderer(Browser)** 프로세스가 독립적인 앱처럼 동작하며, 각각 동일한 **Layered Architecture** 원칙을 적용하고 있습니다.
+
+- **`src/` 하위의 `core`, `features`**:
+  - **환경**: Node.js
+  - **역할**: 파일 시스템, 하드웨어 저수준 제어, 서버 소켓 운영 등 **OS 자원 관리**가 핵심입니다.
+  - **특징**: 브라우저 API를 사용할 수 없으며, 성능과 보안이 중요한 로직을 담당합니다.
+
+- **`src/renderer/src/` 하위의 `core`, `features`**:
+  - **환경**: Web Browser (Chromium)
+  - **역할**: 사용자 인터랙션, 화면 전환, 데이터 입력 폼 처리 등 **UI/UX 관리**가 핵심입니다.
+  - **특징**: Node.js API에 직접 접근할 수 없으며(보안상 금지), 필요 시 `preload.ts`를 통한 IPC 통신으로 Main 프로세스에 작업을 요청합니다.
+
+- **`src/shared/`**:
+  - 계산 로직, 유효성 검사, 공통 인터페이스 등 **환경에 의존하지 않는 순수 비즈니스 로직**을 담습니다. 두 프로세스 모두에서 안전하게 임포트하여 중복 코드를 방지합니다.
 
 ---
 
@@ -71,11 +92,13 @@ src/
 | :--- | :--- | :--- | :--- |
 | **DI Container** | 전 플랫폼 공용 | 자체 구현 (TypeScript) | 객체 생명주기 및 의존성 주입 관리 |
 | **HttpClient** | 전 플랫폼 공용 | `axios` | REST API 통신 (HTTP/HTTPS) |
-| **SocketClient** | 전 플랫폼 공용 | `socket.io-client` | 실시간 양방향 이벤트 통신 (JSON, N회 수신 지원) |
+| **SocketClient** | 전 플랫폼 공용 | `socket.io-client` | 실시간 양방향 이벤트 통신 (Client) |
+| **SocketServer** | **Desktop 전용** | `socket.io` | 로컬 실시간 통신 서버 운영 |
 | **TcpClient** | **Desktop 전용** | `net` (Node.js) | IPC 브릿지를 통한 저수준 스트림 통신 |
-| **UdpClient** | **Desktop 전용** | `dgram` (Node.js) | IPC 브릿지를 통한 비연결형 패킷 통신 |
+| **TcpServer** | **Desktop 전용** | `net` (Node.js) | 멀티 클라이언트 접속 가능한 TCP 서버 |
+| **UdpClient** | **Desktop 전용** | `dgram` (Node.js) | 비연결형 패킷 통신 (Bind/Unbind 지원) |
+| **ConverterService**| 전 플랫폼 공용 | 순수 TS | 데이터 변환 (Hex 변환 등 공통 로직) |
 | **Database** | **Desktop 전용** | `sqlite3` (예정) | 로컬 SQLite 데이터베이스 관리 |
-| **Route/API** | **Desktop 전용** | `express` (예정) | 로컬 서버 엔드포인트 제공 |
 | **BluetoothService** | 전 플랫폼 공용 | `Web Bluetooth API` | 블루투스 LE 장치 검색 및 통신 |
 | **UsbService** | 전 플랫폼 공용 | `Web MediaDevices API` | 전용 USB 기기, 게임패드, 커스텀 컨트롤러 연결 |
 | **MediaService** | 전 플랫폼 공용 | `WebHID API` | 마이크, 헤드셋 목록 확인 및 오디오 스트림 획득 |

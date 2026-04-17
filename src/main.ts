@@ -3,13 +3,17 @@ import * as path from 'path';
 import { fileURLToPath } from 'url';
 import 'dotenv/config';
 import { container } from './core/di/container.main.js';
+import type { SocketServer } from './core/network/socket.server.js';
 import type { TcpClient } from './core/network/tcp.client.js';
+import type { TcpServer } from './core/network/tcp.server.js';
 import type { UdpClient } from './core/network/udp.client.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const tcpClient = container.get<TcpClient>('TcpClient');
+const tcpServer = container.get<TcpServer>('TcpServer');
+const socketServer = container.get<SocketServer>('SocketServer');
 const udpClient = container.get<UdpClient>('UdpClient');
 
 let mainWindow: BrowserWindow | null = null;
@@ -97,6 +101,42 @@ function setupIpcHandlers() {
   ipcMain.on('tcp-send', (_, msg) => tcpClient.send(msg));
   ipcMain.on('tcp-disconnect', () => tcpClient.disconnect());
 
+  // --- TCP Server ---
+  ipcMain.handle('tcp-server-listen', async (_, port: number) => {
+    try {
+      await tcpServer.listen(
+        port,
+        (clientId, data) => mainWindow?.webContents.send('tcp-server-data', { clientId, data: data.toString() }),
+        (msg) => mainWindow?.webContents.send('tcp-server-status', msg)
+      );
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    }
+  });
+  ipcMain.on('tcp-server-send', (_, clientId, msg) => tcpServer.send(clientId, msg));
+  ipcMain.on('tcp-server-broadcast', (_, msg) => tcpServer.broadcast(msg));
+  ipcMain.on('tcp-server-close', () => tcpServer.close());
+  ipcMain.handle('tcp-server-clients', () => tcpServer.getConnectedClients());
+
+  // --- Socket.io Server ---
+  ipcMain.handle('socket-server-listen', async (_, port: number) => {
+    try {
+      await socketServer.listen(
+        port,
+        (clientId, event, data) => mainWindow?.webContents.send('socket-server-data', { clientId, event, data: JSON.stringify(data) }),
+        (msg) => mainWindow?.webContents.send('socket-server-status', msg)
+      );
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message };
+    }
+  });
+  ipcMain.on('socket-server-emit', (_, clientId, event, data) => socketServer.emit(clientId, event, data));
+  ipcMain.on('socket-server-broadcast', (_, event, data) => socketServer.broadcast(event, data));
+  ipcMain.on('socket-server-close', () => socketServer.close());
+  ipcMain.handle('socket-server-clients', () => socketServer.getConnectedClients());
+
   ipcMain.handle('udp-bind', async (_event, port: number) => {
     try {
       udpClient.bind(port);
@@ -117,6 +157,8 @@ function setupIpcHandlers() {
       return { success: false, error: err.message };
     }
   });
+
+  ipcMain.on('udp-close', () => udpClient.close());
 
   ipcMain.on('bt-select-device', (_, id) => { if (selectBluetoothCallback) { selectBluetoothCallback(id); selectBluetoothCallback = null; }});
   ipcMain.on('usb-select-device', (_, id) => { if (selectUsbCallback) { selectUsbCallback(id); selectUsbCallback = null; }});

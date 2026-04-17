@@ -85,6 +85,8 @@
   color: #10b981;
   white-space: pre-wrap;
   text-align: left;
+  user-select: text; /* 텍스트 선택 허용 */
+  cursor: text;      /* 텍스트 커서 표시 */
 }
 
 .log-input-area {

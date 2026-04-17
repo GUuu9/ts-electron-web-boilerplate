@@ -7,45 +7,44 @@
 | 클라이언트 | 프로토콜 | 주요 용도 | 비고 |
 | :--- | :--- | :--- | :--- |
 | **HttpClient** | HTTP/HTTPS | REST API 호출, JSON 데이터 송수신 | `axios` 기반 |
-| **TcpClient** | TCP | 저수준 스트림 통신, 안정적 데이터 전송 | Node.js 전용 |
-| **UdpClient** | UDP | 비연결형 빠른 패킷 전송, 실시간성 중요 작업 | Node.js 전용 |
-| **SocketClient** | Socket.io | 실시간 양방향 이벤트 통신, 알림, 채팅 등 | `socket.io-client` 기반 |
+| **TcpClient** | TCP (Client) | 저수준 스트림 통신, 안정적 데이터 전송 | Node.js 전용 |
+| **TcpServer** | TCP (Server) | 특정 포트 리슨, 멀티 클라이언트 관리 | **신규 추가** |
+| **UdpClient** | UDP | 비연결형 빠른 패킷 전송 (Bind/Unbind 지원) | **해제 기능 추가** |
+| **SocketClient** | Socket.io (C) | 실시간 양방향 이벤트 통신 (Client) | `socket.io-client` |
+| **SocketServer** | Socket.io (S) | 실시간 통신 서버 운영 (Broadcast 지원) | **신규 추가** |
 
 ---
 
 ## 🚀 사용 방법 (How to use)
 
-모든 클라이언트는 DI 컨테이너에 등록되어 있으므로 필요한 서비스의 생성자에서 주입받아 사용합니다.
-
-### 1. HttpClient (REST API)
-```typescript
-import { HttpClient } from './http.client.js';
-
-export class MyService {
-  constructor(private readonly http: HttpClient) {}
-```
-
-  public async fetchData() {
-    const response = await this.http.get('/users');
-    return response.data;
-  }
-}
-```
-
-### 2. TcpClient (TCP)
+### 1. TCP Server (서버 운영)
 *⚠️ Node.js 환경(Main Process)에서만 작동합니다.*
 ```typescript
-const tcp = container.get<TcpClient>('TcpClient');
-await tcp.connect('127.0.0.1', 8080);
-tcp.send('Hello Server');
-tcp.onData((data) => console.log('Received:', data.toString()));
+const tcpServer = container.get<TcpServer>('TcpServer');
+await tcpServer.listen(8888, (clientId, data) => {
+  console.log(`From ${clientId}:`, data.toString());
+});
+tcpServer.broadcast('Hello All Clients!');
 ```
 
-### 3. UdpClient (UDP)
+### 2. Socket.io Server (실시간 서버)
+*⚠️ Node.js 환경(Main Process)에서만 작동합니다.*
+```typescript
+const socketServer = container.get<SocketServer>('SocketServer');
+await socketServer.listen(3000, (clientId, event, data) => {
+  console.log(`Event [${event}] from ${clientId}:`, data);
+});
+socketServer.broadcast('notice', { msg: 'Welcome!' });
+```
+
+### 3. UDP Bind & Close
 ```typescript
 const udp = container.get<UdpClient>('UdpClient');
-udp.send('Fast Message', 5000, '127.0.0.1');
-udp.onMessage((msg, rinfo) => console.log(`From ${rinfo.address}: ${msg}`));
+udp.bind(5001); // 수신 시작
+// ...
+udp.close(); // 소켓 닫기 및 포트 해제
+```
+
 ```
 
 ### 4. SocketClient (Real-time)
