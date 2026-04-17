@@ -41,13 +41,31 @@
 - **상대 경로 전환**: 소스 코드 내 모든 임포트 문을 표준 상대 경로(`./`, `../`)로 일괄 변환 및 가이드 문서 업데이트.
 
 ### 9. 아키텍처 안정화 (Architecture Hardening)
-- **DI 컨테이너 이원화**: `container.ts`를 `container.main.ts`와 `container.renderer.ts`로 분리하여 플랫폼 의존성(Node.js vs Browser) 문제를 근본적으로 해결.
-- **배럴 파일 제거**: `src/core/` 하위의 모든 `index.ts`를 제거하고 명시적 임포트(Explicit Import) 방식으로 전환하여 의존성 순환 및 불필요한 모듈 로딩 방지.
-- **모듈 로드 에러 해결**: 렌더러가 Node.js 전용 모듈(`net`, `dgram`)을 참조하던 문제를 완벽히 차단하여 빌드 후 실행 파일 안정성 확보.
+- **DI 컨테이너 이원화**: `container.main.ts`와 `container.renderer.ts`로 분리하여 플랫폼 의존성 문제를 근본적으로 해결.
+  ```typescript
+  this.services.set('AuditLogger', new AuditLogger());
+  ```
+- **배럴 파일 제거**: `src/core/` 하위의 모든 `index.ts`를 제거하고 명시적 임포트(Explicit Import) 방식으로 전환.
 
 ### 10. Audit Logger 서비스 구현
-- **AuditLogger 도입**: 기존 로깅 서비스를 대체하는 하드웨어 제어 및 동작 기록 전용 서비스 구현.
-- **파일 기록**: 하드웨어 제어 이력 및 주요 동작을 `audit.log` 파일에 기록하여 추적성 확보.
+- **동작 기록 시스템**: 하드웨어 제어 및 주요 동작을 `audit.log`에 일반 텍스트로 기록.
+  ```typescript
+  audit.record('USB Device Connected: My Keyboard');
+  ```
+
+### 11. 데이터 보안 저장 (Persistence Service)
+- **AES-256 암호화**: `electron-store`와 `crypto`를 결합하여 사용자 데이터를 암호화하여 저장.
+  ```typescript
+  db.set('user-progress', { level: 10 });
+  ```
+
+### 12. 데스크탑 환경 최적화
+- **사용자 제어 차단**: 데스크탑 환경에서만 텍스트 드래그 및 `Cmd+R` 새로고침 방지.
+  ```typescript
+  if (isElectron) {
+    document.addEventListener('selectstart', (e) => e.preventDefault());
+  }
+  ```
 
 ---
 

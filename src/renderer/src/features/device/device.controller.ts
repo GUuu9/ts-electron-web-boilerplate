@@ -92,13 +92,8 @@ export class DeviceController {
     if (this.electronAPI?.devices) this.electronAPI.devices.cancelSelect();
   }
 
-  /**
-   * 미디어 장치 통합 관리 (마이크, 카메라, 스피커)
-   */
   public async testMedia(): Promise<void> {
     this.logger.log('[Media] Discovering all devices...');
-    
-    // 각 유형별 저장된 기본 ID 가져오기
     const defaults = {
       audioinput: localStorage.getItem('default-mic-id'),
       videoinput: localStorage.getItem('default-cam-id'),
@@ -107,8 +102,6 @@ export class DeviceController {
 
     try {
       const media = container.get<MediaService>('MediaService');
-      
-      // 권한 획득 (Label 노출용)
       const tempStream = await media.getAudioStream();
       if (tempStream) media.stopStream(tempStream);
 
@@ -136,7 +129,6 @@ export class DeviceController {
           </div>
         `;
 
-        // [Test] 버튼 클릭
         item.querySelector('.test-btn')?.addEventListener('click', (e) => {
           e.stopPropagation();
           if (d.kind === 'audioinput') this.startMicrophoneTest(d.deviceId, label);
@@ -144,7 +136,6 @@ export class DeviceController {
           else if (d.kind === 'audiooutput') this.startSpeakerTest(d.deviceId, label);
         });
 
-        // [Default] 버튼 클릭
         item.querySelector('.set-btn')?.addEventListener('click', (e) => {
           e.stopPropagation();
           const storageKey = d.kind === 'audioinput' ? 'default-mic-id' : d.kind === 'videoinput' ? 'default-cam-id' : 'default-speaker-id';
@@ -158,7 +149,6 @@ export class DeviceController {
     } catch (err: any) { this.logger.log(`Media Error: ${err.message}`, true); }
   }
 
-  // --- 카메라 테스트 (새로운 기능) ---
   private async startCameraTest(deviceId: string, label: string) {
     this.logger.log(`[Media] Camera Test: ${label}`);
     try {
@@ -171,8 +161,6 @@ export class DeviceController {
         video.srcObject = stream;
       }
       if (this.modal) this.modal.style.display = 'flex';
-      
-      // 5초 후 자동 종료
       setTimeout(() => {
         stream.getTracks().forEach(t => t.stop());
         if (this.modal) this.modal.style.display = 'none';
@@ -181,22 +169,16 @@ export class DeviceController {
     } catch (e: any) { this.logger.log(`Camera Test Error: ${e.message}`, true); }
   }
 
-  // --- 스피커 테스트 (새로운 기능) ---
   private async startSpeakerTest(deviceId: string, label: string) {
     this.logger.log(`[Media] Speaker Test (Beep): ${label}`);
     try {
       const audio = new Audio('https://www.soundjay.com/buttons/beep-01a.mp3');
-      // @ts-ignore (setSinkId는 일부 환경에서 실험적 API)
-      if (audio.setSinkId) {
-        // @ts-ignore
-        await audio.setSinkId(deviceId);
-      }
+      if ((audio as any).setSinkId) await (audio as any).setSinkId(deviceId);
       audio.play();
       this.logger.log(`[Media] Playing test sound to: ${label}`);
     } catch (e: any) { this.logger.log(`Speaker Test Error: ${e.message}`, true); }
   }
 
-  // --- 마이크 테스트 (기존 기능) ---
   private async startMicrophoneTest(deviceId: string, label: string) {
     this.stopMicrophoneTest();
     this.logger.log(`[Media] Mic Test: ${label}`);
@@ -212,8 +194,7 @@ export class DeviceController {
       this.audioInterval = setInterval(() => {
         analyser.getByteFrequencyData(dataArray);
         const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-        const bar = '█'.repeat(Math.round(average / 5));
-        if (average > 2) console.log(`[Mic Level] ${bar}`);
+        if (average > 2) console.log(`[Mic Level] ${'█'.repeat(Math.round(average / 5))}`);
       }, 100);
       setTimeout(() => this.stopMicrophoneTest(), 5000);
     } catch (err: any) { this.logger.log(`Mic Test Error: ${err.message}`, true); }

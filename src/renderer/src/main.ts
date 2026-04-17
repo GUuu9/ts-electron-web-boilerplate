@@ -95,7 +95,7 @@ function bootstrap() {
 
   // 6. 초기 화면 설정
   uiRouter.showDashboard();
-  }
-
+  document.body.classList.add('ready');
+}
 
 window.addEventListener('DOMContentLoaded', bootstrap);

@@ -64,19 +64,66 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Log Panel */
-.log-panel {
+/* Log Panel Terminal Style */
+.log-panel-wrapper {
   background: #000;
-  border-radius: 0.75rem;
-  padding: 1rem;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 300px;
   margin-top: 2rem;
-  text-align: left;
-  font-family: 'Fira Code', monospace;
-  font-size: 0.85rem;
-  max-height: 250px;
+}
+
+#log-panel {
+  flex: 1;
+  padding: 1rem;
   overflow-y: auto;
+  font-family: 'Fira Code', 'Courier New', Courier, monospace;
+  font-size: 0.85rem;
   color: #10b981;
-  border: 1px solid #064e3b;
+  white-space: pre-wrap;
+  text-align: left;
+}
+
+.log-input-area {
+  padding: 0.75rem 1rem;
+  background: #0f172a;
+  border-top: 1px solid #334155;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.log-input-area::before {
+  content: ">";
+  color: #94a3b8;
+  font-family: 'Fira Code', monospace;
+}
+
+.log-input-area input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #f8fafc;
+  font-family: 'Fira Code', 'Courier New', Courier, monospace;
+  outline: none;
+  font-size: 0.85rem;
+}
+
+.log-input-area button {
+  background: #334155;
+  color: #f8fafc;
+  border: none;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.log-input-area button:hover {
+  background: #475569;
 }
 
 /* Tabs */

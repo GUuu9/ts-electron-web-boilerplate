@@ -60,8 +60,14 @@
           <!-- Dynamic Content -->
         </div>
 
-        <div class="log-panel" id="log-panel">
-          > Ready to test...
+        <div class="log-panel-wrapper">
+          <div id="log-panel">
+            > Ready to test...
+          </div>
+          <div class="log-input-area">
+            <input type="text" id="log-command" placeholder="Enter command (e.g. 'clear')...">
+            <button onclick="window.testerController.handleCommand()">Execute</button>
+          </div>
         </div>
       </div>
     </div>
@@ -83,6 +89,11 @@
   <script>
     // Lucide 아이콘 초기화
     lucide.createIcons();
+    
+    // 엔터키 커맨드 바인딩
+    document.getElementById('log-command').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') window.testerController.handleCommand();
+    });
   </script>
 </body>
 </html>

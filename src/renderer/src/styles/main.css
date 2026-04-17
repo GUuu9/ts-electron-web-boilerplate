@@ -18,6 +18,12 @@ body {
   color: var(--text);
   min-height: 100vh;
   overflow-x: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+body.ready {
+  opacity: 1;
 }
 
 #app {

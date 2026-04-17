@@ -5,9 +5,32 @@ import type { UsbService } from '../../../../core/device/usb.service.js';
 import type { MediaService } from '../../../../core/device/media.service.js';
 import type { HttpClient } from '../../../../core/network/http.client.js';
 import type { UILoggerService } from '../../core/ui-logger.service.js';
+import { COMMANDS } from './commands.js';
 
 export class TesterController {
   constructor(private readonly logger: UILoggerService) {}
+
+  public handleCommand(): void {
+    const input = document.getElementById('log-command') as HTMLInputElement;
+    const rawInput = input.value.trim();
+    if (!rawInput) return;
+
+    // 슬래시(/)가 있으면 명령어, 없으면 일반 로그로 처리하거나 무시
+    const isCommand = rawInput.startsWith('/');
+    const parts = isCommand ? rawInput.slice(1).split(' ') : [];
+    const cmdName = parts[0]?.toLowerCase();
+    const args = parts.slice(1);
+
+    if (isCommand && COMMANDS[cmdName]) {
+      COMMANDS[cmdName].action(this.logger, args);
+    } else if (isCommand) {
+      this.logger.log(`Unknown command: ${rawInput}`, true);
+    } else {
+      this.logger.log(`Input: ${rawInput}`);
+    }
+    
+    input.value = '';
+  }
 
   public async runTest(serviceType: string): Promise<void> {
     this.logger.log(`Starting ${serviceType} test...`);
