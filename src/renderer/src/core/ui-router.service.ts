@@ -45,10 +45,22 @@ export class UIRouterService {
     const defaultSub: Record<string, string> = {
       network: 'http',
       device: 'bluetooth',
-      shared: 'calc'
+      shared: 'calc',
+      logger: 'ui'
     };
     
     this.renderCategoryLayout(category, defaultSub[category] || '');
+    this.focusFirstElement();
+  }
+
+  /**
+   * 테스트 컨텐츠 내의 첫 번째 입력 요소나 버튼에 포커스를 줍니다.
+   */
+  private focusFirstElement(): void {
+    setTimeout(() => {
+      const firstInteractive = this.contentElement?.querySelector('button, input, textarea') as HTMLElement;
+      if (firstInteractive) firstInteractive.focus();
+    }, 50);
   }
 
   /**
@@ -62,7 +74,8 @@ export class UIRouterService {
       network: 'Network Infrastructure',
       device: 'Hardware Device Control',
       shared: 'Shared Service Logic',
-      database: 'SQLite Database'
+      database: 'SQLite Database',
+      logger: 'Audit & UI Logging'
     };
     this.titleElement.innerText = titles[category] || 'Test';
 
@@ -81,6 +94,10 @@ export class UIRouterService {
       ],
       shared: [
         { id: 'calc', label: 'Calculation' }
+      ],
+      logger: [
+        { id: 'ui', label: 'UI Logger' },
+        { id: 'audit', label: 'Audit Log' }
       ]
     };
 
@@ -376,6 +393,39 @@ export class UIRouterService {
             </div>
           </div>`;
       
+      case 'logger':
+        if (subType === 'ui') return `
+          <div class="test-form">
+            <div class="test-section">
+              <h4>UI Logger Test</h4>
+              <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1rem;">
+                화면 하단 로그 패널의 동작을 테스트합니다.
+              </p>
+              <div class="button-group">
+                <button class="primary" onclick="window.loggerController.testLog()">Send Info Log</button>
+                <button class="primary" style="background: #ef4444;" onclick="window.loggerController.testErrorLog()">Send Error Log</button>
+              </div>
+            </div>
+          </div>`;
+        
+        if (subType === 'audit') return `
+          <div class="test-form">
+            <div class="test-section">
+              <h4>Audit Log Test</h4>
+              <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 1rem;">
+                시스템 감사 로그(Audit Log)를 기록하는 기능을 테스트합니다.
+              </p>
+              <div class="form-group">
+                <label>Action Name</label>
+                <input type="text" id="audit-action" value="USER_CLICK_TEST">
+              </div>
+              <div class="button-group">
+                <button class="primary" onclick="window.loggerController.testRecode(document.getElementById('audit-action').value)">Record Audit Log</button>
+              </div>
+            </div>
+          </div>`;
+        break;
+
       case 'database':
         return `<p style="color: #ef4444; padding: 2rem;">SQLite implementation in progress...</p>`;
     }

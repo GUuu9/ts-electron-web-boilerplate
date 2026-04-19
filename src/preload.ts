@@ -85,5 +85,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // 공통 취소
     cancelSelect: () => ipcRenderer.send('device-cancel-select')
-  }
+  },
+
+  // 로거 브릿지
+  recordAuditLog: (action: string) => ipcRenderer.send('record-audit-log', action)
 });

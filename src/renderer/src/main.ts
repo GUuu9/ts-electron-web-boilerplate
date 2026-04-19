@@ -20,6 +20,10 @@ import { MediaController } from './features/device/media.controller.js';
 import { ConverterController } from './features/shared/converter.controller.js';
 import { ConverterService } from '../../shared/converter.service.js';
 
+// Logger Controllers
+import { LoggerController } from './features/logger/logger.controller.js';
+import { AuditLoggerController } from './features/logger/audit-logger.controller.js';
+
 // 렌더러 전역 타입 정의
 declare global {
   interface Window {
@@ -64,6 +68,7 @@ declare global {
         selectHid: (id: string) => void;
         cancelSelect: () => void;
       };
+      recordAuditLog: (action: string) => void;
     };
     uiRouter: UIRouterService;
     uiLogger: UILoggerService;
@@ -71,6 +76,7 @@ declare global {
     networkController: NetworkController;
     deviceController: DeviceController;
     sharedController: ConverterController;
+    loggerController: LoggerController;
     showTest: (type: string) => void;
     showDashboard: () => void;
   }
@@ -93,6 +99,9 @@ function bootstrap() {
   const converterService = new ConverterService();
   const converterCtrl = new ConverterController(uiLogger, converterService);
 
+  const auditLoggerCtrl = new AuditLoggerController(uiLogger);
+  const loggerCtrl = new LoggerController(uiLogger, auditLoggerCtrl);
+
   // 3. 메인 허브 컨트롤러 초기화 (의존성 주입)
   const networkController = new NetworkController(uiLogger, httpCtrl, socketCtrl, l4Ctrl);
   const deviceController = new DeviceController(uiLogger, btCtrl, usbCtrl, mediaCtrl);
@@ -105,6 +114,7 @@ function bootstrap() {
   window.networkController = networkController;
   window.deviceController = deviceController;
   window.sharedController = converterCtrl;
+  window.loggerController = loggerCtrl;
 
   window.showDashboard = () => uiRouter.showDashboard();
   window.showTest = (type: string) => {
@@ -117,6 +127,7 @@ function bootstrap() {
   document.getElementById('card-device')?.addEventListener('click', () => uiRouter.showTestDetail('device'));
   document.getElementById('card-shared')?.addEventListener('click', () => uiRouter.showTestDetail('shared'));
   document.getElementById('card-database')?.addEventListener('click', () => uiRouter.showTestDetail('database'));
+  document.getElementById('card-logger')?.addEventListener('click', () => uiRouter.showTestDetail('logger'));
 
   // 6. 플랫폼 상태 업데이트
   const platformStatus = document.getElementById('platform-status');

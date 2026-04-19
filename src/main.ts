@@ -3,6 +3,7 @@ import * as path from 'path';
 import { fileURLToPath } from 'url';
 import 'dotenv/config';
 import { container } from './core/di/container.main.js';
+import type { AuditLogger } from './core/logger/audit-logger.service.js';
 import type { SocketServer } from './core/network/socket.server.js';
 import type { TcpClient } from './core/network/tcp.client.js';
 import type { TcpServer } from './core/network/tcp.server.js';
@@ -11,6 +12,7 @@ import type { UdpClient } from './core/network/udp.client.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const auditLogger = container.get<AuditLogger>('AuditLogger');
 const tcpClient = container.get<TcpClient>('TcpClient');
 const tcpServer = container.get<TcpServer>('TcpServer');
 const socketServer = container.get<SocketServer>('SocketServer');
@@ -159,6 +161,9 @@ function setupIpcHandlers() {
   });
 
   ipcMain.on('udp-close', () => udpClient.close());
+
+  // --- Audit Logger ---
+  ipcMain.on('record-audit-log', (_, action: string) => auditLogger.record(action));
 
   ipcMain.on('bt-select-device', (_, id) => { if (selectBluetoothCallback) { selectBluetoothCallback(id); selectBluetoothCallback = null; }});
   ipcMain.on('usb-select-device', (_, id) => { if (selectUsbCallback) { selectUsbCallback(id); selectUsbCallback = null; }});
