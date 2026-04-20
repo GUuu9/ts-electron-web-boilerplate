@@ -1,4 +1,5 @@
 import { AuditLogger } from '../logger/audit-logger.service.js';
+import { SystemInfoService } from '../system/system-info.service.js';
 import { PersistenceService } from '../persistence/persistence.service.js';
 import { HttpClient } from '../network/http.client.js';
 import { SocketClient } from '../network/socket.client.js';
@@ -20,6 +21,7 @@ export class MainDIContainer {
 
   private constructor() {
     this.services.set('AuditLogger', new AuditLogger());
+    this.services.set('SystemInfoService', new SystemInfoService());
     this.services.set('PersistenceService', new PersistenceService());
 
     this.services.set('HttpClient', new HttpClient());
@@ -52,3 +54,4 @@ export class MainDIContainer {
 }
 
 export const container = MainDIContainer.getInstance();
+

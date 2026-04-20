@@ -200,6 +200,18 @@ Vite 기반의 렌더러 프로세스 내부 구조와 UI 레이어드 아키텍
 
 ---
 
+## 📊 System Info Service 가이드
+
+호스트 OS의 리소스 사용량(CPU, 메모리)과 앱의 실행 상태 정보를 수집 [SYSTEM_INFO_GUIDE.md](./src/core/system/SYSTEM_INFO_GUIDE.md)
+
+---
+
+## 🖥 Main Process 개발 가이드
+
+Electron 메인 프로세스(`src/main.ts`)의 구조와 IPC 통신 작성 표준 가이드 [MAIN_PROCESS_GUIDE.md](./src/core/MAIN_PROCESS_GUIDE.md)
+
+---
+
 ## 📜 변경 이력 (Changelog)
 
 프로젝트의 상세한 개발 단계, 실행 명령어, 핵심 코드 변경 내역은 [CHANGELOG.md](./CHANGELOG.md)

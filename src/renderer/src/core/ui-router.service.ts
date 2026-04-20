@@ -46,7 +46,8 @@ export class UIRouterService {
       network: 'http',
       device: 'bluetooth',
       shared: 'calc',
-      logger: 'ui'
+      logger: 'ui',
+      maintenance: 'system'
     };
     
     this.renderCategoryLayout(category, defaultSub[category] || '');
@@ -75,7 +76,8 @@ export class UIRouterService {
       device: 'Hardware Device Control',
       shared: 'Shared Service Logic',
       database: 'SQLite Database',
-      logger: 'Audit & UI Logging'
+      logger: 'Audit & UI Logging',
+      maintenance: 'System Maintenance'
     };
     this.titleElement.innerText = titles[category] || 'Test';
 
@@ -98,6 +100,10 @@ export class UIRouterService {
       logger: [
         { id: 'ui', label: 'UI Logger' },
         { id: 'audit', label: 'Audit Log' }
+      ],
+      maintenance: [
+        { id: 'system', label: 'System Resource' },
+        { id: 'utils', label: 'Tools' }
       ]
     };
 
@@ -421,6 +427,33 @@ export class UIRouterService {
               </div>
               <div class="button-group">
                 <button class="primary" onclick="window.loggerController.testRecode(document.getElementById('audit-action').value)">Record Audit Log</button>
+              </div>
+            </div>
+          </div>`;
+        break;
+
+      case 'maintenance':
+        if (subType === 'system') return `
+          <div class="test-form">
+            <div class="test-section">
+              <h4>Real-time System Resource</h4>
+              <div id="system-status-container" style="background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 1.5rem;">
+                <p style="color: var(--text-dim);">Loading system information...</p>
+              </div>
+              <div class="button-group">
+                <button class="primary" onclick="window.maintenanceController.startMonitoring()">Start Real-time Update</button>
+                <button class="primary" style="background: #ef4444;" onclick="window.maintenanceController.stopMonitoring()">Stop Update</button>
+              </div>
+            </div>
+          </div>`;
+        
+        if (subType === 'utils') return `
+          <div class="test-form">
+            <div class="test-section">
+              <h4>Maintenance Utilities</h4>
+              <div class="button-group">
+                <button class="primary" onclick="window.maintenanceController.checkLogPath()">Check Log Directory</button>
+                <button class="primary" onclick="window.uiLogger.clear()">Clear UI Logs</button>
               </div>
             </div>
           </div>`;

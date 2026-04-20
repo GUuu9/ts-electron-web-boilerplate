@@ -24,6 +24,9 @@ import { ConverterService } from '../../shared/converter.service.js';
 import { LoggerController } from './features/logger/logger.controller.js';
 import { AuditLoggerController } from './features/logger/audit-logger.controller.js';
 
+// Maintenance Controllers
+import { MaintenanceController } from './features/maintenance/maintenance.controller.js';
+
 // 렌더러 전역 타입 정의
 declare global {
   interface Window {
@@ -69,6 +72,10 @@ declare global {
         cancelSelect: () => void;
       };
       recordAuditLog: (action: string) => void;
+      maintenance: {
+        getSystemStatus: () => Promise<any>;
+        getLogPath: () => Promise<string>;
+      };
     };
     uiRouter: UIRouterService;
     uiLogger: UILoggerService;
@@ -77,6 +84,7 @@ declare global {
     deviceController: DeviceController;
     sharedController: ConverterController;
     loggerController: LoggerController;
+    maintenanceController: MaintenanceController;
     showTest: (type: string) => void;
     showDashboard: () => void;
   }
@@ -101,6 +109,7 @@ function bootstrap() {
 
   const auditLoggerCtrl = new AuditLoggerController(uiLogger);
   const loggerCtrl = new LoggerController(uiLogger, auditLoggerCtrl);
+  const maintenanceCtrl = new MaintenanceController(uiLogger);
 
   // 3. 메인 허브 컨트롤러 초기화 (의존성 주입)
   const networkController = new NetworkController(uiLogger, httpCtrl, socketCtrl, l4Ctrl);
@@ -115,6 +124,7 @@ function bootstrap() {
   window.deviceController = deviceController;
   window.sharedController = converterCtrl;
   window.loggerController = loggerCtrl;
+  window.maintenanceController = maintenanceCtrl;
 
   window.showDashboard = () => uiRouter.showDashboard();
   window.showTest = (type: string) => {
@@ -128,6 +138,7 @@ function bootstrap() {
   document.getElementById('card-shared')?.addEventListener('click', () => uiRouter.showTestDetail('shared'));
   document.getElementById('card-database')?.addEventListener('click', () => uiRouter.showTestDetail('database'));
   document.getElementById('card-logger')?.addEventListener('click', () => uiRouter.showTestDetail('logger'));
+  document.getElementById('card-maintenance')?.addEventListener('click', () => uiRouter.showTestDetail('maintenance'));
 
   // 6. 플랫폼 상태 업데이트
   const platformStatus = document.getElementById('platform-status');

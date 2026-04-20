@@ -88,5 +88,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // 로거 브릿지
-  recordAuditLog: (action: string) => ipcRenderer.send('record-audit-log', action)
+  recordAuditLog: (action: string) => ipcRenderer.send('record-audit-log', action),
+
+  // 유지보수 브릿지
+  maintenance: {
+    getSystemStatus: () => ipcRenderer.invoke('get-system-status'),
+    getLogPath: () => ipcRenderer.invoke('get-log-path')
+  }
 });
