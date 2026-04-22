@@ -98,6 +98,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // OS 통합 브릿지 (신규 추가)
   os: {
-    notify: (title: string, body: string) => ipcRenderer.send('os-notify', title, body)
+    notify: (title: string, body: string) => ipcRenderer.send('os-notify', title, body),
+    onDeepLink: (callback: (url: string) => void) => {
+      ipcRenderer.removeAllListeners('os-deeplink');
+      ipcRenderer.on('os-deeplink', (_event, url) => callback(url));
+    }
   }
 });

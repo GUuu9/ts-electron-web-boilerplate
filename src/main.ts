@@ -22,6 +22,26 @@ const tcpServer = container.get<TcpServer>('TcpServer');
 const socketServer = container.get<SocketServer>('SocketServer');
 const udpClient = container.get<UdpClient>('UdpClient');
 
+// 싱글 인스턴스 잠금 (Windows/Linux에서 딥링크 처리에 필수)
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (_event, commandLine) => {
+    // Windows/Linux: 두 번째 인스턴스가 실행될 때 URL 추출
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+      
+      const url = commandLine.pop();
+      if (url?.startsWith('my-app://')) {
+        mainWindow.webContents.send('os-deeplink', url);
+      }
+    }
+  });
+}
+
 let mainWindow: BrowserWindow | null = null;
 let isQuitting = false; // 앱 완전 종료 플래그
 let selectBluetoothCallback: ((id: string) => void) | null = null;
@@ -103,6 +123,14 @@ function createWindow() {
   // OS 통합 기능 초기화 (트레이, 단축키 등)
   osIntegration.init(mainWindow);
 }
+
+// macOS: 앱이 실행 중일 때 URL로 호출될 경우
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  if (mainWindow) {
+    mainWindow.webContents.send('os-deeplink', url);
+  }
+});
 
 function setupIpcHandlers() {
   ipcMain.handle('tcp-connect', async (_event, host: string, port: number) => {

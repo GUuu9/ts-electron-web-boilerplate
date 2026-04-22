@@ -76,6 +76,10 @@ declare global {
         getSystemStatus: () => Promise<any>;
         getLogPath: () => Promise<string>;
       };
+      os: {
+        notify: (title: string, body: string) => void;
+        onDeepLink: (callback: (url: string) => void) => void;
+      };
     };
     uiRouter: UIRouterService;
     uiLogger: UILoggerService;
@@ -169,6 +173,15 @@ function bootstrap() {
   // 8. 초기 화면 설정
   uiRouter.showDashboard();
   document.body.classList.add('ready');
+
+  // 9. OS 딥링크 리스너 등록
+  if (isElectron && window.electronAPI?.os?.onDeepLink) {
+    window.electronAPI.os.onDeepLink((url: string) => {
+      uiLogger.log(`[DEEP LINK] Received URL: ${url}`, false);
+      // 예: 특정 URL 패턴에 따라 화면 전환 가능
+      // if (url.includes('test/network')) uiRouter.showTestDetail('network');
+    });
+  }
 }
 
 window.addEventListener('DOMContentLoaded', bootstrap);
