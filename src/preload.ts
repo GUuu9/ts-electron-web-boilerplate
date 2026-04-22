@@ -96,6 +96,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getLogPath: () => ipcRenderer.invoke('get-log-path')
   },
 
+  // 영구 저장소 브릿지 (신규 추가)
+  persistence: {
+    set: (key: string, value: any) => ipcRenderer.send('persistence-set', key, value),
+    get: (key: string) => ipcRenderer.invoke('persistence-get', key)
+  },
+
   // OS 통합 브릿지 (신규 추가)
   os: {
     notify: (title: string, body: string) => ipcRenderer.send('os-notify', title, body),

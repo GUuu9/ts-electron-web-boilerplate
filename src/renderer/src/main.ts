@@ -25,7 +25,8 @@ import { LoggerController } from './features/logger/logger.controller.js';
 import { AuditLoggerController } from './features/logger/audit-logger.controller.js';
 
 // Maintenance Controllers
-import { MaintenanceController } from './features/maintenance/maintenance.controller.js';
+import { MaintenanceController } from './features/maintenance/maintenance.controller.ts';
+import { UISettingsService } from './core/ui-settings.service.ts';
 
 // 렌더러 전역 타입 정의
 declare global {
@@ -76,6 +77,10 @@ declare global {
         getSystemStatus: () => Promise<any>;
         getLogPath: () => Promise<string>;
       };
+      persistence: {
+        set: (key: string, value: any) => void;
+        get: (key: string) => Promise<any>;
+      };
       os: {
         notify: (title: string, body: string) => void;
         onDeepLink: (callback: (url: string) => void) => void;
@@ -83,6 +88,7 @@ declare global {
     };
     uiRouter: UIRouterService;
     uiLogger: UILoggerService;
+    uiSettings: UISettingsService;
     testerController: TesterController;
     networkController: NetworkController;
     deviceController: DeviceController;
@@ -94,10 +100,12 @@ declare global {
   }
 }
 
-function bootstrap() {
+async function bootstrap() {
   // 1. 코어 서비스 초기화
   const uiLogger = new UILoggerService();
   const uiRouter = new UIRouterService();
+  const uiSettings = new UISettingsService();
+  await uiSettings.init(); // 암호화된 설정 로드
   
   // 2. 하위 도메인 컨트롤러 초기화 (SRP 분리됨)
   const httpCtrl = new HttpController(uiLogger);
@@ -113,7 +121,7 @@ function bootstrap() {
 
   const auditLoggerCtrl = new AuditLoggerController(uiLogger);
   const loggerCtrl = new LoggerController(uiLogger, auditLoggerCtrl);
-  const maintenanceCtrl = new MaintenanceController(uiLogger);
+  const maintenanceCtrl = new MaintenanceController(uiLogger, uiSettings);
 
   // 3. 메인 허브 컨트롤러 초기화 (의존성 주입)
   const networkController = new NetworkController(uiLogger, httpCtrl, socketCtrl, l4Ctrl);
@@ -123,6 +131,7 @@ function bootstrap() {
   // 4. 전역 윈도우 객체에 노출
   window.uiLogger = uiLogger;
   window.uiRouter = uiRouter;
+  window.uiSettings = uiSettings;
   window.testerController = testerController;
   window.networkController = networkController;
   window.deviceController = deviceController;

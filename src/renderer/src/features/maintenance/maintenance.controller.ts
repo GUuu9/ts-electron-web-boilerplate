@@ -1,4 +1,5 @@
 import type { UILoggerService } from '../../core/ui-logger.service.js';
+import type { UISettingsService, Language } from '../../core/ui-settings.service.js';
 
 /**
  * 유지보수 및 시스템 모니터링을 담당하는 컨트롤러
@@ -6,7 +7,31 @@ import type { UILoggerService } from '../../core/ui-logger.service.js';
 export class MaintenanceController {
   private statusInterval: any = null;
 
-  constructor(private readonly logger: UILoggerService) {}
+  constructor(
+    private readonly logger: UILoggerService,
+    private readonly settings: UISettingsService
+  ) {}
+
+  /**
+   * 테마를 토글합니다.
+   */
+  public toggleTheme(): void {
+    this.settings.toggleTheme();
+    this.logger.log(`[SETTINGS] Theme changed to ${this.settings.getCurrentTheme()}`);
+  }
+
+  /**
+   * 언어를 변경합니다.
+   */
+  public changeLanguage(lang: Language): void {
+    this.settings.setLanguage(lang);
+    this.logger.log(`[SETTINGS] Language changed to ${lang}. Please restart or refresh for full effect.`);
+    
+    // 즉각적인 UI 반영을 위해 페이지 새로고침 제안 또는 라우터 리렌더링
+    if (confirm(lang === 'ko' ? '언어 설정을 적용하려면 페이지를 새로고침하시겠습니까?' : 'Refresh page to apply language settings?')) {
+      window.location.reload();
+    }
+  }
 
   /**
    * 실시간 시스템 상태 업데이트를 시작합니다.

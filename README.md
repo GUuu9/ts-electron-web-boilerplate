@@ -193,6 +193,12 @@ Vite 기반의 렌더러 프로세스 내부 구조와 UI 레이어드 아키텍
 
 ---
 
+## 🌐 다국어(i18n) 설정 가이드
+
+플랫폼 공용 언어 팩 관리 및 렌더러 다국어 적용 가이드 [I18N_GUIDE.md](./src/shared/i18n/I18N_GUIDE.md)
+
+---
+
 ## 💾 Persistence Service 가이드
 
 

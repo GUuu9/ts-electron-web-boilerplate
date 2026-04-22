@@ -17,6 +17,7 @@ const __dirname = path.dirname(__filename);
 const auditLogger = container.get<AuditLogger>('AuditLogger');
 const systemInfo = container.get<SystemInfoService>('SystemInfoService');
 const osIntegration = container.get<OSIntegrationService>('OSIntegrationService');
+const persistence = container.get<any>('PersistenceService');
 const tcpClient = container.get<TcpClient>('TcpClient');
 const tcpServer = container.get<TcpServer>('TcpServer');
 const socketServer = container.get<SocketServer>('SocketServer');
@@ -212,6 +213,10 @@ function setupIpcHandlers() {
 
   // --- System Info ---
   ipcMain.handle('get-system-status', () => systemInfo.getStatus());
+
+  // --- Persistence ---
+  ipcMain.on('persistence-set', (_, key: string, value: any) => persistence.set(key, value));
+  ipcMain.handle('persistence-get', (_, key: string) => persistence.get(key));
 
   // --- OS Integration ---
   ipcMain.on('os-notify', (_, title: string, body: string) => {

@@ -5,6 +5,16 @@
   --card-bg: rgba(30, 41, 59, 0.7);
   --text: #f8fafc;
   --text-dim: #94a3b8;
+  --border: rgba(255, 255, 255, 0.1);
+}
+
+body.light-theme {
+  --bg: #f1f5f9;
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --text: #1e293b;
+  --text-dim: #64748b;
+  --border: rgba(0, 0, 0, 0.1);
+  background-image: none; /* 라이트 모드에서는 그라데이션 제거 */
 }
 
 body {
@@ -19,7 +29,7 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   opacity: 0;
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity 0.3s ease-in-out, background-color 0.3s ease, color 0.3s ease;
 }
 
 body.ready {

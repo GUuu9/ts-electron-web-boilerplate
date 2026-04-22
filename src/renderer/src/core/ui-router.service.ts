@@ -479,10 +479,27 @@ export class UIRouterService {
         if (subType === 'utils') return `
           <div class="test-form">
             <div class="test-section">
-              <h4>Maintenance Utilities</h4>
-              <div class="button-group">
-                <button class="primary" onclick="window.maintenanceController.checkLogPath()">Check Log Directory</button>
-                <button class="primary" onclick="window.uiLogger.clear()">Clear UI Logs</button>
+              <h4>${window.uiSettings?.t('maintenance.tools') || 'Tools & Settings'}</h4>
+              <div class="form-group">
+                <label>${window.uiSettings?.t('maintenance.theme_switch') || 'Toggle Theme'}</label>
+                <div class="button-group">
+                  <button class="primary" onclick="window.maintenanceController.toggleTheme()">Switch Dark/Light Mode</button>
+                </div>
+              </div>
+              
+              <div class="form-group" style="margin-top: 1.5rem;">
+                <label>${window.uiSettings?.t('maintenance.lang_switch') || 'Language Settings'}</label>
+                <div class="button-group">
+                  <button class="primary" style="background: ${window.uiSettings?.getCurrentLanguage() === 'ko' ? 'var(--primary)' : 'var(--bg-tertiary)'};" onclick="window.maintenanceController.changeLanguage('ko')">한국어</button>
+                  <button class="primary" style="background: ${window.uiSettings?.getCurrentLanguage() === 'en' ? 'var(--primary)' : 'var(--bg-tertiary)'};" onclick="window.maintenanceController.changeLanguage('en')">English</button>
+                </div>
+              </div>
+
+              <div style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                <div class="button-group">
+                  <button class="primary" style="background: #64748b;" onclick="window.maintenanceController.checkLogPath()">Check Log Directory</button>
+                  <button class="primary" style="background: #ef4444;" onclick="window.uiLogger.clear()">Clear UI Logs</button>
+                </div>
               </div>
             </div>
           </div>`;
