@@ -9,18 +9,21 @@ import type { SocketServer } from './core/network/socket.server.js';
 import type { TcpClient } from './core/network/tcp.client.js';
 import type { TcpServer } from './core/network/tcp.server.js';
 import type { UdpClient } from './core/network/udp.client.js';
+import type { OSIntegrationService } from './core/os/os-integration.service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const auditLogger = container.get<AuditLogger>('AuditLogger');
 const systemInfo = container.get<SystemInfoService>('SystemInfoService');
+const osIntegration = container.get<OSIntegrationService>('OSIntegrationService');
 const tcpClient = container.get<TcpClient>('TcpClient');
 const tcpServer = container.get<TcpServer>('TcpServer');
 const socketServer = container.get<SocketServer>('SocketServer');
 const udpClient = container.get<UdpClient>('UdpClient');
 
 let mainWindow: BrowserWindow | null = null;
+let isQuitting = false; // 앱 완전 종료 플래그
 let selectBluetoothCallback: ((id: string) => void) | null = null;
 let selectUsbCallback: ((id: string) => void) | null = null;
 let selectHidCallback: ((id: string) => void) | null = null;
@@ -85,9 +88,20 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
 
+  // 창 닫기 버튼 클릭 시 동작 제어
+  mainWindow.on('close', (event) => {
+    if (!isQuitting) {
+      event.preventDefault(); // 실제 파괴 방지
+      mainWindow?.hide();    // 트레이로 숨김
+    }
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+
+  // OS 통합 기능 초기화 (트레이, 단축키 등)
+  osIntegration.init(mainWindow);
 }
 
 function setupIpcHandlers() {
@@ -171,6 +185,11 @@ function setupIpcHandlers() {
   // --- System Info ---
   ipcMain.handle('get-system-status', () => systemInfo.getStatus());
 
+  // --- OS Integration ---
+  ipcMain.on('os-notify', (_, title: string, body: string) => {
+    osIntegration.notify(title, body);
+  });
+
   ipcMain.on('bt-select-device', (_, id) => { if (selectBluetoothCallback) { selectBluetoothCallback(id); selectBluetoothCallback = null; }});
   ipcMain.on('usb-select-device', (_, id) => { if (selectUsbCallback) { selectUsbCallback(id); selectUsbCallback = null; }});
   ipcMain.on('hid-select-device', (_, id) => { if (selectHidCallback) { selectHidCallback(id); selectHidCallback = null; }});
@@ -182,10 +201,23 @@ function setupIpcHandlers() {
   });
 }
 
+// Windows 알림 활성화를 위한 App ID 설정
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.example.yourapp');
+}
+
 app.whenReady().then(() => {
   setupIpcHandlers();
   createWindow();
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 });
 
-app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+app.on('before-quit', () => {
+  isQuitting = true;
+});
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});

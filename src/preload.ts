@@ -94,5 +94,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   maintenance: {
     getSystemStatus: () => ipcRenderer.invoke('get-system-status'),
     getLogPath: () => ipcRenderer.invoke('get-log-path')
+  },
+
+  // OS 통합 브릿지 (신규 추가)
+  os: {
+    notify: (title: string, body: string) => ipcRenderer.send('os-notify', title, body)
   }
 });

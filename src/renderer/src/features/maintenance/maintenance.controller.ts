@@ -49,6 +49,25 @@ export class MaintenanceController {
     this.logger.log(`[MAINTENANCE] Log directory: ${path}`);
   }
 
+  /**
+   * 네이티브 알림을 테스트합니다.
+   */
+  public testNotification(): void {
+    if (!window.electronAPI) {
+      this.logger.log('Native notification is available only on Desktop.', true);
+      return;
+    }
+
+    const titleInput = document.getElementById('noti-title') as HTMLInputElement;
+    const bodyInput = document.getElementById('noti-body') as HTMLTextAreaElement;
+
+    const title = titleInput?.value || 'Test Notification';
+    const body = bodyInput?.value || 'This is a test message.';
+
+    window.electronAPI.os.notify(title, body);
+    this.logger.log(`[OS] Notification sent: "${title}"`);
+  }
+
   private renderStatus(status: any): void {
     const container = document.getElementById('system-status-container');
     if (!container) return;

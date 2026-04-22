@@ -103,6 +103,7 @@ export class UIRouterService {
       ],
       maintenance: [
         { id: 'system', label: 'System Resource' },
+        { id: 'os', label: 'OS Integration' },
         { id: 'utils', label: 'Tools' }
       ]
     };
@@ -443,6 +444,34 @@ export class UIRouterService {
               <div class="button-group">
                 <button class="primary" onclick="window.maintenanceController.startMonitoring()">Start Real-time Update</button>
                 <button class="primary" style="background: #ef4444;" onclick="window.maintenanceController.stopMonitoring()">Stop Update</button>
+              </div>
+            </div>
+          </div>`;
+        
+        if (subType === 'os') return `
+          <div class="test-form">
+            <div class="test-section">
+              <h4>Native Notification</h4>
+              <div class="form-group">
+                <label>Title</label>
+                <input type="text" id="noti-title" value="Hello Electron!">
+              </div>
+              <div class="form-group">
+                <label>Body Content</label>
+                <textarea id="noti-body">This is a native notification sent from the renderer process via IPC.</textarea>
+              </div>
+              <div class="button-group">
+                <button class="primary" onclick="window.maintenanceController.testNotification()">Send Notification</button>
+              </div>
+            </div>
+
+            <div class="test-section" style="margin-top: 1.5rem;">
+              <h4>Global Shortcut (Read Only)</h4>
+              <p style="font-size: 0.85rem; color: var(--text-dim);">
+                The following shortcut is registered to toggle the window visibility:
+              </p>
+              <div style="margin-top: 0.5rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 4px; font-family: monospace; display: inline-block;">
+                ${window.electronAPI?.platform === 'darwin' ? '⌘ + Shift + X' : 'Alt + Shift + X'}
               </div>
             </div>
           </div>`;

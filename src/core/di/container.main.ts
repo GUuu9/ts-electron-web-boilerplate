@@ -10,6 +10,7 @@ import { UdpClient } from '../network/udp.client.js';
 import { BluetoothService } from '../device/bluetooth.service.js';
 import { UsbService } from '../device/usb.service.js';
 import { MediaService } from '../device/media.service.js';
+import { OSIntegrationService } from '../os/os-integration.service.js';
 
 /**
  * 간단한 의존성 주입(DI) 컨테이너 클래스
@@ -23,6 +24,7 @@ export class MainDIContainer {
     this.services.set('AuditLogger', new AuditLogger());
     this.services.set('SystemInfoService', new SystemInfoService());
     this.services.set('PersistenceService', new PersistenceService());
+    this.services.set('OSIntegrationService', new OSIntegrationService());
 
     this.services.set('HttpClient', new HttpClient());
     this.services.set('SocketClient', new SocketClient());
