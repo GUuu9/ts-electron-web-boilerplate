@@ -8,10 +8,13 @@
 
 ```text
 src/renderer/src/
-├── core/                # UI 인프라 (라우터, 로거, 공통 서비스)
-├── features/            # 도메인 기반 UI 기능 컨트롤러
+├── core/                # UI 인프라 (라우터, 로거, 공통 서비스, 설정)
+├── features/            # 도메인 기반 UI 기능
+│   ├── [domain]/
+│   │   ├── [domain].controller.ts  # 비즈니스 로직 및 이벤트 핸들링
+│   │   └── [domain].view.ts        # HTML 템플릿 정의 (컴포넌트화)
 ├── styles/              # 분리된 CSS 스타일 시트
-└── main.ts              # 진입점 및 렌더러 전용 DI 컨테이너 조립
+└── main.ts              # 진입점 및 의존성 주입(DI) 조립
 ```
 
 ---
@@ -20,10 +23,10 @@ src/renderer/src/
 
 1. **배럴 파일(`index.ts`) 금지**: `src/core` 하위에서는 의존성 순환 및 불필요한 모듈 로딩을 방지하기 위해 배럴 파일을 사용하지 않으며, 명시적으로 개별 파일을 임포트합니다.
 2. **환경 분리 (DI Container)**: 렌더러는 Node.js 전용 모듈(`net`, `dgram`)을 직접 참조할 수 없습니다. 
-3. **단일 책임 원칙 (SRP) 및 허브-위임 (Hub-Delegate) 패턴**: 
-   - **허브 컨트롤러 (Hub Controller)**: 화면(View) 단위의 진입점입니다. DOM 요소 접근, 입력값 추출, 공통 UI(모달, 로딩바 등) 관리 및 세부 컨트롤러로의 업무 위임을 담당합니다.
-   - **세부 컨트롤러 (Sub-domain Controller)**: 특정 도메인(예: Bluetooth, Http)의 순수 비즈니스 로직을 담당합니다. UI 요소에 의존하지 않으며, 주입받은 Core 서비스를 호출하여 기능을 수행합니다.
-   - **이점**: UI 변경 시 허브만 수정하면 되고, 비즈니스 로직 변경 시 세부 컨트롤러만 수정하면 되므로 유지보수성이 극대화됩니다.
+3. **단일 책임 원칙 (SRP) 및 View-Controller 분리**: 
+   - **View 클래스**: 특정 도메인의 **HTML 템플릿(문자열)**을 생성하고 관리합니다. 로직을 포함하지 않으며 순수하게 구조만 담당합니다.
+   - **Controller 클래스**: 사용자의 입력을 받아 비즈니스 로직을 수행하고, Core 서비스를 호출합니다. UI 구조(HTML)에 직접 의존하지 않습니다.
+   - **UIRouterService (Orchestrator)**: 각 도메인의 View 인스턴스를 주입받아 화면 전환 시 적절한 HTML을 렌더링 영역에 공급합니다. 이로써 단일 파일이 거대해지는 'God Object' 문제를 방지합니다.
 
 ---
 
@@ -81,9 +84,10 @@ src/renderer/src/
 
 새로운 테스트 페이지(예: Database)를 추가할 때는 다음 단계를 따릅니다.
 
-1. **컨트롤러 생성 (`features/`)**: 필요한 서비스를 주입받아 비즈니스 로직 작성.
-2. **UI 렌더링 정의 (`core/ui-router.service.ts`)**: `getSubContentHtml`에 HTML 폼 구조 추가.
-3. **진입점 등록 (`main.ts`)**: `bootstrap()` 함수에서 컨트롤러 인스턴스화 및 전역 등록.
+1. **View 생성 (`features/`)**: 해당 도메인 폴더에 `xxx.view.ts`를 만들고 HTML 템플릿을 작성합니다.
+2. **컨트롤러 생성 (`features/`)**: 필요한 서비스를 주입받아 비즈니스 로직을 작성합니다.
+3. **라우터 등록 (`core/ui-router.service.ts`)**: `tabs` 객체에 메뉴 명칭을 추가합니다.
+4. **진입점 조립 (`main.ts`)**: `bootstrap()` 함수에서 View와 컨트롤러를 인스턴스화하고, View를 `uiRouter` 생성자에 주입합니다.
 
 ---
 

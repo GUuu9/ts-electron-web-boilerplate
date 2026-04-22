@@ -28,6 +28,13 @@ import { AuditLoggerController } from './features/logger/audit-logger.controller
 import { MaintenanceController } from './features/maintenance/maintenance.controller.ts';
 import { UISettingsService } from './core/ui-settings.service.ts';
 
+// Views
+import { DeviceView } from './features/device/device.view.js';
+import { NetworkView } from './features/network/network.view.js';
+import { SharedView } from './features/shared/shared.view.js';
+import { LoggerView } from './features/logger/logger.view.js';
+import { MaintenanceView } from './features/maintenance/maintenance.view.js';
+
 // 렌더러 전역 타입 정의
 declare global {
   interface Window {
@@ -103,9 +110,23 @@ declare global {
 async function bootstrap() {
   // 1. 코어 서비스 초기화
   const uiLogger = new UILoggerService();
-  const uiRouter = new UIRouterService();
   const uiSettings = new UISettingsService();
   await uiSettings.init(); // 암호화된 설정 로드
+
+  // 1.1 View 인스턴스화
+  const deviceView = new DeviceView();
+  const networkView = new NetworkView();
+  const sharedView = new SharedView();
+  const loggerView = new LoggerView();
+  const maintenanceView = new MaintenanceView();
+  
+  const uiRouter = new UIRouterService({
+    device: deviceView,
+    network: networkView,
+    shared: sharedView,
+    logger: loggerView,
+    maintenance: maintenanceView
+  });
   
   // 2. 하위 도메인 컨트롤러 초기화 (SRP 분리됨)
   const httpCtrl = new HttpController(uiLogger);
