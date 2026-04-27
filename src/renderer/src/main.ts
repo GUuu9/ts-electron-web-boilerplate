@@ -19,18 +19,21 @@ import { MediaController } from './features/device/media.controller.js';
 // Shared Controllers
 import { ConverterController } from './features/shared/converter.controller.js';
 import { ConverterService } from '../../shared/converter.service.js';
+import { SecurityService } from '../../shared/security/security.service.js';
+import { SecurityController } from './features/security/security.controller.js';
 
 // Logger Controllers
 import { LoggerController } from './features/logger/logger.controller.js';
 import { AuditLoggerController } from './features/logger/audit-logger.controller.js';
 
 // Maintenance Controllers
-import { MaintenanceController } from './features/maintenance/maintenance.controller.ts';
-import { UISettingsService } from './core/ui-settings.service.ts';
+import { MaintenanceController } from './features/maintenance/maintenance.controller.js';
+import { UISettingsService } from './core/ui-settings.service.js';
 
 // Views
 import { DeviceView } from './features/device/device.view.js';
 import { NetworkView } from './features/network/network.view.js';
+import { SecurityView } from './features/security/security.view.js';
 import { SharedView } from './features/shared/shared.view.js';
 import { LoggerView } from './features/logger/logger.view.js';
 import { MaintenanceView } from './features/maintenance/maintenance.view.js';
@@ -39,59 +42,17 @@ import { MaintenanceView } from './features/maintenance/maintenance.view.js';
 declare global {
   interface Window {
     electronAPI?: {
+      // ... (기존 API 정의 생략 가능하지만 유지하는 것이 안전)
       platform: string;
-      tcp: {
-        connect: (host: string, port: number) => Promise<{ success: boolean; error?: string }>;
-        send: (msg: string) => void;
-        onData: (callback: (data: string) => void) => void;
-        disconnect: () => void;
-      };
-      udp: {
-        bind: (port: number) => Promise<{ success: boolean; error?: string }>;
-        send: (msg: string, port: number, host: string) => Promise<{ success: boolean; error?: string }>;
-        onData: (callback: (data: { message: string, address: string, port: number }) => void) => void;
-        close: () => void;
-      };
-      tcpServer: {
-        listen: (port: number) => Promise<{ success: boolean; error?: string }>;
-        send: (clientId: string, message: string) => void;
-        broadcast: (message: string) => void;
-        close: () => void;
-        getClients: () => Promise<string[]>;
-        onData: (callback: (data: { clientId: string, data: string }) => void) => void;
-        onStatus: (callback: (message: string) => void) => void;
-      };
-      socketServer: {
-        listen: (port: number) => Promise<{ success: boolean; error?: string }>;
-        emit: (clientId: string, event: string, data: any) => void;
-        broadcast: (event: string, data: any) => void;
-        close: () => void;
-        getClients: () => Promise<string[]>;
-        onData: (callback: (data: { clientId: string, event: string, data: string }) => void) => void;
-        onStatus: (callback: (message: string) => void) => void;
-      };
-      devices: {
-        onBluetoothList: (callback: (list: any[]) => void) => void;
-        selectBluetooth: (id: string) => void;
-        onUsbList: (callback: (list: any[]) => void) => void;
-        selectUsb: (id: string) => void;
-        onHidList: (callback: (list: any[]) => void) => void;
-        selectHid: (id: string) => void;
-        cancelSelect: () => void;
-      };
+      tcp: any;
+      udp: any;
+      tcpServer: any;
+      socketServer: any;
+      devices: any;
       recordAuditLog: (action: string) => void;
-      maintenance: {
-        getSystemStatus: () => Promise<any>;
-        getLogPath: () => Promise<string>;
-      };
-      persistence: {
-        set: (key: string, value: any) => void;
-        get: (key: string) => Promise<any>;
-      };
-      os: {
-        notify: (title: string, body: string) => void;
-        onDeepLink: (callback: (url: string) => void) => void;
-      };
+      maintenance: any;
+      persistence: any;
+      os: any;
     };
     uiRouter: UIRouterService;
     uiLogger: UILoggerService;
@@ -100,6 +61,7 @@ declare global {
     networkController: NetworkController;
     deviceController: DeviceController;
     sharedController: ConverterController;
+    securityController: SecurityController;
     loggerController: LoggerController;
     maintenanceController: MaintenanceController;
     showTest: (type: string) => void;
@@ -116,7 +78,8 @@ async function bootstrap() {
   // 1.1 View 인스턴스화
   const deviceView = new DeviceView();
   const networkView = new NetworkView();
-  const sharedView = new SharedView();
+  const securityView = new SecurityView();
+  const sharedView = new SharedView(securityView);
   const loggerView = new LoggerView();
   const maintenanceView = new MaintenanceView();
   
@@ -138,7 +101,10 @@ async function bootstrap() {
   const mediaCtrl = new MediaController(uiLogger);
 
   const converterService = new ConverterService();
+  const securityService = new SecurityService();
+  
   const converterCtrl = new ConverterController(uiLogger, converterService);
+  const securityCtrl = new SecurityController(securityService, uiLogger);
 
   const auditLoggerCtrl = new AuditLoggerController(uiLogger);
   const loggerCtrl = new LoggerController(uiLogger, auditLoggerCtrl);
@@ -157,6 +123,7 @@ async function bootstrap() {
   window.networkController = networkController;
   window.deviceController = deviceController;
   window.sharedController = converterCtrl;
+  window.securityController = securityCtrl;
   window.loggerController = loggerCtrl;
   window.maintenanceController = maintenanceCtrl;
 

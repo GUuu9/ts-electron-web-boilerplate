@@ -1,12 +1,18 @@
+import type { SecurityView } from '../security/security.view.js';
+
 /**
  * SharedView
  * 역할: 공용 서비스 로직(데이터 변환 등) 관련 UI 템플릿을 생성합니다.
  */
 export class SharedView {
+  constructor(private securityView: SecurityView) {}
+
   public getHtml(subType: string): string {
     switch (subType) {
       case 'calc':
         return this.getCalcTemplate();
+      case 'security':
+        return this.securityView.render();
       default:
         return '';
     }

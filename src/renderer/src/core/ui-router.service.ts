@@ -95,7 +95,8 @@ export class UIRouterService {
         { id: 'media', label: 'Media Devices' }
       ],
       shared: [
-        { id: 'calc', label: 'Calculation' }
+        { id: 'calc', label: 'Calculation' },
+        { id: 'security', label: 'Security' }
       ],
       logger: [
         { id: 'ui', label: 'UI Logger' },
