@@ -40,6 +40,28 @@ export class SecurityService {
     return bytes;
   }
 
+  /**
+   * Hex 문자열을 PEM 포맷으로 변환합니다.
+   * @param hex 변환할 Hex 문자열
+   * @param label PEM 라벨 (PUBLIC KEY 또는 PRIVATE KEY)
+   */
+  public hexToPem(hex: string, label: 'PUBLIC KEY' | 'PRIVATE KEY'): string {
+    const bytes = this.hexToBytes(hex);
+    // Uint8Array -> Binary String
+    let binary = '';
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    // Binary String -> Base64
+    const base64 = btoa(binary);
+    // 64글자씩 줄바꿈
+    const matches = base64.match(/.{1,64}/g);
+    const formatted = matches ? matches.join('\n') : base64;
+
+    return `-----BEGIN ${label}-----\n${formatted}\n-----END ${label}-----`;
+  }
+
   // --- [AES-256-GCM 암호화] ---
 
   /**

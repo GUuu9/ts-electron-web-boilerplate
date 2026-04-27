@@ -37,6 +37,62 @@ export class NetworkView {
       </div>`;
   }
 
+  private getFirebaseTemplate(): string {
+    return `
+      <div class="test-form">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          
+          <!-- Data Submit Section -->
+          <div class="test-section" style="background: rgba(255,255,255,0.01);">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+              <i data-lucide="upload-cloud" style="color: #f87171; width: 20px;"></i>
+              <h5 style="margin: 0; color: #f87171;">Store Data (Write)</h5>
+            </div>
+            
+            <div class="form-group">
+              <label>Data Key (Identifier)</label>
+              <input type="text" id="fb-key" placeholder="e.g. device_status" value="status_report">
+            </div>
+            
+            <div class="form-group">
+              <label>Data Value (JSON/String)</label>
+              <textarea id="fb-value" style="height: 60px;">{"temp": 24.5, "status": "active"}</textarea>
+            </div>
+
+            <div class="button-group" style="margin-top: 1.5rem;">
+              <button class="primary" style="background: #ef4444;" onclick="window.networkController.testFirebaseSubmit()">
+                <i data-lucide="send" style="width: 14px; margin-right: 4px;"></i> Push to Firestore
+              </button>
+            </div>
+          </div>
+
+          <!-- Data Retrieval Section -->
+          <div class="test-section" style="background: rgba(255,255,255,0.01);">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+              <i data-lucide="database" style="color: #fbbf24; width: 20px;"></i>
+              <h5 style="margin: 0; color: #fbbf24;">Data Retrieval (Read)</h5>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label>Retrieval Limit</label>
+              <input type="number" id="fb-limit" value="10" min="1" max="50">
+            </div>
+
+            <button class="primary" style="background: #f59e0b; width: 100%;" onclick="window.networkController.testFirebaseLoad()">
+              <i data-lucide="refresh-cw" style="width: 14px; margin-right: 4px;"></i> Fetch Latest Data
+            </button>
+
+            <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
+              <label>Result List (From Cloud)</label>
+              <textarea id="fb-result" style="height: 180px; font-family: monospace; font-size: 0.75rem; line-height: 1.4;" readonly placeholder="Click fetch to load..."></textarea>
+            </div>
+          </div>
+
+        </div>
+        <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 1rem;">* Firebase 기능을 사용하려면 .env 파일에 유효한 VITE_FIREBASE_* 키 설정이 필요합니다.</p>
+      </div>`;
+  }
+
   private getSocketTemplate(): string {
     return `
       <div class="test-form">

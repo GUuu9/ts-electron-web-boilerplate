@@ -34,7 +34,11 @@ const decrypted = await security.aesDecrypt(encrypted, key);
 // 1. 키쌍 생성 (1024, 2048, 4096 bits 지원)
 const { publicKey, privateKey } = await security.rsaGenerateKeyPair(2048);
 
-// 2. 공개키로 암호화 (송신자)
+// 2. HEX를 PEM 포맷으로 변환 (UI 표시용)
+const pubPem = security.hexToPem(publicKey, 'PUBLIC KEY');
+const privPem = security.hexToPem(privateKey, 'PRIVATE KEY');
+
+// 3. 공개키로 암호화 (송신자)
 const encrypted = await security.rsaEncrypt("Secret Data", publicKey);
 
 // 3. 개인키로 복호화 (수신자)

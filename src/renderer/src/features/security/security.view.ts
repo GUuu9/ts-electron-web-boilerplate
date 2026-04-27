@@ -17,12 +17,24 @@ export class SecurityView {
             </div>
             
             <div class="form-group">
-              <label>Plain Text Message</label>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label>Plain Text Message</label>
+                <div style="font-size: 0.7rem; color: var(--secondary); display: flex; align-items: center; gap: 4px;">
+                  <input type="checkbox" id="toggle-aes-input" onchange="window.securityController.toggleFieldFormat('aes-input', this.checked)">
+                  <label for="toggle-aes-input" style="margin: 0; cursor: pointer;">HEX View</label>
+                </div>
+              </div>
               <input type="text" id="aes-input" placeholder="Enter message to encrypt" value="Hello, Gemini Framework!">
             </div>
             
             <div class="form-group">
-              <label>Secret Key (32 characters)</label>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label>Secret Key (32 characters)</label>
+                <div style="font-size: 0.7rem; color: var(--secondary); display: flex; align-items: center; gap: 4px;">
+                  <input type="checkbox" id="toggle-aes-key" onchange="window.securityController.toggleFieldFormat('aes-key', this.checked)">
+                  <label for="toggle-aes-key" style="margin: 0; cursor: pointer;">HEX View</label>
+                </div>
+              </div>
               <div style="display: flex; gap: 0.5rem; align-items: stretch;">
                 <input type="text" id="aes-key" maxlength="32" placeholder="32-byte key" value="my-secret-key-12345678901234567" style="flex: 1; min-width: 0;">
                 <button class="primary" style="display: flex; align-items: center; gap: 6px; padding: 0 12px; min-width: 90px; justify-content: center; background: rgba(139, 92, 246, 0.1); border: 1px solid var(--secondary); color: var(--secondary);" onclick="window.securityController.generateRandomAesKey()">
@@ -43,7 +55,13 @@ export class SecurityView {
             </div>
 
             <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
-              <label>Resulting Data (IV : CipherText)</label>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label>Resulting Data (IV : CipherText)</label>
+                <div style="font-size: 0.7rem; color: var(--secondary); display: flex; align-items: center; gap: 4px;">
+                  <input type="checkbox" id="toggle-aes-result" checked onchange="window.securityController.toggleFieldFormat('aes-result', this.checked)">
+                  <label for="toggle-aes-result" style="margin: 0; cursor: pointer;">HEX View</label>
+                </div>
+              </div>
               <textarea id="aes-result" style="height: 80px; font-family: monospace; font-size: 0.8rem;" readonly></textarea>
             </div>
           </div>
@@ -68,7 +86,13 @@ export class SecurityView {
             </div>
 
             <div class="form-group">
-              <label>Data to Exchange (e.g. Session Key)</label>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label>Data to Exchange (e.g. Session Key)</label>
+                <div style="font-size: 0.7rem; color: #10b981; display: flex; align-items: center; gap: 4px;">
+                  <input type="checkbox" id="toggle-rsa-input" onchange="window.securityController.toggleFieldFormat('rsa-input', this.checked)">
+                  <label for="toggle-rsa-input" style="margin: 0; cursor: pointer;">HEX View</label>
+                </div>
+              </div>
               <input type="text" id="rsa-input" placeholder="Secure payload" value="Confidential Session Key 9901">
             </div>
 
@@ -82,8 +106,14 @@ export class SecurityView {
             </div>
 
             <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
-              <label>RSA Output / Key Info (Full)</label>
-              <textarea id="rsa-result" style="height: 180px; font-family: monospace; font-size: 0.75rem; word-break: break-all; line-height: 1.4;" readonly></textarea>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label>RSA Output / Key Info (HEX & PEM)</label>
+                <div style="font-size: 0.7rem; color: #10b981; display: flex; align-items: center; gap: 4px;">
+                  <input type="checkbox" id="toggle-rsa-result" checked onchange="window.securityController.toggleFieldFormat('rsa-result', this.checked)">
+                  <label for="toggle-rsa-result" style="margin: 0; cursor: pointer;">HEX View</label>
+                </div>
+              </div>
+              <textarea id="rsa-result" style="height: 300px; font-family: monospace; font-size: 0.75rem; word-break: break-all; line-height: 1.4;" readonly></textarea>
             </div>
           </div>
 
@@ -98,7 +128,13 @@ export class SecurityView {
 
           <div style="display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; margin-bottom: 1rem;">
             <div class="form-group">
-              <label>Large Payload to Compress</label>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label>Large Payload to Compress</label>
+                <div style="font-size: 0.7rem; color: #f59e0b; display: flex; align-items: center; gap: 4px;">
+                  <input type="checkbox" id="toggle-zip-input" onchange="window.securityController.toggleFieldFormat('zip-input', this.checked)">
+                  <label for="toggle-zip-input" style="margin: 0; cursor: pointer;">HEX View</label>
+                </div>
+              </div>
               <textarea id="zip-input" style="height: 100px;">이 텍스트는 암호화 전송 시 전송량을 줄이기 위해 압축됩니다. 
 반복되는 데이터가 많을수록 압축 효율이 높아집니다.
 로그 데이터나 대용량 JSON 전송 시 필수적으로 사용되는 기능입니다.
@@ -132,7 +168,13 @@ export class SecurityView {
           </div>
 
           <div class="form-group" style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1rem;">
-            <label>Compressed Result (Hex)</label>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <label>Compressed Result (Hex)</label>
+              <div style="font-size: 0.7rem; color: #f59e0b; display: flex; align-items: center; gap: 4px;">
+                <input type="checkbox" id="toggle-zip-result" checked onchange="window.securityController.toggleFieldFormat('zip-result', this.checked)">
+                <label for="toggle-zip-result" style="margin: 0; cursor: pointer;">HEX View</label>
+              </div>
+            </div>
             <textarea id="zip-result" style="height: 100px; font-family: monospace; font-size: 0.8rem;" readonly></textarea>
           </div>
         </div>

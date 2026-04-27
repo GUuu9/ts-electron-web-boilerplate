@@ -13,6 +13,42 @@ export class SecurityController {
     private uiLogger: UILogger
   ) {}
 
+  // --- [공통 유틸리티] ---
+
+  /**
+   * 특정 필드의 형식을 Text <-> HEX로 전환합니다.
+   * @param elementId 필드 ID
+   * @param toHex HEX로 변환할지 여부
+   */
+  public toggleFieldFormat(elementId: string, toHex: boolean): void {
+    const el = document.getElementById(elementId) as HTMLInputElement | HTMLTextAreaElement;
+    const value = el.value;
+    if (!value) return;
+
+    try {
+      if (toHex) {
+        // Text -> HEX
+        const bytes = new TextEncoder().encode(value);
+        let hex = '';
+        for (const b of bytes) hex += b.toString(16).padStart(2, '0');
+        el.value = hex;
+      } else {
+        // HEX -> Text (공백이나 콜론 제거 후 변환)
+        const cleanHex = value.replace(/[:\s]/g, '');
+        if (cleanHex.length % 2 !== 0) throw new Error('Invalid HEX length');
+        
+        const bytes = new Uint8Array(cleanHex.length / 2);
+        for (let i = 0; i < cleanHex.length; i += 2) {
+          bytes[i / 2] = parseInt(cleanHex.substring(i, i + 2), 16);
+        }
+        el.value = new TextDecoder().decode(bytes);
+      }
+    } catch (e: any) {
+      this.uiLogger.log(`[Format] Conversion Error: ${e.message}`, 'error');
+      // 실패 시 체크박스 상태 복구는 View에서 처리하거나 그대로 둠
+    }
+  }
+
   // --- [AES 테스트] ---
 
   /**
@@ -60,8 +96,16 @@ export class SecurityController {
     try {
       const keySize = parseInt((document.getElementById('rsa-key-size') as HTMLSelectElement).value);
       this.rsaKeyPair = await this.securityService.rsaGenerateKeyPair(keySize);
+
+      const pubHex = this.rsaKeyPair.publicKey;
+      const privHex = this.rsaKeyPair.privateKey;
+      const pubPem = this.securityService.hexToPem(pubHex, 'PUBLIC KEY');
+      const privPem = this.securityService.hexToPem(privHex, 'PRIVATE KEY');
+
       (document.getElementById('rsa-result') as HTMLTextAreaElement).value = 
-        `[Public Key]\n${this.rsaKeyPair.publicKey}\n\n[Private Key]\n${this.rsaKeyPair.privateKey}`;
+        `[Public Key - HEX]\n${pubHex}\n\n[Public Key - PEM]\n${pubPem}\n\n` +
+        `[Private Key - HEX]\n${privHex}\n\n[Private Key - PEM]\n${privPem}`;
+
       this.uiLogger.log(`[RSA] Key pair generated (${keySize}-bit)`, 'info');
     } catch (e: any) {
       this.uiLogger.log(`[RSA] Key Generation Error: ${e.message}`, 'error');

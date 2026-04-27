@@ -5,8 +5,8 @@
 ---
 
 ## 🌐 Web Demo & Hosting
-이 프로젝트는 GitHub Pages를 통해 웹 버전을 자동으로 호스팅하고 있습니다.
-- **Web Demo**: [https://GUuu9.github.io/ts-electron-web-boilerplate/](https://GUuu9.github.io/ts-electron-web-boilerplate/)
+~~이 프로젝트는 GitHub Pages를 통해 웹 버전을 자동으로 호스팅하고 있습니다.~~
+- ~~**Web Demo**: [https://GUuu9.github.io/ts-electron-web-boilerplate/](https://GUuu9.github.io/ts-electron-web-boilerplate/)~~
 
 ---
 
