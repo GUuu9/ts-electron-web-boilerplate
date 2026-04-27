@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename);
 
 export default defineConfig({
   root: path.resolve(__dirname, 'src/renderer'),
-  base: './',
+  base: '/ts-electron-web-boilerplate/',
   // process.env 전체를 덮어쓰지 않고, 필요한 값만 정의하거나 비워둡니다.
   // 이렇게 해야 Electron의 실제 process 객체가 렌더러에서 유지됩니다.
   define: {
