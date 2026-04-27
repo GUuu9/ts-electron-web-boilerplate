@@ -2,6 +2,14 @@
 
 이 프로젝트는 **Layered Architecture (계층형 아키텍처)**와 **의존성 주입(Dependency Injection)** 패턴을 적용하여, 하나의 소스 코드로 **웹 브라우저**와 **데스크탑(Mac, Windows, Linux)** 환경을 동시에 지원하도록 설계되었습니다.
 
+---
+
+## 🌐 Web Demo & Hosting
+이 프로젝트는 GitHub Pages를 통해 웹 버전을 자동으로 호스팅하고 있습니다.
+- **Web Demo**: [https://GUuu9.github.io/ts-electron-web-boilerplate/](https://GUuu9.github.io/ts-electron-web-boilerplate/)
+
+---
+
 ## 🚀 핵심 특징 (Core Features)
 
 - **One Codebase, Multi-Platform**: Vite와 Electron을 결합하여 웹과 데스크탑 화면을 동시에 개발 및 배포합니다.
