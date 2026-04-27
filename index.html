@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <title>Core Dashboard - My Cross Platform App</title>
+  <!-- Lucide Icons (CDN) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script type="module" crossorigin src="/ts-electron-web-boilerplate/assets/index-D8zgWu75.js"></script>
+  <link rel="stylesheet" crossorigin href="/ts-electron-web-boilerplate/assets/index-LPQqk7yR.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>Core Dashboard</h1>
+      <p class="subtitle" id="platform-status">Detecting platform...</p>
+    </header>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard-view" class="grid">
+      <div class="card" id="card-network">
+        <i data-lucide="globe" size="48"></i>
+        <h3>Network</h3>
+        <p>HTTP, TCP, UDP, Socket.io</p>
+        <span class="badge">Desktop + Web</span>
+      </div>
+
+      <div class="card" id="card-device">
+        <i data-lucide="cpu" size="48"></i>
+        <h3>Device Control</h3>
+        <p>Bluetooth, USB, HID, Media</p>
+        <span class="badge">Hardware Access</span>
+      </div>
+
+      <div class="card" id="card-shared">
+        <i data-lucide="layers" size="48"></i>
+        <h3>Shared Logic</h3>
+        <p>Calculation & Pure Business Logic</p>
+        <span class="badge">Universal Code</span>
+      </div>
+
+      <div class="card" id="card-database">
+        <i data-lucide="database" size="48"></i>
+        <h3>Database</h3>
+        <p>SQLite Local Storage</p>
+        <span class="badge">Desktop Only</span>
+      </div>
+
+      <div class="card" id="card-logger">
+        <i data-lucide="clipboard-list" size="48"></i>
+        <h3>Logger</h3>
+        <p>UI & System Audit Logs</p>
+        <span class="badge">Development</span>
+      </div>
+
+      <div class="card" id="card-maintenance">
+        <i data-lucide="settings-2" size="48"></i>
+        <h3>Maintenance</h3>
+        <p>System Monitor & Utils</p>
+        <span class="badge">Admin Only</span>
+      </div>
+    </div>
+
+    <!-- Test Detail View -->
+    <div id="detail-view">
+      <button class="back-btn" onclick="showDashboard()">
+        <i data-lucide="arrow-left" size="18"></i> Back to Dashboard
+      </button>
+
+      <div class="test-area">
+        <h2 id="test-title">Test Name</h2>
+        <p id="test-desc" style="color: var(--text-dim); margin-bottom: 2rem;">Description goes here.</p>
+        
+        <div id="test-content">
+          <!-- Dynamic Content -->
+        </div>
+
+        <div class="log-panel-wrapper">
+          <div id="log-panel">
+            > Ready to test...
+          </div>
+          <div class="log-input-area">
+            <input type="text" id="log-command" placeholder="Enter command (e.g. '/help')...">
+            <button onclick="window.testerController.handleCommand()">Execute</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 장치 선택 모달 -->
+  <div id="device-picker-modal" class="modal">
+    <div class="modal-content">
+      <h3 id="modal-title">🔍 장치 탐색 중...</h3>
+      <p id="modal-desc">연결할 블루투스 장치를 선택하세요.</p>
+      <div id="device-list-container" class="device-list">
+        <!-- 장치 버튼들이 여기에 동적으로 추가됨 -->
+      </div>
+      <button class="primary" style="background: #ef4444; margin-top: 1rem;" onclick="window.deviceController.cancelScan()">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    // Lucide 아이콘 초기화
+    lucide.createIcons();
+    
+    // 엔터키 커맨드 바인딩
+    document.getElementById('log-command').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') window.testerController.handleCommand();
+    });
+  </script>
+</body>
+</html>
