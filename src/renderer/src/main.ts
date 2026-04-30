@@ -1,184 +1,23 @@
-import './styles/main.css';
-import './styles/components.css';
-import { UILoggerService } from './core/ui-logger.service.js';
-import { UIRouterService } from './core/ui-router.service.js';
-import { TesterController } from './features/tester/tester.controller.js';
+import { PhaserGame } from './game/PhaserGame.js';
 
-// Network Controllers
-import { NetworkController } from './features/network/network.controller.js';
-import { HttpController } from './features/network/http.controller.js';
-import { SocketController } from './features/network/socket.controller.js';
-import { TcpUdpController } from './features/network/tcp-udp.controller.js';
+/**
+ * Renderer Main Entry Point
+ * 앱 시작 시 Phaser 게임을 초기화하고 전역 설정을 수행합니다.
+ */
+function bootstrap() {
+  console.log('🚀 Game Boilerplate Initializing...');
 
-// Device Controllers
-import { DeviceController } from './features/device/device.controller.js';
-import { BluetoothController } from './features/device/bluetooth.controller.js';
-import { UsbController } from './features/device/usb.controller.js';
-import { MediaController } from './features/device/media.controller.js';
+  // 1. Phaser 게임 인스턴스 생성
+  const gameApp = new PhaserGame('game-container');
 
-// Shared Controllers
-import { ConverterController } from './features/shared/converter.controller.js';
-import { ConverterService } from '../../shared/converter.service.js';
-import { SecurityService } from '../../shared/security/security.service.js';
-import { SecurityController } from './features/security/security.controller.js';
-
-// Logger Controllers
-import { LoggerController } from './features/logger/logger.controller.js';
-import { AuditLoggerController } from './features/logger/audit-logger.controller.js';
-
-// Maintenance Controllers
-import { MaintenanceController } from './features/maintenance/maintenance.controller.js';
-import { UISettingsService } from './core/ui-settings.service.js';
-
-// Views
-import { DeviceView } from './features/device/device.view.js';
-import { NetworkView } from './features/network/network.view.js';
-import { SecurityView } from './features/security/security.view.js';
-import { SharedView } from './features/shared/shared.view.js';
-import { LoggerView } from './features/logger/logger.view.js';
-import { MaintenanceView } from './features/maintenance/maintenance.view.js';
-
-// 렌더러 전역 타입 정의
-declare global {
-  interface Window {
-    electronAPI?: {
-      // ... (기존 API 정의 생략 가능하지만 유지하는 것이 안전)
-      platform: string;
-      tcp: any;
-      udp: any;
-      tcpServer: any;
-      socketServer: any;
-      devices: any;
-      recordAuditLog: (action: string) => void;
-      maintenance: any;
-      persistence: any;
-      os: any;
-    };
-    uiRouter: UIRouterService;
-    uiLogger: UILoggerService;
-    uiSettings: UISettingsService;
-    testerController: TesterController;
-    networkController: NetworkController;
-    deviceController: DeviceController;
-    sharedController: ConverterController;
-    securityController: SecurityController;
-    loggerController: LoggerController;
-    maintenanceController: MaintenanceController;
-    showTest: (type: string) => void;
-    showDashboard: () => void;
-  }
-}
-
-async function bootstrap() {
-  // 1. 코어 서비스 초기화
-  const uiLogger = new UILoggerService();
-  const uiSettings = new UISettingsService();
-  await uiSettings.init(); // 암호화된 설정 로드
-
-  // 1.1 View 인스턴스화
-  const deviceView = new DeviceView();
-  const networkView = new NetworkView();
-  const securityView = new SecurityView();
-  const sharedView = new SharedView(securityView);
-  const loggerView = new LoggerView();
-  const maintenanceView = new MaintenanceView();
-  
-  const uiRouter = new UIRouterService({
-    device: deviceView,
-    network: networkView,
-    shared: sharedView,
-    logger: loggerView,
-    maintenance: maintenanceView
-  });
-  
-  // 2. 하위 도메인 컨트롤러 초기화 (SRP 분리됨)
-  const httpCtrl = new HttpController(uiLogger);
-  const socketCtrl = new SocketController(uiLogger);
-  const l4Ctrl = new TcpUdpController(uiLogger);
-  
-  const btCtrl = new BluetoothController(uiLogger);
-  const usbCtrl = new UsbController(uiLogger);
-  const mediaCtrl = new MediaController(uiLogger);
-
-  const converterService = new ConverterService();
-  const securityService = new SecurityService();
-  
-  const converterCtrl = new ConverterController(uiLogger, converterService);
-  const securityCtrl = new SecurityController(securityService, uiLogger);
-
-  const auditLoggerCtrl = new AuditLoggerController(uiLogger);
-  const loggerCtrl = new LoggerController(uiLogger, auditLoggerCtrl);
-  const maintenanceCtrl = new MaintenanceController(uiLogger, uiSettings);
-
-  // 3. 메인 허브 컨트롤러 초기화 (의존성 주입)
-  const networkController = new NetworkController(uiLogger, httpCtrl, socketCtrl, l4Ctrl);
-  const deviceController = new DeviceController(uiLogger, btCtrl, usbCtrl, mediaCtrl);
-  const testerController = new TesterController(uiLogger, networkController, deviceController);
-
-  // 4. 전역 윈도우 객체에 노출
-  window.uiLogger = uiLogger;
-  window.uiRouter = uiRouter;
-  window.uiSettings = uiSettings;
-  window.testerController = testerController;
-  window.networkController = networkController;
-  window.deviceController = deviceController;
-  window.sharedController = converterCtrl;
-  window.securityController = securityCtrl;
-  window.loggerController = loggerCtrl;
-  window.maintenanceController = maintenanceCtrl;
-
-  window.showDashboard = () => uiRouter.showDashboard();
-  window.showTest = (type: string) => {
-    uiLogger.clear();
-    uiRouter.showTestDetail(type);
-  };
-
-  // 5. 이벤트 바인딩
-  document.getElementById('card-network')?.addEventListener('click', () => uiRouter.showTestDetail('network'));
-  document.getElementById('card-device')?.addEventListener('click', () => uiRouter.showTestDetail('device'));
-  document.getElementById('card-shared')?.addEventListener('click', () => uiRouter.showTestDetail('shared'));
-  document.getElementById('card-database')?.addEventListener('click', () => uiRouter.showTestDetail('database'));
-  document.getElementById('card-logger')?.addEventListener('click', () => uiRouter.showTestDetail('logger'));
-  document.getElementById('card-maintenance')?.addEventListener('click', () => uiRouter.showTestDetail('maintenance'));
-
-  // 6. 플랫폼 상태 업데이트
-  const platformStatus = document.getElementById('platform-status');
-  const isElectron = !!window.electronAPI;
-
-  if (platformStatus) {
-    const platform = window.electronAPI ? window.electronAPI.platform : 'Web Browser';
-    platformStatus.innerText = isElectron ? `Running on Desktop (${platform})` : 'Running on Web Browser';
-  }
-
-  // 7. 데스크탑 환경 제어
-  if (isElectron) {
-    // 텍스트 선택 방지 (단, 로그 패널 영역은 제외)
-    document.addEventListener('selectstart', (e) => {
-      const target = e.target as HTMLElement;
-      if (target.closest('#log-panel')) return; // 로그 패널은 선택 허용
-      e.preventDefault();
-    });
-    
-    // 페이지 리셋 단축키 (Cmd+R / Ctrl+R) 방지
-    document.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
-        e.preventDefault();
-      }
-    });
-  }
-
-  // 8. 초기 화면 설정
-  uiRouter.showDashboard();
+  // 2. 화면 표시 (CSS 애니메이션 연동)
   document.body.classList.add('ready');
 
-  // 9. OS 딥링크 리스너 등록
-  if (isElectron && window.electronAPI?.os?.onDeepLink) {
-    window.electronAPI.os.onDeepLink((url: string) => {
-      uiLogger.log(`[DEEP LINK] Received URL: ${url}`, false);
-      // 예: 특정 URL 패턴에 따라 화면 전환 가능
-      // if (url.includes('test/network')) uiRouter.showTestDetail('network');
-    });
-  }
+  // 전역 접근이 필요한 경우 window 객체에 등록 (디버깅용)
+  (window as any).gameApp = gameApp;
+
+  console.log('✅ Game Ready!');
 }
 
+// DOM 로드 완료 후 부트스트랩 실행
 window.addEventListener('DOMContentLoaded', bootstrap);

@@ -1,117 +1,65 @@
-# TypeScript + Electron + Web 통합 개발 보일러플레이트
+# TypeScript + Electron + Phaser.js 게임 개발 보일러플레이트
 
-이 프로젝트는 **Layered Architecture (계층형 아키텍처)**와 **의존성 주입(Dependency Injection)** 패턴을 적용하여, 하나의 소스 코드로 **웹 브라우저**와 **데스크탑(Mac, Windows, Linux)** 환경을 동시에 지원하도록 설계되었습니다.
-
----
-
-## 🌐 Web Demo & Hosting
-~~이 프로젝트는 GitHub Pages를 통해 웹 버전을 자동으로 호스팅하고 있습니다.~~
-- ~~**Web Demo**: [https://GUuu9.github.io/ts-electron-web-boilerplate/](https://GUuu9.github.io/ts-electron-web-boilerplate/)~~
+이 프로젝트는 **Phaser.js** 게임 엔진과 **Layered Architecture**를 결합하여, 고성능 데스크탑 및 웹 게임을 빠르게 개발할 수 있도록 설계된 보일러플레이트입니다. 기존의 강력한 네트워크 및 보안 인프라를 그대로 활용할 수 있습니다.
 
 ---
 
 ## 🚀 핵심 특징 (Core Features)
 
-- **One Codebase, Multi-Platform**: Vite와 Electron을 결합하여 웹과 데스크탑 화면을 동시에 개발 및 배포합니다.
-- **Shared Business Logic**: `src/shared` 폴더의 로직은 플랫폼(Node.js/Browser)에 관계없이 공통으로 사용됩니다.
-- **Secure Desktop Integration**: `Context Isolation` 및 `Preload` 스크립트를 통해 웹 화면에서 안전하게 데스크탑 OS API를 호출합니다.
-- **Layered Architecture**: Controller-Service-Repository 패턴을 지향하여 유지보수성과 확장성을 극대화합니다.
+- **Phaser.js Integrated**: 업계 표준 2D 게임 엔진인 Phaser 3.x가 사전 설정되어 있습니다.
+- **One Codebase, Multi-Platform**: 웹 브라우저와 데스크탑 앱을 동시에 개발하고 배포합니다.
+- **Shared Business Logic**: `src/shared` 폴더의 로직은 게임 엔진과 독립적으로 운영되며, 서버와 클라이언트 간에 공유될 수 있습니다.
+- **Multiplayer Ready**: `SocketClient`가 DI 컨테이너에 내장되어 있어 즉시 멀티플레이 기능을 구현할 수 있습니다.
+- **Secure Integration**: Electron의 OS API를 Phaser 씬 내에서 안전하게 호출할 수 있습니다.
 
 ---
 
 ## 🏗 아키텍처 구조 (Architecture)
 
-### 1. 계층 분리 (Layered Architecture)
-- **Renderer (UI)**: Vite + TypeScript 기반의 프론트엔드 (웹 브라우저 및 Electron 화면).
-- **Main (Desktop Core)**: Electron 메인 프로세스로 OS 자원(파일 시스템, 창 관리 등) 제어.
-- **Shared (Core Logic)**: 플랫폼 독립적인 순수 비즈니스 로직 및 유틸리티.
+### 1. 계층 분리
+- **Game (UI/Engine)**: Phaser.js 기반의 게임 씬 및 렌더링 레이어.
+- **Core (Infrastructure)**: 네트워크, 보안, DI 등 게임 외부의 핵심 시스템.
+- **Shared**: 플랫폼 독립적인 순수 비즈니스 로직(데이터 변환, 보안 알고리즘 등).
 
-### 2. 폴더 구조 가이드
+### 2. 폴더 구조
 ```text
 src/
-├── core/             # [Main] 앱의 핵심 인프라 (TCP/UDP/Socket 서버, DB, DI, Logger)
-├── features/         # [Main] 도메인 기반 백엔드 로직 (OS 수준의 서비스 처리)
-├── shared/           # [Shared] 플랫폼 공용 비즈니스 로직 및 타입 정의
-├── renderer/         # [Renderer] 프론트엔드 UI 소스
-│   ├── public/       # 정적 자산 (Favicon 등)
-│   ├── src/          # UI 소스 코드
-│   │   ├── core/     # [Renderer] UI 인프라 (Router, UI Logger)
-│   │   ├── features/ # [Renderer] UI Hub & Sub 컨트롤러 (SRP 적용)
-│   │   ├── styles/   # 글로벌 및 컴포넌트 CSS 스타일
-│   │   └── main.ts   # Renderer 진입점 및 의존성 주입(DI) 조립
-│   └── index.html    # 앱의 메인 HTML 템플릿
-├── main.ts           # Electron 메인 프로세스 진입점 (창 관리 및 IPC 핸들러)
-└── preload.ts        # 보안 브릿지 (Main-Renderer 간 안전한 API 노출)
+├── core/             # [Main/Renderer Shared] 앱의 핵심 인프라 (Network, Security, DI)
+├── shared/           # [Universal] 플랫폼 공용 비즈니스 로직
+├── renderer/         # [Phaser Engine] 게임 화면 및 클라이언트 로직
+│   ├── src/
+│   │   ├── game/     # 게임 씬 및 엔진 설정
+│   │   │   ├── scenes/  # Phaser Scenes (MainScene, BootScene 등)
+│   │   │   └── PhaserGame.ts  # 엔진 초기화 클래스
+│   │   ├── core/     # UI 전용 인프라 (Logger, Settings)
+│   │   └── main.ts   # 렌더러 진입점 및 부트스트랩
+│   └── index.html    # 게임 캔버스 컨테이너
+└── main.ts           # Electron 메인 프로세스 (OS 제어)
 ```
 
-### 💡 프로세스별 구조 이해 (Main vs Renderer)
-이 프로젝트는 **Main(Node.js)**과 **Renderer(Browser)** 프로세스가 독립적인 앱처럼 동작하며, 각각 동일한 **Layered Architecture** 원칙을 적용하고 있습니다.
+---
 
-- **`src/` 하위의 `core`, `features`**:
-  - **환경**: Node.js
-  - **역할**: 파일 시스템, 하드웨어 저수준 제어, 서버 소켓 운영 등 **OS 자원 관리**가 핵심입니다.
-  - **특징**: 브라우저 API를 사용할 수 없으며, 성능과 보안이 중요한 로직을 담당합니다.
+## ⚙️ 실행 및 빌드 가이드
 
-- **`src/renderer/src/` 하위의 `core`, `features`**:
-  - **환경**: Web Browser (Chromium)
-  - **역할**: 사용자 인터랙션, 화면 전환, 데이터 입력 폼 처리 등 **UI/UX 관리**가 핵심입니다.
-  - **특징**: Node.js API에 직접 접근할 수 없으며(보안상 금지), 필요 시 `preload.ts`를 통한 IPC 통신으로 Main 프로세스에 작업을 요청합니다.
+### 1. 환경 설치
+```bash
+npm install
+```
 
-- **`src/shared/`**:
-  - 계산 로직, 유효성 검사, 공통 인터페이스 등 **환경에 의존하지 않는 순수 비즈니스 로직**을 담습니다. 두 프로세스 모두에서 안전하게 임포트하여 중복 코드를 방지합니다.
+### 2. 개발 모드 실행
+- **Web 게임 실행**: `npm run dev`
+- **데스크탑 앱 실행**: `npm run electron:dev`
+
+### 3. 빌드 및 배포
+- **웹 호스팅 배포**: `npm run deploy` (GitHub Pages)
+- **데스크탑 앱 패키징**: `npm run dist`
 
 ---
 
-## 🏗 아키텍처 및 설계 원칙
+## 🧭 게임 개발 가이드
 
-1. **Layered Architecture**: Controller-Service-Repository 패턴을 엄격히 준수합니다.
-2. **Single Responsibility Principle (SRP)**: 각 컨트롤러와 서비스는 하나의 기능 또는 도메인만을 책임집니다. 기능이 복잡해질 경우 세부 컨트롤러(예: `BluetoothController`, `UsbController`)로 분리하여 관리합니다.
-3. **Dependency Injection (DI)**: 모든 의존성은 컨테이너를 통해 주입하며, 하드코딩된 인스턴스 생성을 지양합니다.
+Phaser 씬 관리, 의존성 주입, 멀티플레이 연동 등에 대한 상세 가이드는 [PHASER_GUIDE.md](./PHASER_GUIDE.md)를 참조하세요.
 
----
-
-## 🛠 기술 스택 (Tech Stack)
-
-- **Language**: TypeScript 5.x
-- **Runtime**: Node.js v22.x (LTS) - `nvm` 사용 권장
-- **Desktop**: Electron 34.x (Chromium + Node.js)
-- **Web/Bundler**: Vite 6.x
-- **Packaging**: Electron Builder (dmg, exe, AppImage 지원)
-- **Testing**: Vitest
-
-### 📦 주요 패키지 및 용도 (Key Packages & Purpose)
-
-| 패키지명 | 용도 | 상세 설명 |
-| :--- | :--- | :--- |
-| **typescript** | 언어 및 타입 안정성 | 전 과정에서 타입 체크를 통해 런타임 에러를 방지하고 최신 문법을 지원합니다. |
-| **electron** | 데스크탑 앱 프레임워크 | Chromium과 Node.js를 결합하여 웹 기술로 크로스 플랫폼 데스크탑 앱을 구동합니다. |
-| **vite** | 빌드 도구 및 개발 서버 | 매우 빠른 HMR(Hot Module Replacement)을 제공하며, 웹 및 렌더러 소스를 번들링합니다. |
-| **electron-builder** | 패키징 및 배포 | 작성된 코드를 Mac(.dmg), Win(.exe), Linux용 단독 실행 파일로 패키징합니다. |
-| **vitest** | 단위 테스트 | Vite 기반의 빠른 테스트 환경을 제공하여 공유 로직(Service)의 안정성을 검증합니다. |
-| **@types/node** | Node.js 타입 정의 | Electron 메인 프로세스에서 Node.js API(fs, path 등)를 사용할 때 타입 힌트를 제공합니다. |
-
----
-
-## 🛠 코어 기능 및 호환성 (Core Features & Compatibility)
-
-이 프로젝트의 코어 기능들은 실행 환경(Web vs Desktop)에 따라 사용 가능 여부가 다릅니다.
-
-| 기능 (Core) | 호환성 (Web/OS) | 사용 패키지 (Dependencies) | 용도 |
-| :--- | :--- | :--- | :--- |
-| **DI Container** | 전 플랫폼 공용 | 자체 구현 (TypeScript) | 객체 생명주기 및 의존성 주입 관리 |
-| **HttpClient** | 전 플랫폼 공용 | `axios` | REST API 통신 (HTTP/HTTPS) |
-| **SocketClient** | 전 플랫폼 공용 | `socket.io-client` | 실시간 양방향 이벤트 통신 (Client) |
-| **SocketServer** | **Desktop 전용** | `socket.io` | 로컬 실시간 통신 서버 운영 |
-| **TcpClient** | **Desktop 전용** | `net` (Node.js) | IPC 브릿지를 통한 저수준 스트림 통신 |
-| **TcpServer** | **Desktop 전용** | `net` (Node.js) | 멀티 클라이언트 접속 가능한 TCP 서버 |
-| **UdpClient** | **Desktop 전용** | `dgram` (Node.js) | 비연결형 패킷 통신 (Bind/Unbind 지원) |
-| **ConverterService**| 전 플랫폼 공용 | 순수 TS | 데이터 변환 (Hex 변환 등 공통 로직) |
-| **Database** | **Desktop 전용** | `sqlite3` (예정) | 로컬 SQLite 데이터베이스 관리 |
-| **BluetoothService** | 전 플랫폼 공용 | `Web Bluetooth API` | 블루투스 LE 장치 검색 및 통신 |
-| **UsbService** | 전 플랫폼 공용 | `Web MediaDevices API` | 전용 USB 기기, 게임패드, 커스텀 컨트롤러 연결 |
-| **MediaService** | 전 플랫폼 공용 | `WebHID API` | 마이크, 헤드셋 목록 확인 및 오디오 스트림 획득 |
-| **DeviceWatcherService** | **Desktop 전용** | `USB/Media Events` | 하드웨어 장치 연결/해제 실시간 모니터링 |
-| **PersistenceService** | **Desktop 전용** | `electron-store`, `crypto` | 암호화된 사용자 데이터 영구 저장 |
 
 ---
 
