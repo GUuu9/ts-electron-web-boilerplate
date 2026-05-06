@@ -64,16 +64,113 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Log Panel Terminal Style */
+/* Floating Log Panel Styles */
 .log-panel-wrapper {
-  background: #000;
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 400px;
+  height: 300px;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
   border: 1px solid #334155;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 300px;
-  margin-top: 2rem;
+  z-index: 100;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s ease;
+}
+
+.log-panel-wrapper.minimized {
+  height: 40px !important;
+}
+
+/* Logger Docking Layout Adjustment */
+body.logger-docked #app {
+  padding-bottom: 250px;
+  transition: padding-bottom 0.3s ease;
+}
+
+body.logger-docked.logger-minimized #app {
+  padding-bottom: 40px;
+}
+
+.log-panel-wrapper.docked {
+  bottom: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  height: 250px !important;
+  border-radius: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  transform: none !important;
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.log-panel-wrapper.docked.minimized {
+  height: 40px !important;
+}
+
+.log-panel-wrapper.docked #log-panel,
+.log-panel-wrapper.docked .log-input-area {
+  background: rgba(0, 0, 0, 0.95); /* 도킹 시 배경색 더 진하게 */
+}
+
+.log-panel-wrapper.docked .log-header {
+  cursor: default !important;
+  background: #111827;
+}
+
+.log-header {
+  height: 40px;
+  background: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1rem;
+  cursor: grab;
+  user-select: none;
+  border-bottom: 1px solid #334155;
+}
+
+.log-header:active {
+  cursor: grabbing;
+}
+
+.log-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.log-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.log-actions button {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.log-actions button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
 }
 
 #log-panel {
@@ -85,13 +182,13 @@
   color: #10b981;
   white-space: pre-wrap;
   text-align: left;
-  user-select: text; /* 텍스트 선택 허용 */
-  cursor: text;      /* 텍스트 커서 표시 */
+  user-select: text;
+  cursor: text;
 }
 
 .log-input-area {
-  padding: 0.75rem 1rem;
-  background: #0f172a;
+  padding: 0.5rem 0.75rem;
+  background: rgba(15, 23, 42, 0.9);
   border-top: 1px solid #334155;
   display: flex;
   gap: 0.5rem;
@@ -100,8 +197,9 @@
 
 .log-input-area::before {
   content: ">";
-  color: #94a3b8;
+  color: #64748b;
   font-family: 'Fira Code', monospace;
+  font-size: 0.8rem;
 }
 
 .log-input-area input {
@@ -109,23 +207,36 @@
   background: transparent;
   border: none;
   color: #f8fafc;
-  font-family: 'Fira Code', 'Courier New', Courier, monospace;
+  font-family: 'Fira Code', monospace;
   outline: none;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .log-input-area button {
   background: #334155;
   color: #f8fafc;
   border: none;
-  padding: 0.2rem 0.6rem;
+  padding: 0.2rem 0.5rem;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
 }
 
-.log-input-area button:hover {
-  background: #475569;
+/* Resize Handle */
+.log-resizer {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  right: 0;
+  bottom: 0;
+  cursor: nwse-resize;
+  background: linear-gradient(135deg, transparent 50%, #475569 50%);
+}
+
+.log-panel-wrapper.minimized .log-resizer,
+.log-panel-wrapper.minimized #log-panel,
+.log-panel-wrapper.minimized .log-input-area {
+  display: none;
 }
 
 /* Tabs */

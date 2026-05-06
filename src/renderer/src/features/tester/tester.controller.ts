@@ -22,22 +22,28 @@ export class TesterController {
     const rawInput = input.value.trim();
     if (!rawInput) return;
 
+    this.execute(rawInput);
+    input.value = '';
+  }
+
+  /**
+   * 문자열 형태의 명령어를 실행합니다. (외부 창 호출 지원)
+   */
+  public execute(rawInput: string): void {
+    if (!rawInput) return;
+
     const isCommand = rawInput.startsWith('/');
     const parts = isCommand ? rawInput.slice(1).split(' ') : [];
     const cmdName = parts[0]?.toLowerCase();
     const args = parts.slice(1);
 
     if (isCommand && COMMANDS[cmdName]) {
-      // 명령어 실행 시 필요한 의존성을 함께 전달할 수 있습니다.
       COMMANDS[cmdName].action(this.logger, args);
     } else if (isCommand) {
       this.logger.log(`Unknown command: ${rawInput}`, true);
     } else {
-      // 명령어가 아니면 일반 로그로 출력
       this.logger.log(`[User] ${rawInput}`);
     }
-    
-    input.value = '';
   }
 
   /**

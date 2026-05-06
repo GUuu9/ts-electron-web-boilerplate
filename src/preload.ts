@@ -109,5 +109,26 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.removeAllListeners('os-deeplink');
       ipcRenderer.on('os-deeplink', (_event, url) => callback(url));
     }
+  },
+
+  // 로그 창 제어 브릿지 (신규 추가)
+  logger: {
+    open: () => ipcRenderer.invoke('logger-open'),
+    send: (data: { message: string, isError: boolean }) => ipcRenderer.send('logger-log', data),
+    onReceive: (callback: (data: { message: string, isError: boolean }) => void) => {
+      ipcRenderer.removeAllListeners('logger-receive');
+      ipcRenderer.on('logger-receive', (_event, data) => callback(data));
+    },
+    onClosed: (callback: () => void) => {
+      ipcRenderer.removeAllListeners('logger-closed');
+      ipcRenderer.on('logger-closed', () => callback());
+    },
+    // 외부 창에서 명령어를 보낼 때 (신규)
+    sendCommand: (command: string) => ipcRenderer.send('logger-command', command),
+    // 메인 창에서 외부 창의 명령어를 수신할 때 (신규)
+    onCommand: (callback: (command: string) => void) => {
+      ipcRenderer.removeAllListeners('execute-command');
+      ipcRenderer.on('execute-command', (_event, cmd) => callback(cmd));
+    }
   }
 });

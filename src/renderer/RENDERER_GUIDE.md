@@ -74,9 +74,11 @@ src/renderer/src/
 - **Media Testing**: `AudioContext`를 이용한 마이크 분석, `video` 태그를 이용한 카메라 프리뷰, 스피커 비프음 테스트 지원.
 - **Persistence**: `localStorage`를 통해 사용자 선호 장치 정보를 영구 저장.
 
-### 5. `main.ts` (Bootstrapping)
-애플리케이션이 시작될 때 모든 서비스를 인스턴스화하고 의존성을 주입합니다.
-- **동작**: `UILogger`, `UIRouter`, 각 `Controller`를 생성하고 `window` 전역 객체에 노출하여 HTML 상의 `onclick` 이벤트와 연결합니다.
+### 6. UI Logger & Floating Interface
+UI Logger는 앱 전역에서 접근 가능한 플로팅 인터페이스로 설계되었습니다.
+- **상태 관리**: `UILoggerService`가 창의 위치, 크기, 도킹 여부, 분리 여부를 중앙에서 관리합니다.
+- **인터랙션**: 마우스 이벤트를 통한 드래그(Drag)와 리사이즈(Resize)가 지원되며, 화면 경계(Boundary)를 이탈하지 않도록 클램핑 로직이 적용되어 있습니다.
+- **하이브리드 모드**: 웹 환경에서는 플로팅/도킹을 지원하며, 데스크탑 환경에서는 IPC를 통한 외부 OS 창 분리(Detach) 기능을 추가로 지원합니다.
 
 ---
 

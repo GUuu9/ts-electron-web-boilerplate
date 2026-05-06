@@ -19,4 +19,8 @@ export const COMMANDS: Record<string, Command> = {
       });
     },
   },
+  'logger-mode': {
+    description: '로그 창의 모드(플로팅/도킹)를 전환합니다.',
+    action: (logger) => logger.toggleDock(),
+  },
 };

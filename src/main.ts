@@ -44,7 +44,46 @@ if (!gotTheLock) {
 }
 
 let mainWindow: BrowserWindow | null = null;
+let loggerWindow: BrowserWindow | null = null;
 let isQuitting = false; // 앱 완전 종료 플래그
+
+/**
+ * 로그 전용 외부 창을 생성합니다.
+ */
+function createLoggerWindow() {
+  if (loggerWindow) {
+    loggerWindow.focus();
+    return;
+  }
+
+  const preloadPath = path.join(__dirname, 'preload.js');
+  loggerWindow = new BrowserWindow({
+    width: 600,
+    height: 400,
+    title: 'System UI Logger',
+    backgroundColor: '#0f172a',
+    webPreferences: {
+      preload: preloadPath,
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false,
+    },
+  });
+
+  const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
+  if (isDev) {
+    // Vite base 경로 포함: /ts-electron-web-boilerplate/
+    loggerWindow.loadURL('http://localhost:5173/ts-electron-web-boilerplate/logger.html');
+  } else {
+    loggerWindow.loadFile(path.join(__dirname, '../dist/logger.html'));
+  }
+
+  loggerWindow.on('closed', () => {
+    loggerWindow = null;
+    mainWindow?.webContents.send('logger-closed');
+  });
+}
+
 let selectBluetoothCallback: ((id: string) => void) | null = null;
 let selectUsbCallback: ((id: string) => void) | null = null;
 let selectHidCallback: ((id: string) => void) | null = null;
@@ -104,7 +143,7 @@ function createWindow() {
 
   const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
   if (isDev) {
-    mainWindow.loadURL('http://localhost:5173');
+    mainWindow.loadURL('http://localhost:5173/ts-electron-web-boilerplate/');
   } else {
     mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
   }
@@ -231,6 +270,24 @@ function setupIpcHandlers() {
     if (selectBluetoothCallback) { selectBluetoothCallback(''); selectBluetoothCallback = null; }
     if (selectUsbCallback) { selectUsbCallback(''); selectUsbCallback = null; }
     if (selectHidCallback) { selectHidCallback(''); selectHidCallback = null; }
+  });
+
+  // --- 로그 창 제어 ---
+  ipcMain.handle('logger-open', () => {
+    createLoggerWindow();
+    return { success: true };
+  });
+
+  ipcMain.on('logger-log', (_, data) => {
+    if (loggerWindow && !loggerWindow.isDestroyed()) {
+      loggerWindow.webContents.send('logger-receive', data);
+    }
+  });
+
+  ipcMain.on('logger-command', (_, command) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('execute-command', command);
+    }
   });
 }
 

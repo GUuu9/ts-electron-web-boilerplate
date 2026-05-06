@@ -73,18 +73,35 @@
         <div id="test-content">
           <!-- Dynamic Content -->
         </div>
-
-        <div class="log-panel-wrapper">
-          <div id="log-panel">
-            > Ready to test...
-          </div>
-          <div class="log-input-area">
-            <input type="text" id="log-command" placeholder="Enter command (e.g. '/help')...">
-            <button onclick="window.testerController.handleCommand()">Execute</button>
-          </div>
-        </div>
       </div>
     </div>
+
+    <!-- Floating Log Panel -->
+    <div id="floating-log-panel" class="log-panel-wrapper">
+      <div class="log-header" id="log-header">
+        <div class="log-title">
+          <i data-lucide="terminal" size="14"></i>
+          <span>UI Logger</span>
+        </div>
+        <div class="log-actions" id="log-actions">
+          <button onclick="window.uiLogger.detachWindow()" id="detach-btn" title="Open in New Window" style="display: none;">
+            <i data-lucide="external-link" size="14"></i>
+          </button>
+          <button onclick="window.uiLogger.toggleMinimize()" id="minimize-btn" title="Minimize/Expand">
+            <i data-lucide="minus" size="14"></i>
+          </button>
+        </div>
+      </div>
+      <div id="log-panel">
+        > Ready to test...
+      </div>
+      <div class="log-input-area">
+        <input type="text" id="log-command" placeholder="Enter command...">
+        <button onclick="window.testerController.handleCommand()">Exec</button>
+      </div>
+      <div class="log-resizer" id="log-resizer"></div>
+    </div>
+  </div>
   </div>
 
   <!-- 장치 선택 모달 -->

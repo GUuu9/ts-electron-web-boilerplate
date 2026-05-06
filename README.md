@@ -4,12 +4,6 @@
 
 ---
 
-## 🌐 Web Demo & Hosting
-~~이 프로젝트는 GitHub Pages를 통해 웹 버전을 자동으로 호스팅하고 있습니다.~~
-- ~~**Web Demo**: [https://GUuu9.github.io/ts-electron-web-boilerplate/](https://GUuu9.github.io/ts-electron-web-boilerplate/)~~
-
----
-
 ## 🚀 핵심 특징 (Core Features)
 
 - **One Codebase, Multi-Platform**: Vite와 Electron을 결합하여 웹과 데스크탑 화면을 동시에 개발 및 배포합니다.

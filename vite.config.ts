@@ -22,6 +22,10 @@ export default defineConfig({
     outDir: path.resolve(__dirname, 'dist'),
     emptyOutDir: true,
     rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'src/renderer/index.html'),
+        logger: path.resolve(__dirname, 'src/renderer/logger.html'),
+      },
       external: ['net', 'dgram', 'path', 'fs', 'url'],
     },
   },

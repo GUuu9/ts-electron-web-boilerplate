@@ -179,6 +179,14 @@ async function bootstrap() {
       // if (url.includes('test/network')) uiRouter.showTestDetail('network');
     });
   }
+
+  // 10. 외부 로그 창 명령어 수신 리스너 (신규)
+  if (isElectron && window.electronAPI?.logger?.onCommand) {
+    window.electronAPI.logger.onCommand((cmd: string) => {
+      uiLogger.log(`[EXTERNAL CMD] Executing: ${cmd}`, false);
+      testerController.execute(cmd);
+    });
+  }
 }
 
 window.addEventListener('DOMContentLoaded', bootstrap);
