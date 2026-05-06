@@ -18,12 +18,7 @@ export class PhaserGame {
         default: 'arcade',
         arcade: {
           gravity: { y: 300, x: 0 },
-          debug: false
-        }
-      },
-      input: {
-        keyboard: {
-          target: window // 키보드 입력을 window 객체에서 직접 수신하도록 설정
+          debug: true
         }
       },
       scene: [MainScene]

@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser';
 import { container } from '../../../../core/di/container.renderer.js';
 import { SocketClient } from '../../../../core/network/socket.client.js';
+import { NpcAgent } from '../NpcAgent.js';
 
 /**
  * MainScene
@@ -12,6 +13,10 @@ export class MainScene extends Phaser.Scene {
   private statusText!: Phaser.GameObjects.Text;
   private player!: Phaser.Types.Physics.Arcade.SpriteWithDynamicBody;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+  private npc!: NpcAgent;
+  
+  // 키 상태 직접 관리 (이벤트 기반)
+  private keyState: { [key: string]: boolean } = {};
 
   constructor() {
     super({ key: 'MainScene' });
@@ -20,7 +25,7 @@ export class MainScene extends Phaser.Scene {
   }
 
   preload() {
-    // 배경 및 에셋 로드 (예시로 그라데이션 이미지 등을 생성하거나 로드할 수 있습니다)
+    // 배경 및 에셋 로드
     this.load.setBaseURL('https://labs.phaser.io');
     this.load.image('sky', 'assets/skies/space3.png');
     this.load.image('red', 'assets/particles/red.png');
@@ -28,23 +33,21 @@ export class MainScene extends Phaser.Scene {
   }
 
   create() {
-    // 1. 배경 설정
+    // ... (기존 create 로직)
     this.add.image(400, 300, 'sky');
 
-    // 2. 파티클 효과 (인프라 연결 확인용)
     const particles = this.add.particles(0, 0, 'red', {
       speed: 100,
       scale: { start: 1, end: 0 },
       blendMode: 'ADD'
     });
 
-    // 3. 플레이어 캐릭터 생성
     this.player = this.physics.add.sprite(400, 300, 'dude');
     this.player.setBounce(0.2);
     this.player.setCollideWorldBounds(true);
+    this.player.setGravityY(300);
     particles.startFollow(this.player);
 
-    // 4. 애니메이션 정의
     this.anims.create({
       key: 'left',
       frames: this.anims.generateFrameNumbers('dude', { start: 0, end: 3 }),
@@ -63,44 +66,65 @@ export class MainScene extends Phaser.Scene {
       repeat: -1
     });
 
-    // 5. 입력 제어
+    this.npc = new NpcAgent(this, 100, 100, 'dude', this.player);
+
     this.cursors = this.input.keyboard!.createCursorKeys();
 
-    // 입력 디버깅 (키가 눌릴 때마다 콘솔 출력)
     this.input.keyboard!.on('keydown', (event: KeyboardEvent) => {
-      console.log(`Key pressed: ${event.key}`);
+      this.keyState[event.code] = true;
+      console.log(`[Input] KeyDown: ${event.code}`);
     });
 
-    // 게임 시작 시 캔버스에 포커스 강제 (키보드 입력 활성화용)
-    this.game.canvas.focus();
-    this.input.on('pointerdown', () => {
+    this.input.keyboard!.on('keyup', (event: KeyboardEvent) => {
+      this.keyState[event.code] = false;
+    });
+
+    // 명시적으로 업데이트 이벤트를 등록해봅니다 (Phaser 4 대비)
+    this.events.on('update', () => {
+      this.handleUpdate();
+    });
+
+    const focusCanvas = () => {
       this.game.canvas.focus();
-    });
+    };
+    focusCanvas();
+    this.input.on('pointerdown', focusCanvas);
 
-    // 6. UI 및 인프라 상태 표시
-    this.statusText = this.add.text(16, 16, 'System: Ready', { fontSize: '18px', color: '#fff' });
+    this.statusText = this.add.text(16, 16, 'System: AI Active', { fontSize: '18px', color: '#fff' });
     
-    // SocketClient 연결 테스트
-    const socketStatus = this.socketClient.isConnected() ? 'Connected' : 'Disconnected';
-    this.add.text(16, 40, `Socket: ${socketStatus}`, { fontSize: '14px', color: '#0f0' });
-
-    console.log('MainScene created with SocketClient:', this.socketClient);
+    console.log('MainScene Create Finished');
   }
 
-  update() {
-    if (this.cursors.left.isDown) {
-      this.player.setVelocityX(-160);
+  // update() 대신 handleUpdate()로 로직 분리
+  handleUpdate() {
+    if (!this.player) return;
+
+    const leftDown = this.keyState['ArrowLeft'] || this.keyState['KeyA'];
+    const rightDown = this.keyState['ArrowRight'] || this.keyState['KeyD'];
+    const upDown = this.keyState['ArrowUp'] || this.keyState['KeyW'] || this.keyState['Space'];
+
+    if (leftDown) {
+      console.log('Update Loop Working: Left');
+      this.player.setVelocityX(-200);
       this.player.anims.play('left', true);
-    } else if (this.cursors.right.isDown) {
-      this.player.setVelocityX(160);
+    } else if (rightDown) {
+      console.log('Update Loop Working: Right');
+      this.player.setVelocityX(200);
       this.player.anims.play('right', true);
     } else {
       this.player.setVelocityX(0);
       this.player.anims.play('turn');
     }
 
-    if (this.cursors.up.isDown && this.player.body.touching.down) {
-      this.player.setVelocityY(-330);
+    if (upDown && (this.player.body as Phaser.Physics.Arcade.Body).blocked.down) {
+      this.player.setVelocityY(-400);
     }
+
+    if (this.npc) this.npc.update();
+  }
+
+  update() {
+    // Phaser 3 표준 update 루프 (Phaser 4에서는 호출되지 않을 수 있음)
+    this.handleUpdate();
   }
 }

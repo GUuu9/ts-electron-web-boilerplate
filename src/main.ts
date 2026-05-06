@@ -6,6 +6,8 @@ import { container } from './core/di/container.main.js';
 import type { SystemInfoService } from './core/system/system-info.service.js';
 import type { AuditLogger } from './core/logger/audit-logger.service.js';
 import type { SocketServer } from './core/network/socket.server.js';
+import type { OSIntegrationService } from './core/os/os-integration.service.js';
+import type { PersistenceService } from './core/persistence/persistence.service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,7 +15,7 @@ const __dirname = path.dirname(__filename);
 const auditLogger = container.get<AuditLogger>('AuditLogger');
 const systemInfo = container.get<SystemInfoService>('SystemInfoService');
 const osIntegration = container.get<OSIntegrationService>('OSIntegrationService');
-const persistence = container.get<any>('PersistenceService');
+const persistence = container.get<PersistenceService>('PersistenceService');
 const socketServer = container.get<SocketServer>('SocketServer');
 
 // 싱글 인스턴스 잠금 (Windows/Linux에서 딥링크 처리에 필수)
