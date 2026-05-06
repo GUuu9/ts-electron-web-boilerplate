@@ -10,7 +10,6 @@ export const ko = {
   },
   maintenance: {
     system_resource: '실시간 시스템 리소스',
-    os_integration: 'OS 통합 기능',
     tools: '도구 및 설정',
     theme_switch: '테마 전환 (다크/라이트)',
     lang_switch: '언어 설정'

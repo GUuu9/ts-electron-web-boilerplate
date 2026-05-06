@@ -6,7 +6,6 @@ import { container } from './core/di/container.main.js';
 import type { SystemInfoService } from './core/system/system-info.service.js';
 import type { AuditLogger } from './core/logger/audit-logger.service.js';
 import type { SocketServer } from './core/network/socket.server.js';
-import type { OSIntegrationService } from './core/os/os-integration.service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -157,11 +156,6 @@ function setupIpcHandlers() {
   // --- Persistence ---
   ipcMain.on('persistence-set', (_, key: string, value: any) => persistence.set(key, value));
   ipcMain.handle('persistence-get', (_, key: string) => persistence.get(key));
-
-  // --- OS Integration ---
-  ipcMain.on('os-notify', (_, title: string, body: string) => {
-    osIntegration.notify(title, body);
-  });
 
   ipcMain.on('bt-select-device', (_, id) => { if (selectBluetoothCallback) { selectBluetoothCallback(id); selectBluetoothCallback = null; }});
   ipcMain.on('usb-select-device', (_, id) => { if (selectUsbCallback) { selectUsbCallback(id); selectUsbCallback = null; }});

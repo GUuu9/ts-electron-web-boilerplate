@@ -10,7 +10,6 @@ export const en = {
   },
   maintenance: {
     system_resource: 'Real-time System Resource',
-    os_integration: 'OS Integration',
     tools: 'Tools & Settings',
     theme_switch: 'Toggle Theme (Dark/Light)',
     lang_switch: 'Language Settings'
