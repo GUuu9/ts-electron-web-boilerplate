@@ -100,6 +100,7 @@ src/
 | **TcpServer** | **Desktop 전용** | `net` (Node.js) | 멀티 클라이언트 접속 가능한 TCP 서버 |
 | **UdpClient** | **Desktop 전용** | `dgram` (Node.js) | 비연결형 패킷 통신 (Bind/Unbind 지원) |
 | **ConverterService**| 전 플랫폼 공용 | 순수 TS | 데이터 변환 (Hex 변환 등 공통 로직) |
+| **UI Logger** | 전 플랫폼 공용 | 순수 TS + CSS | 플로팅, 도킹, 외부 창 분리 및 양방향 커맨드 제어 |
 | **Database** | **Desktop 전용** | `sqlite3` (예정) | 로컬 SQLite 데이터베이스 관리 |
 | **BluetoothService** | 전 플랫폼 공용 | `Web Bluetooth API` | 블루투스 LE 장치 검색 및 통신 |
 | **UsbService** | 전 플랫폼 공용 | `Web MediaDevices API` | 전용 USB 기기, 게임패드, 커스텀 컨트롤러 연결 |
