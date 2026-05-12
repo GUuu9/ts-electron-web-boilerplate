@@ -1,9 +1,9 @@
-import { HttpClient } from '../network/http.client.js';
-import { SocketClient } from '../network/socket.client.js';
-import { BluetoothService } from '../device/bluetooth.service.js';
-import { UsbService } from '../device/usb.service.js';
-import { MediaService } from '../device/media.service.js';
-import { DeviceWatcherService } from '../device/device-watcher.service.js';
+import { HttpClient } from '../../features/network/http.client.js';
+import { SocketClient } from '../../features/network/socket.client.js';
+import { BluetoothService } from '../../features/device/bluetooth.service.js';
+import { UsbService } from '../../features/device/usb.service.js';
+import { MediaService } from '../../features/device/media.service.js';
+import { DeviceWatcherService } from '../../features/device/device-watcher.service.js';
 
 /**
  * 간단한 의존성 주입(DI) 컨테이너 클래스

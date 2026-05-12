@@ -1,6 +1,11 @@
 # 🌐 Network Infra 가이드
 
-이 모듈은 다양한 프로토콜(HTTP, TCP, UDP, Socket.io)을 통한 외부 통신을 담당하는 인프라 계층입니다.
+이 모듈은 다양한 프로토콜(HTTP, TCP, UDP, Socket.io)을 통한 외부 통신을 담당합니다.
+
+## 📂 파일 구조
+- **Feature**: `src/features/network/` (비즈니스 로직 및 서비스)
+- **Core (Main)**: `src/features/network/network.core.ts` (IPC 핸들러)
+- **Bridge (Preload)**: `src/core/bridge/network.bridge.ts` (Renderer API 정의)
 
 ## 🛠 제공 클라이언트
 

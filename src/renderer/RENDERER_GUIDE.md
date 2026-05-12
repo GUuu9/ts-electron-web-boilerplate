@@ -1,28 +1,44 @@
 # 🖥 Renderer Layered Architecture 가이드
 
-이 문서는 프로젝트의 **렌더러(UI) 프로세스** 내부 구조와 각 파일의 동작 및 기능 생성 원칙을 설명합니다.
+Vite 기반의 렌더러 프로세스(`src/renderer`)는 사용자 인터페이스와 브라우저 호환 로직을 담당합니다.
 
-## 🏗 아키텍처 개요
+## 🏗 레이어드 구조 (Layered UI)
 
-렌더러 레이어는 프로젝트 전체의 **Layered Architecture** 원칙을 따르며, UI 로직과 인프라 로직을 엄격히 분리하여 관리합니다.
+1.  **UI Components (HTML/CSS)**: `index.html`과 `styles/` 폴더에서 화면 구조와 디자인을 정의합니다.
+2.  **View Layer**: `*.view.ts` 파일에서 HTML 템플릿을 생성하고 DOM 인터랙션을 캡슐화합니다.
+3.  **Controller Layer**: `*.controller.ts`에서 사용자의 입력을 받고 비즈니스 로직(Service)을 호출합니다.
+4.  **Infrastructure (Core)**: `UIRouterService`와 `UILoggerService`가 화면 전환과 로그 출력을 공통 관리합니다.
 
-```text
-src/renderer/src/
-├── core/                # UI 인프라 (라우터, 로거, 공통 서비스, 설정)
-├── features/            # 도메인 기반 UI 기능
-│   ├── [domain]/
-│   │   ├── [domain].controller.ts  # 비즈니스 로직 및 이벤트 핸들링
-│   │   └── [domain].view.ts        # HTML 템플릿 정의 (컴포넌트화)
-├── styles/              # 분리된 CSS 스타일 시트
-└── main.ts              # 진입점 및 의존성 주입(DI) 조립
+## 🔄 IPC 통신 연결 (Preload Bridge)
+
+보안을 위해 Renderer는 Node.js에 직접 접근하지 않고, `preload.ts`가 노출한 `window.electronAPI`를 통해서만 OS 자원을 사용합니다.
+
+```typescript
+// 예: TCP 연결 요청
+const result = await window.electronAPI.tcp.connect('127.0.0.1', 8080);
 ```
 
----
+## 🧭 화면 전환 (Routing)
 
-## 🛠 아키텍처 및 리팩토링 규칙
+`UIRouterService`는 SPA 환경에서 화면 전환을 담당합니다.
+- **Dashboard**: 메인 기능 선택 화면
+- **Test Detail**: 하위 탭(Tab)이 포함된 상세 기능 테스트 화면
 
-1. **배럴 파일(`index.ts`) 금지**: `src/core` 하위에서는 의존성 순환 및 불필요한 모듈 로딩을 방지하기 위해 배럴 파일을 사용하지 않으며, 명시적으로 개별 파일을 임포트합니다.
-2. **환경 분리 (DI Container)**: 렌더러는 Node.js 전용 모듈(`net`, `dgram`)을 직접 참조할 수 없습니다. 
+## 🎨 스타일 원칙
+
+- **Vanilla CSS**: 특정 프레임워크에 의존하지 않고 표준 CSS 변수와 Flex/Grid를 활용합니다.
+- **Responsive**: 데스크탑 창 크기 조절에 대응하도록 설계되었습니다.
+- **Lucide Icons**: 아이콘은 `lucide` 라이브러리를 사용하여 일관성을 유지합니다.
+
+## 🛠 새로운 테스트 기능 추가 프로세스
+
+새로운 테스트 페이지(예: Database)를 추가할 때는 다음 단계를 따릅니다.
+
+1. **View 생성 (`features/`)**: 해당 도메인 폴더에 `xxx.view.ts`를 만들고 HTML 템플릿을 작성합니다.
+2. **컨트롤러 생성 (`features/`)**: 필요한 서비스를 주입받아 비즈니스 로직을 작성합니다.
+3. **라우터 등록 (`core/ui-router.service.ts`)**: `tabs` 객체에 메뉴 명칭을 추가합니다.
+4. **진입점 조립 (`main.ts`)**: `bootstrap()` 함수에서 View와 컨트롤러를 인스턴스화하고, View를 `uiRouter` 생성자에 주입합니다.
+
 3. **단일 책임 원칙 (SRP) 및 View-Controller 분리**: 
    - **View 클래스**: 특정 도메인의 **HTML 템플릿(문자열)**을 생성하고 관리합니다. 로직을 포함하지 않으며 순수하게 구조만 담당합니다.
    - **Controller 클래스**: 사용자의 입력을 받아 비즈니스 로직을 수행하고, Core 서비스를 호출합니다. UI 구조(HTML)에 직접 의존하지 않습니다.

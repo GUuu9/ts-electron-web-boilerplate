@@ -1,16 +1,16 @@
-import { AuditLogger } from '../logger/audit-logger.service.js';
-import { SystemInfoService } from '../system/system-info.service.js';
-import { PersistenceService } from '../persistence/persistence.service.js';
-import { HttpClient } from '../network/http.client.js';
-import { SocketClient } from '../network/socket.client.js';
-import { SocketServer } from '../network/socket.server.js';
-import { TcpClient } from '../network/tcp.client.js';
-import { TcpServer } from '../network/tcp.server.js';
-import { UdpClient } from '../network/udp.client.js';
-import { BluetoothService } from '../device/bluetooth.service.js';
-import { UsbService } from '../device/usb.service.js';
-import { MediaService } from '../device/media.service.js';
-import { OSIntegrationService } from '../os/os-integration.service.js';
+import { AuditLogger } from '../../features/logger/audit-logger.service.js';
+import { SystemInfoService } from '../../features/system/system-info.service.js';
+import { PersistenceService } from '../../features/persistence/persistence.service.js';
+import { HttpClient } from '../../features/network/http.client.js';
+import { SocketClient } from '../../features/network/socket.client.js';
+import { SocketServer } from '../../features/network/socket.server.js';
+import { TcpClient } from '../../features/network/tcp.client.js';
+import { TcpServer } from '../../features/network/tcp.server.js';
+import { UdpClient } from '../../features/network/udp.client.js';
+import { BluetoothService } from '../../features/device/bluetooth.service.js';
+import { UsbService } from '../../features/device/usb.service.js';
+import { MediaService } from '../../features/device/media.service.js';
+import { OSIntegrationService } from '../../features/os/os-integration.service.js';
 
 /**
  * 간단한 의존성 주입(DI) 컨테이너 클래스

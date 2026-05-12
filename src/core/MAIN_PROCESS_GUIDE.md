@@ -1,18 +1,32 @@
-# 🖥 Electron Main Process (`src/main.ts`) 가이드
+# 🖥 Electron Main Process 가이드
 
-이 문서는 프로젝트의 중추 역할을 하는 Electron 메인 프로세스(`src/main.ts`)의 구조, 역할 및 새로운 기능을 추가하는 표준 방법을 설명합니다.
+이 프로젝트의 메인 프로세스는 최소한의 오케스트레이션만 담당하며, 실제 기능은 `src/features` 폴더 내의 **CoreFeature** 모듈들이 담당합니다.
 
----
+## 🏗 모듈러 아키텍처
 
-## 💡 핵심 역할
+이 프로젝트는 기능을 유연하게 추가하고 삭제하기 위해 `CoreRegistry`를 통한 플러그인 방식을 사용합니다.
 
-`src/main.ts`는 Node.js 환경에서 실행되며 다음과 같은 핵심 책임을 갖습니다.
+### 1. 기능 등록 (Registration)
+새로운 기능을 추가하거나 기존 기능을 삭제할 때 `main.ts`의 등록 리스트만 수정하면 됩니다.
 
-1.  **애플리케이션 생명주기 관리**: 앱의 시작(`ready`), 종료(`window-all-closed`), 활성화(`activate`) 등을 제어합니다.
-2.  **윈도우 관리 (`BrowserWindow`)**: 렌더러(UI) 창을 생성하고, 보안 설정(Sandbox, Context Isolation)을 적용합니다.
-3.  **IPC(Inter-Process Communication) 핸들링**: 렌더러 프로세스에서 보낸 요청을 받아 Node.js 전용 API(파일 시스템, 네트워크 소켓 등)를 실행하고 결과를 반환합니다.
-4.  **하드웨어 및 보안 권한 제어**: 블루투스, USB, HID 장치에 대한 접근 권한을 승인하고 장치 선택 이벤트를 관리합니다.
-5.  **의존성 주입(DI) 인프라 구동**: `container.main.ts`를 통해 서버급 서비스(TCP/UDP 서버 등)를 로드합니다.
+```typescript
+// src/main.ts
+coreRegistry.register(new NetworkCoreFeature()); // 추가
+// coreRegistry.register(new OldFeature());      // 삭제 시 이 줄만 제거
+```
+
+### 2. CoreFeature 구조
+각 기능은 `CoreFeature` 인터페이스를 구현하여 자신의 IPC 핸들러와 라이프사이클을 관리합니다.
+
+- `setupHandlers()`: `ipcMain` 핸들러 등록
+- `onWindowCreated()`: 메인 창 생성 시 이벤트 바인딩 (장치 권한 등)
+- `init()`: 앱 시작 시 필요한 초기화
+
+## 🛠 새로운 기능 추가 절차
+
+1. **Feature 구현**: `src/features/[domain]` 폴더를 생성하고 `[domain].core.ts` 파일에서 `CoreFeature`를 구현합니다.
+2. **Bridge 정의**: `src/core/bridge/[domain].bridge.ts` 파일에서 Renderer에 노출할 API를 정의합니다.
+3. **등록**: `src/main.ts`에 모듈을 등록하고, `src/preload.ts`에서 생성한 브릿지를 합칩니다.
 
 ---
 
