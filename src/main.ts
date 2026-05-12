@@ -11,6 +11,7 @@ import { SystemCoreFeature } from './features/system/system.core.js';
 import { PersistenceCoreFeature } from './features/persistence/persistence.core.js';
 import { OSCoreFeature } from './features/os/os.core.js';
 import { LoggerWindowCoreFeature } from './features/logger/logger-window.core.js';
+import { AICoreFeature } from './features/ai/ai.core.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,6 +24,7 @@ coreRegistry.register(new SystemCoreFeature());
 coreRegistry.register(new PersistenceCoreFeature());
 coreRegistry.register(new OSCoreFeature());
 coreRegistry.register(new LoggerWindowCoreFeature());
+coreRegistry.register(new AICoreFeature());
 
 // 싱글 인스턴스 잠금 (Windows/Linux에서 딥링크 처리에 필수)
 const gotTheLock = app.requestSingleInstanceLock();
