@@ -107,6 +107,8 @@ src/
 | **MediaService** | 전 플랫폼 공용 | `WebHID API` | 마이크, 헤드셋 목록 확인 및 오디오 스트림 획득 |
 | **DeviceWatcherService** | **Desktop 전용** | `USB/Media Events` | 하드웨어 장치 연결/해제 실시간 모니터링 |
 | **PersistenceService** | **Desktop 전용** | `electron-store`, `crypto` | 암호화된 사용자 데이터 영구 저장 |
+| **SerialService** | **Desktop 전용** | `serialport` | 하드웨어 시리얼 포트(RS232, UART) 통신 제어 |
+| **SystemInfoService** | **Desktop 전용** | `systeminformation` | CPU, 메모리 등 시스템 리소스 모니터링 |
 
 ---
 

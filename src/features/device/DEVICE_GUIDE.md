@@ -64,6 +64,35 @@ devices.forEach(d => console.log(`${d.kind}: ${d.label}`));
 const stream = await media.getAudioStream();
 ```
 
+### 4. SerialService (시리얼 통신 - Desktop 전용)
+렌더러 프로세스에서는 `window.electronAPI.serial` 브릿지를 통해 접근합니다.
+```typescript
+const serial = window.electronAPI.serial;
+
+// 1. 사용 가능한 포트 목록 조회
+const ports = await serial.listPorts();
+console.log('Available ports:', ports);
+
+// 2. 포트 열기 (경로, 보드레이트)
+const success = await serial.openPort('/dev/tty.usbserial', 9600);
+
+if (success) {
+  // 3. 데이터 수신 리스너 등록
+  const removeListener = serial.onData('/dev/tty.usbserial', (data: Buffer) => {
+    console.log('Received data:', data.toString());
+  });
+
+  // 4. 데이터 쓰기
+  await serial.write('/dev/tty.usbserial', 'Hello Device!');
+
+  // 리스너 제거가 필요할 때 호출
+  // removeListener();
+}
+
+// 5. 포트 닫기
+await serial.closePort('/dev/tty.usbserial');
+```
+
 ---
 
 ## ⚠️ OS별 필수 설정 (Electron)
