@@ -10,6 +10,7 @@ import { UdpClient } from '../../features/network/udp.client.js';
 import { BluetoothService } from '../../features/device/bluetooth.service.js';
 import { UsbService } from '../../features/device/usb.service.js';
 import { MediaService } from '../../features/device/media.service.js';
+import { SerialService } from '../../features/device/serial.service.js';
 import { OSIntegrationService } from '../../features/os/os-integration.service.js';
 
 /**
@@ -35,6 +36,7 @@ export class MainDIContainer {
     this.services.set('BluetoothService', new BluetoothService());
     this.services.set('UsbService', new UsbService());
     this.services.set('MediaService', new MediaService());
+    this.services.set('SerialService', new SerialService());
   }
 
   /**

@@ -6,6 +6,7 @@ import 'dotenv/config';
 import { coreRegistry } from './core/core-registry.js';
 import { NetworkCoreFeature } from './features/network/network.core.js';
 import { DeviceCoreFeature } from './features/device/device.core.js';
+import { SerialCoreFeature } from './features/device/serial.core.js';
 import { LoggerCoreFeature } from './features/logger/logger.core.js';
 import { SystemCoreFeature } from './features/system/system.core.js';
 import { PersistenceCoreFeature } from './features/persistence/persistence.core.js';
@@ -19,6 +20,7 @@ const __dirname = path.dirname(__filename);
 // 1. 코어 피처 등록 (이 리스트만 수정하면 기능 추가/삭제 가능)
 coreRegistry.register(new NetworkCoreFeature());
 coreRegistry.register(new DeviceCoreFeature());
+coreRegistry.register(new SerialCoreFeature());
 coreRegistry.register(new LoggerCoreFeature());
 coreRegistry.register(new SystemCoreFeature());
 coreRegistry.register(new PersistenceCoreFeature());

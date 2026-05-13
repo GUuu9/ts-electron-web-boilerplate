@@ -15,6 +15,7 @@ import { DeviceController } from './features/device/device.controller.js';
 import { BluetoothController } from './features/device/bluetooth.controller.js';
 import { UsbController } from './features/device/usb.controller.js';
 import { MediaController } from './features/device/media.controller.js';
+import { SerialController } from './features/device/serial.controller.js';
 
 // Shared Controllers
 import { ConverterController } from './features/shared/converter.controller.js';
@@ -62,6 +63,7 @@ declare global {
     testerController: TesterController;
     networkController: NetworkController;
     deviceController: DeviceController;
+    serialController: SerialController;
     sharedController: ConverterController;
     securityController: SecurityController;
     loggerController: LoggerController;
@@ -104,6 +106,7 @@ async function bootstrap() {
   const btCtrl = new BluetoothController(uiLogger);
   const usbCtrl = new UsbController(uiLogger);
   const mediaCtrl = new MediaController(uiLogger);
+  const serialCtrl = new SerialController(uiLogger);
 
   const converterService = new ConverterService();
   const securityService = new SecurityService();
@@ -128,6 +131,7 @@ async function bootstrap() {
   window.testerController = testerController;
   window.networkController = networkController;
   window.deviceController = deviceController;
+  window.serialController = serialCtrl;
   window.sharedController = converterCtrl;
   window.securityController = securityCtrl;
   window.loggerController = loggerCtrl;

@@ -18,5 +18,16 @@ export const deviceBridge = {
     },
     selectHid: (id: string) => ipcRenderer.send('hid-select-device', id),
     cancelSelect: () => ipcRenderer.send('device-cancel-select')
+  },
+  serial: {
+    listPorts: () => ipcRenderer.invoke('serial-list-ports'),
+    openPort: (path: string, baudRate: number) => ipcRenderer.invoke('serial-open-port', path, baudRate),
+    closePort: (path: string) => ipcRenderer.invoke('serial-close-port', path),
+    write: (path: string, data: string) => ipcRenderer.invoke('serial-write', path, data),
+    onData: (path: string, callback: (data: any) => void) => {
+      const channel = `serial-data-${path}`;
+      ipcRenderer.on(channel, (_event, data) => callback(data));
+      return () => ipcRenderer.removeAllListeners(channel);
+    }
   }
 };

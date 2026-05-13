@@ -19,14 +19,25 @@ export class MaintenanceView {
   private getSystemResourceTemplate(): string {
     return `
       <div class="test-form">
-        <div class="test-section">
-          <h4>Real-time System Resource</h4>
-          <div id="system-status-container" style="background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 1.5rem;">
-            <p style="color: var(--text-dim);">Loading system information...</p>
+        <div class="test-section" style="background: rgba(255,255,255,0.01);">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+            <i data-lucide="activity" style="color: #60a5fa; width: 20px;"></i>
+            <h5 style="margin: 0; color: #60a5fa;">Real-time System Resource</h5>
           </div>
-          <div class="button-group">
-            <button class="primary" onclick="window.maintenanceController.startMonitoring()">Start Real-time Update</button>
-            <button class="primary" style="background: #ef4444;" onclick="window.maintenanceController.stopMonitoring()">Stop Update</button>
+
+          <div id="system-status-container" style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 1.5rem; min-height: 120px;">
+            <p style="color: var(--text-dim); font-size: 0.9rem;">Loading system information...</p>
+          </div>
+
+          <div class="button-group" style="gap: 0.75rem;">
+            <button class="primary" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 24px; min-width: 180px;" onclick="window.maintenanceController.startMonitoring()">
+              <i data-lucide="play" style="width: 16px; height: 16px;"></i>
+              <span>Start Monitoring</span>
+            </button>
+            <button class="primary" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 24px; min-width: 180px; background: #ef4444;" onclick="window.maintenanceController.stopMonitoring()">
+              <i data-lucide="square" style="width: 16px; height: 16px;"></i>
+              <span>Stop Update</span>
+            </button>
           </div>
         </div>
       </div>`;
@@ -35,57 +46,95 @@ export class MaintenanceView {
   private getOsIntegrationTemplate(): string {
     return `
       <div class="test-form">
-        <div class="test-section">
-          <h4>Native Notification</h4>
-          <div class="form-group">
-            <label>Title</label>
-            <input type="text" id="noti-title" value="Hello Electron!">
-          </div>
-          <div class="form-group">
-            <label>Body Content</label>
-            <textarea id="noti-body">This is a native notification sent from the renderer process via IPC.</textarea>
-          </div>
-          <div class="button-group">
-            <button class="primary" onclick="window.maintenanceController.testNotification()">Send Notification</button>
-          </div>
-        </div>
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <!-- Notification Section -->
+          <div class="test-section" style="background: rgba(255,255,255,0.01);">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+              <i data-lucide="bell" style="color: #f87171; width: 20px;"></i>
+              <h5 style="margin: 0; color: #f87171;">Native OS Notification</h5>
+            </div>
 
-        <div class="test-section" style="margin-top: 1.5rem;">
-          <h4>Global Shortcut (Read Only)</h4>
-          <p style="font-size: 0.85rem; color: var(--text-dim);">
-            The following shortcut is registered to toggle the window visibility:
-          </p>
-          <div style="margin-top: 0.5rem; padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 4px; font-family: monospace; display: inline-block;">
-            ${window.electronAPI?.platform === 'darwin' ? '⌘ + Shift + X' : 'Alt + Shift + X'}
+            <div class="form-group">
+              <label>Notification Title</label>
+              <input type="text" id="noti-title" value="Hello Electron!" style="padding: 10px;">
+            </div>
+            <div class="form-group">
+              <label>Message Content</label>
+              <textarea id="noti-body" style="height: 60px; padding: 10px;">This is a native notification sent via IPC bridge.</textarea>
+            </div>
+            <div class="button-group" style="margin-top: 1.5rem;">
+              <button class="primary" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 24px; min-width: 180px; background: #ef4444;" onclick="window.maintenanceController.testNotification()">
+                <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+                <span>Send Notification</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Shortcuts Section -->
+          <div class="test-section" style="background: rgba(255,255,255,0.01);">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+              <i data-lucide="keyboard" style="color: #fbbf24; width: 20px;"></i>
+              <h5 style="margin: 0; color: #fbbf24;">Global Shortcuts</h5>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-dim); line-height: 1.5; margin-bottom: 1rem;">
+              시스템 전역 단축키를 통해 앱의 가시성을 토글할 수 있습니다.
+            </p>
+            <div style="padding: 1rem; background: rgba(251, 191, 36, 0.05); border: 1px dashed rgba(251, 191, 36, 0.3); border-radius: 6px; font-family: monospace; display: inline-flex; align-items: center; gap: 8px; color: #fbbf24; font-weight: bold;">
+              <i data-lucide="info" style="width: 14px;"></i>
+              ${window.electronAPI?.platform === 'darwin' ? '⌘ + Shift + X' : 'Alt + Shift + X'}
+            </div>
           </div>
         </div>
       </div>`;
   }
 
   private getToolsTemplate(): string {
+    const t = (key: string) => window.uiSettings?.t(key);
+    const isKo = window.uiSettings?.getCurrentLanguage() === 'ko';
+
     return `
       <div class="test-form">
-        <div class="test-section">
-          <h4>${window.uiSettings?.t('maintenance.tools') || 'Tools & Settings'}</h4>
-          <div class="form-group">
-            <label>${window.uiSettings?.t('maintenance.theme_switch') || 'Toggle Theme'}</label>
+        <div class="test-section" style="background: rgba(255,255,255,0.01);">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+            <i data-lucide="settings-2" style="color: #f59e0b; width: 20px;"></i>
+            <h5 style="margin: 0; color: #f59e0b;">${t('maintenance.tools') || 'System Tools & Preferences'}</h5>
+          </div>
+
+          <!-- Theme Section -->
+          <div class="form-group" style="margin-bottom: 2rem;">
+            <label>${t('maintenance.theme_switch') || 'Application Theme'}</label>
             <div class="button-group">
-              <button class="primary" onclick="window.maintenanceController.toggleTheme()">Switch Dark/Light Mode</button>
+              <button class="primary" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 24px; min-width: 220px; background: var(--bg-tertiary); border: 1px solid #f59e0b; color: #f59e0b;" onclick="window.maintenanceController.toggleTheme()">
+                <i data-lucide="sun-moon" style="width: 16px; height: 16px;"></i>
+                <span>Switch Dark / Light Mode</span>
+              </button>
             </div>
           </div>
           
-          <div class="form-group" style="margin-top: 1.5rem;">
-            <label>${window.uiSettings?.t('maintenance.lang_switch') || 'Language Settings'}</label>
-            <div class="button-group">
-              <button class="primary" style="background: ${window.uiSettings?.getCurrentLanguage() === 'ko' ? 'var(--primary)' : 'var(--bg-tertiary)'};" onclick="window.maintenanceController.changeLanguage('ko')">한국어</button>
-              <button class="primary" style="background: ${window.uiSettings?.getCurrentLanguage() === 'en' ? 'var(--primary)' : 'var(--bg-tertiary)'};" onclick="window.maintenanceController.changeLanguage('en')">English</button>
+          <!-- Language Section -->
+          <div class="form-group" style="margin-bottom: 2rem;">
+            <label>${t('maintenance.lang_switch') || 'Display Language'}</label>
+            <div class="button-group" style="gap: 0.75rem;">
+              <button class="primary" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: ${isKo ? '#f59e0b' : 'transparent'}; border: 1px solid #f59e0b; color: ${isKo ? '#fff' : '#f59e0b'};" onclick="window.maintenanceController.changeLanguage('ko')">
+                <i data-lucide="languages" style="width: 14px;"></i> 한국어 (Korean)
+              </button>
+              <button class="primary" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: ${!isKo ? '#f59e0b' : 'transparent'}; border: 1px solid #f59e0b; color: ${!isKo ? '#fff' : '#f59e0b'};" onclick="window.maintenanceController.changeLanguage('en')">
+                <i data-lucide="languages" style="width: 14px;"></i> English
+              </button>
             </div>
           </div>
 
-          <div style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-            <div class="button-group">
-              <button class="primary" style="background: #64748b;" onclick="window.maintenanceController.checkLogPath()">Check Log Directory</button>
-              <button class="primary" style="background: #ef4444;" onclick="window.uiLogger.clear()">Clear UI Logs</button>
+          <!-- Log Management Section -->
+          <div style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem;">
+            <div class="button-group" style="gap: 0.75rem;">
+              <button class="primary" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; background: #64748b;" onclick="window.maintenanceController.checkLogPath()">
+                <i data-lucide="folder" style="width: 16px; height: 16px;"></i>
+                <span>Open Log Directory</span>
+              </button>
+              <button class="primary" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 20px; background: #ef4444;" onclick="window.uiLogger.clear()">
+                <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                <span>Clear UI Logs</span>
+              </button>
             </div>
           </div>
         </div>

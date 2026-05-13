@@ -17,8 +17,12 @@ export class GameController {
 
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
+      pixelArt: true, // 픽셀을 선명하게 렌더링 (안티앨리어싱 비활성화)
+      roundPixels: true, // 좌표를 정수로 반올림하여 번짐 방지
+      resolution: window.devicePixelRatio || 1, // 고해상도 디스플레이 대응
       scale: {
-        mode: Phaser.Scale.FIT,
+        mode: Phaser.Scale.NONE, // 고정 크기 사용 (지터링 방지)
+        autoCenter: Phaser.Scale.CENTER_BOTH,
         parent: containerId,
         width: 800,
         height: 600

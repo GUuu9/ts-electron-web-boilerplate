@@ -101,7 +101,8 @@ export class UIRouterService {
       device: [
         { id: 'bluetooth', label: 'Bluetooth' },
         { id: 'usb', label: 'USB / HID' },
-        { id: 'media', label: 'Media Devices' }
+        { id: 'media', label: 'Media Devices' },
+        { id: 'serial', label: 'Serial Port' }
       ],
       shared: [
         { id: 'calc', label: 'Calculation' },
@@ -138,7 +139,10 @@ export class UIRouterService {
     this.contentElement.innerHTML = `${tabsHtml}<div id="sub-content">${subContentHtml}</div>`;
     
     // Lucide 아이콘 라이브러리 초기화 (HTML 삽입 후 실행 필요)
-    if (typeof lucide !== 'undefined') lucide.createIcons();
+    const lucideObj = (window as any).lucide;
+    if (lucideObj && typeof lucideObj.createIcons === 'function') {
+      lucideObj.createIcons();
+    }
   }
 
   /**
@@ -161,6 +165,12 @@ export class UIRouterService {
 
     // 컨텐츠 영역만 교체
     subContentArea.innerHTML = this.getSubContentHtml(this.currentCategory, subType);
+
+    // Lucide 아이콘 라이브러리 재초기화
+    const lucideObj = (window as any).lucide;
+    if (lucideObj && typeof lucideObj.createIcons === 'function') {
+      lucideObj.createIcons();
+    }
   }
 
   /**

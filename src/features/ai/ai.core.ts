@@ -16,9 +16,9 @@ export class AICoreFeature implements CoreFeature {
     const osService = container.get<any>('OSIntegrationService');
     
     // 트리 인스턴스 생성 및 관리
-    this.trees.push({ name: 'NetworkMonitor', tree: createNetworkMonitorTree(networkService) });
-    this.trees.push({ name: 'DeviceManager', tree: createDeviceManagerTree(deviceService) });
-    this.trees.push({ name: 'LowActivityAI', tree: createLowActivityTree(osService) });
+    // this.trees.push({ name: 'NetworkMonitor', tree: createNetworkMonitorTree(networkService) });
+    // this.trees.push({ name: 'DeviceManager', tree: createDeviceManagerTree(deviceService) });
+    // this.trees.push({ name: 'LowActivityAI', tree: createLowActivityTree(osService) });
     
     console.log('[AI] Starting AI Engines...');
     
