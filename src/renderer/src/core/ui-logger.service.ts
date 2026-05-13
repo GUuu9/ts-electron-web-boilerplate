@@ -25,6 +25,12 @@ export class UILoggerService {
     this.initFloatingEvents();
     this.checkPlatform();
     this.initKeyboardShortcuts();
+
+    // 초기 상태 설정: 하단 고정(Docked) 및 최소화(Minimized)
+    setTimeout(() => {
+      this.toggleDock();
+      this.toggleMinimize();
+    }, 0);
   }
 
   /**

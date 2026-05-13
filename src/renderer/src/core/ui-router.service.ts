@@ -38,20 +38,28 @@ export class UIRouterService {
   public showTestDetail(category: string): void {
     if (this.dashboardView) this.dashboardView.style.display = 'none';
     if (this.detailView) this.detailView.style.display = 'block';
-    
+
     this.currentCategory = category;
-    
+
     // 각 카테고리 진입 시 기본으로 보여줄 하위 탭 설정
     const defaultSub: Record<string, string> = {
       network: 'http',
       device: 'bluetooth',
       shared: 'calc',
       logger: 'ui',
-      maintenance: 'system'
+      maintenance: 'system',
+      game: 'phaser'
     };
-    
+
     this.renderCategoryLayout(category, defaultSub[category] || '');
     this.focusFirstElement();
+
+    // Phaser 게임 뷰 특별 처리: 렌더링 직후 초기화 실행
+    if (category === 'game' && window.gameController) {
+      setTimeout(() => {
+        window.gameController.initGame('game-container');
+      }, 50);
+    }
   }
 
   /**
@@ -77,7 +85,8 @@ export class UIRouterService {
       shared: 'Shared Service Logic',
       database: 'SQLite Database',
       logger: 'Audit & UI Logging',
-      maintenance: 'System Maintenance'
+      maintenance: 'System Maintenance',
+      game: 'Phaser Game Engine'
     };
     this.titleElement.innerText = titles[category] || 'Test';
 
@@ -106,6 +115,9 @@ export class UIRouterService {
         { id: 'system', label: 'System Resource' },
         { id: 'os', label: 'OS Integration' },
         { id: 'utils', label: 'Tools' }
+      ],
+      game: [
+        { id: 'phaser', label: 'Phaser Test' }
       ]
     };
 

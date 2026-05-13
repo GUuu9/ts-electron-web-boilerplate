@@ -29,6 +29,7 @@ import { AuditLoggerController } from './features/logger/audit-logger.controller
 // Maintenance Controllers
 import { MaintenanceController } from './features/maintenance/maintenance.controller.js';
 import { UISettingsService } from './core/ui-settings.service.js';
+import { GameController } from './features/game/game.controller.js';
 
 // Views
 import { DeviceView } from './features/device/device.view.js';
@@ -37,6 +38,7 @@ import { SecurityView } from './features/security/security.view.js';
 import { SharedView } from './features/shared/shared.view.js';
 import { LoggerView } from './features/logger/logger.view.js';
 import { MaintenanceView } from './features/maintenance/maintenance.view.js';
+import { GameView } from './features/game/game.view.js';
 
 // 렌더러 전역 타입 정의
 declare global {
@@ -64,6 +66,7 @@ declare global {
     securityController: SecurityController;
     loggerController: LoggerController;
     maintenanceController: MaintenanceController;
+    gameController: GameController;
     showTest: (type: string) => void;
     showDashboard: () => void;
   }
@@ -82,13 +85,15 @@ async function bootstrap() {
   const sharedView = new SharedView(securityView);
   const loggerView = new LoggerView();
   const maintenanceView = new MaintenanceView();
+  const gameView = new GameView();
   
   const uiRouter = new UIRouterService({
     device: deviceView,
     network: networkView,
     shared: sharedView,
     logger: loggerView,
-    maintenance: maintenanceView
+    maintenance: maintenanceView,
+    game: gameView
   });
   
   // 2. 하위 도메인 컨트롤러 초기화 (SRP 분리됨)
@@ -109,6 +114,7 @@ async function bootstrap() {
   const auditLoggerCtrl = new AuditLoggerController(uiLogger);
   const loggerCtrl = new LoggerController(uiLogger, auditLoggerCtrl);
   const maintenanceCtrl = new MaintenanceController(uiLogger, uiSettings);
+  const gameController = new GameController();
 
   // 3. 메인 허브 컨트롤러 초기화 (의존성 주입)
   const networkController = new NetworkController(uiLogger, httpCtrl, socketCtrl, l4Ctrl);
@@ -126,6 +132,7 @@ async function bootstrap() {
   window.securityController = securityCtrl;
   window.loggerController = loggerCtrl;
   window.maintenanceController = maintenanceCtrl;
+  window.gameController = gameController;
 
   window.showDashboard = () => uiRouter.showDashboard();
   window.showTest = (type: string) => {
@@ -140,6 +147,7 @@ async function bootstrap() {
   document.getElementById('card-database')?.addEventListener('click', () => uiRouter.showTestDetail('database'));
   document.getElementById('card-logger')?.addEventListener('click', () => uiRouter.showTestDetail('logger'));
   document.getElementById('card-maintenance')?.addEventListener('click', () => uiRouter.showTestDetail('maintenance'));
+  document.getElementById('card-game')?.addEventListener('click', () => uiRouter.showTestDetail('game'));
 
   // 6. 플랫폼 상태 업데이트
   const platformStatus = document.getElementById('platform-status');
@@ -154,8 +162,8 @@ async function bootstrap() {
   if (isElectron) {
     // 텍스트 선택 방지 (단, 로그 패널 영역은 제외)
     document.addEventListener('selectstart', (e) => {
-      const target = e.target as HTMLElement;
-      if (target.closest('#log-panel')) return; // 로그 패널은 선택 허용
+      const target = e.target;
+      if (target instanceof HTMLElement && target.closest('#log-panel')) return; // 로그 패널은 선택 허용
       e.preventDefault();
     });
     
