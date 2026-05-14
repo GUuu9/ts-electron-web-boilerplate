@@ -1,26 +1,60 @@
 import { container } from '../../../../core/di/container.renderer.js';
-import type { MediaService } from '../../../../core/device/media.service.js';
+import type { MediaService } from '../../../../features/device/media.service.js';
 import type { UILoggerService } from '../../core/ui-logger.service.js';
+import { MediaView } from './media.view.js';
 
 export class MediaController {
   private activeStream: MediaStream | null = null;
   private audioInterval: any = null;
+  private view: MediaView;
 
-  constructor(private readonly logger: UILoggerService) {}
+  constructor(
+    private readonly logger: UILoggerService,
+    private readonly onReadyCallback: (stream: MediaStream) => void
+  ) {
+    this.view = new MediaView(
+      (kind, id, label) => this.handleTest(kind, id, label),
+      (kind, id, label) => this.handleSetDefault(kind, id, label)
+    );
+  }
+
+  public getView() { return this.view; }
+
+  public async refresh() {
+    const devices = await this.enumerateDevices();
+    const defaults = {
+      audioinput: localStorage.getItem('default-mic-id'),
+      videoinput: localStorage.getItem('default-cam-id'),
+      audiooutput: localStorage.getItem('default-speaker-id')
+    };
+    this.view.renderList(devices, defaults);
+  }
+
+  private async handleTest(kind: string, id: string, label: string) {
+    if (kind === 'audioinput') await this.startMicrophoneTest(id, label);
+    else if (kind === 'videoinput') await this.startCameraTest(id, label);
+    else if (kind === 'audiooutput') await this.startSpeakerTest(id, label);
+  }
+
+  private handleSetDefault(kind: string, id: string, label: string) {
+    const key = kind === 'audioinput' ? 'default-mic-id' : kind === 'videoinput' ? 'default-cam-id' : 'default-speaker-id';
+    localStorage.setItem(key, id);
+    this.logger.log(`[Media] Set default ${kind}: ${label}`);
+    this.refresh();
+  }
 
   public async enumerateDevices() {
     const media = container.get<MediaService>('MediaService');
-    // 임시 스트림을 열어 권한을 획득해야 라벨이 보임
     const tempStream = await media.getAudioStream();
     if (tempStream) media.stopStream(tempStream);
     return await media.enumerateDevices();
   }
 
-  public async startCameraTest(deviceId: string, label: string, onReady: (stream: MediaStream) => void) {
+  public async startCameraTest(deviceId: string, label: string) {
     this.logger.log(`[Media] Camera Test: ${label}`);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: deviceId } });
-      onReady(stream);
+      this.onReadyCallback(stream);
       
       setTimeout(() => {
         stream.getTracks().forEach(t => t.stop());

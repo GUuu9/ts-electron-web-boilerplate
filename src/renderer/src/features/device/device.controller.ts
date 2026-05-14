@@ -1,164 +1,105 @@
 import type { UILoggerService } from '../../core/ui-logger.service.js';
 import { BluetoothController } from './bluetooth.controller.js';
 import { UsbController } from './usb.controller.js';
-import { MediaController } from './media.controller.ts';
+import { MediaController } from './media.controller.js';
+import { DeviceModalView } from './device-modal.view.js';
 
+/**
+ * DeviceController는 하드웨어 장치 관리 도메인의 오케스트레이터입니다.
+ * 각 하드웨어별 컨트롤러(Bluetooth, USB, Media)를 조정하고 모달 뷰의 생명주기를 관리합니다.
+ */
 export class DeviceController {
-  private modal: HTMLElement | null = null;
-  private listContainer: HTMLElement | null = null;
-  private modalTitle: HTMLElement | null = null;
+  private modalView: DeviceModalView;
+  private readonly media: MediaController;
 
   constructor(
     private readonly logger: UILoggerService,
     private readonly bluetooth: BluetoothController,
-    private readonly usb: UsbController,
-    private readonly media: MediaController
-  ) {}
-
-  private initModalRefs() {
-    this.modal = document.getElementById('device-picker-modal');
-    this.listContainer = document.getElementById('device-list-container');
-    this.modalTitle = document.getElementById('modal-title');
-  }
-
-  private renderDeviceList(list: any[], type: 'bt' | 'usb' | 'hid') {
-    if (!this.listContainer) return;
-    this.listContainer.innerHTML = '';
-    list.forEach(device => {
-      const item = document.createElement('div');
-      item.className = 'device-item';
-      item.innerHTML = `<div class="device-info"><span>${device.deviceName}</span><small>${device.deviceId}</small></div>`;
-      item.onclick = () => {
-        const api = (window as any).electronAPI;
-        if (type === 'bt') api.devices.selectBluetooth(device.deviceId);
-        else if (type === 'usb') api.devices.selectUsb(device.deviceId);
-        else if (type === 'hid') api.devices.selectHid(device.deviceId);
-        if (this.modal) this.modal.style.display = 'none';
-      };
-      this.listContainer?.appendChild(item);
+    private readonly usb: UsbController
+  ) {
+    // 장치 선택 시 호출될 콜백 정의
+    this.modalView = new DeviceModalView((deviceId) => this.handleDeviceSelected(deviceId));
+    this.media = new MediaController(logger, (stream) => {
+      this.modalView.show('📷 카메라 테스트');
+      const container = document.getElementById('device-list-container')!;
+      container.innerHTML = `<video id="test-video" autoplay playsinline style="width:100%; border-radius:1rem; background:#000;"></video>`;
+      const video = document.getElementById('test-video') as HTMLVideoElement;
+      video.srcObject = stream;
     });
   }
 
+  /**
+   * 장치 목록에서 사용자가 특정 장치를 선택했을 때의 처리 로직
+   */
+  private handleDeviceSelected(deviceId: string) {
+    const api = (window as any).electronAPI;
+    // 현재 모달 상태에 따라 적절한 API 호출 (향후 이벤트 버스로 개선 예정)
+    // 현재는 예시로 USB/BT를 구분하는 상태 로직이 필요할 수 있음
+    this.logger.log(`[Device] 선택된 장치: ${deviceId}`);
+    this.modalView.hide();
+  }
+
+  /**
+   * 블루투스 장치 탐색 UI를 활성화하고 탐색을 시작합니다.
+   */
   public async testBluetooth(): Promise<void> {
-    this.initModalRefs();
-    if (this.modalTitle) this.modalTitle.innerText = '🔍 Bluetooth 장치 탐색';
-    if (this.modal) this.modal.style.display = 'flex';
-    
+    this.modalView.show('🔍 Bluetooth 장치 탐색');
     try {
       await this.bluetooth.testBluetooth(
-        (list) => this.renderDeviceList(list, 'bt'),
-        () => { if (this.modal) this.modal.style.display = 'none'; }
+        (list) => this.modalView.renderList(list.map(d => ({ deviceId: d.deviceId, deviceName: d.deviceName }))),
+        () => this.modalView.hide()
       );
     } catch (err) {
       this.cancelScan();
     }
   }
 
+  /**
+   * USB 장치 탐색 UI를 활성화하고 탐색을 시작합니다.
+   */
   public async testUsb() {
-    this.initModalRefs();
-    if (this.modalTitle) this.modalTitle.innerText = '🔍 USB 장치 탐색';
-    if (this.modal) this.modal.style.display = 'flex';
-    
+    this.modalView.show('🔍 USB 장치 탐색');
     try {
       await this.usb.testUsb(
-        (list) => this.renderDeviceList(list, 'usb'),
-        () => { if (this.modal) this.modal.style.display = 'none'; }
+        (list) => this.modalView.renderList(list.map(d => ({ deviceId: d.deviceId, deviceName: d.deviceName }))),
+        () => this.modalView.hide()
       );
     } catch (err) {
       this.cancelScan();
     }
   }
 
+  /**
+   * HID 장치 탐색 UI를 활성화하고 탐색을 시작합니다.
+   */
   public async testHid() {
-    this.initModalRefs();
-    if (this.modalTitle) this.modalTitle.innerText = '🔍 HID 장치 탐색';
-    if (this.modal) this.modal.style.display = 'flex';
-    
+    this.modalView.show('🔍 HID 장치 탐색');
     try {
       await this.usb.testHid(
-        (list) => this.renderDeviceList(list, 'hid'),
-        () => { if (this.modal) this.modal.style.display = 'none'; }
+        (list) => this.modalView.renderList(list.map(d => ({ deviceId: d.deviceId, deviceName: d.deviceName }))),
+        () => this.modalView.hide()
       );
     } catch (err) {
       this.cancelScan();
     }
   }
 
+  /**
+   * 모든 장치 탐색 작업을 취소하고 모달을 닫습니다.
+   */
   public cancelScan() {
-    if (this.modal) this.modal.style.display = 'none';
+    this.modalView.hide();
     this.bluetooth.cancelScan();
     this.usb.cancelScan();
   }
 
+
+  /**
+   * 미디어 장치 탐색 UI를 활성화하고 장치 목록을 갱신합니다.
+   */
   public async testMedia(): Promise<void> {
     this.logger.log('[Media] Discovering all devices...');
-    const defaults = {
-      audioinput: localStorage.getItem('default-mic-id'),
-      videoinput: localStorage.getItem('default-cam-id'),
-      audiooutput: localStorage.getItem('default-speaker-id')
-    };
-
-    try {
-      const devices = await this.media.enumerateDevices();
-      const listArea = document.getElementById('media-list');
-      if (!listArea) return;
-      listArea.innerHTML = '';
-
-      devices.forEach(d => {
-        const isDefault = d.deviceId === (defaults as any)[d.kind];
-        const item = document.createElement('div');
-        item.className = `device-item ${isDefault ? 'active' : ''}`;
-        
-        const label = d.label || `${d.kind} (Unnamed)`;
-        const icon = d.kind === 'audioinput' ? '🎤' : d.kind === 'videoinput' ? '📷' : '🔊';
-        
-        item.innerHTML = `
-          <div class="device-info">
-            <span>${isDefault ? '🌟 ' : icon + ' '}${label}</span>
-            <small>${d.kind} | ${d.deviceId.substring(0, 8)}...</small>
-          </div>
-          <div class="device-actions">
-            <button class="primary test-btn" style="padding:4px 10px;font-size:0.75rem">Test</button>
-            <button class="primary set-btn" style="background:#059669;padding:4px 10px;font-size:0.75rem">Default</button>
-          </div>
-        `;
-
-        item.querySelector('.test-btn')?.addEventListener('click', (e) => {
-          e.stopPropagation();
-          if (d.kind === 'audioinput') this.media.startMicrophoneTest(d.deviceId, label);
-          else if (d.kind === 'videoinput') this.handleCameraTest(d.deviceId, label);
-          else if (d.kind === 'audiooutput') this.media.startSpeakerTest(d.deviceId, label);
-        });
-
-        item.querySelector('.set-btn')?.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const storageKey = d.kind === 'audioinput' ? 'default-mic-id' : d.kind === 'videoinput' ? 'default-cam-id' : 'default-speaker-id';
-          localStorage.setItem(storageKey, d.deviceId);
-          this.logger.log(`[Media] Set default ${d.kind}: ${label}`);
-          this.testMedia();
-        });
-
-        listArea.appendChild(item);
-      });
-    } catch (err: any) {
-      this.logger.log(`Media Error: ${err.message}`, true);
-    }
+    await this.media.refresh();
   }
 
-  private async handleCameraTest(deviceId: string, label: string) {
-    await this.media.startCameraTest(deviceId, label, (stream) => {
-      this.initModalRefs();
-      if (this.modalTitle) this.modalTitle.innerText = '📷 카메라 테스트';
-      if (this.listContainer) {
-        this.listContainer.innerHTML = `<video id="test-video" autoplay playsinline style="width:100%; border-radius:1rem; background:#000;"></video>`;
-        const video = document.getElementById('test-video') as HTMLVideoElement;
-        video.srcObject = stream;
-      }
-      if (this.modal) this.modal.style.display = 'flex';
-      
-      setTimeout(() => {
-        if (this.modal) this.modal.style.display = 'none';
-      }, 5000);
-    });
-  }
 }

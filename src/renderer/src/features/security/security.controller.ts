@@ -1,5 +1,5 @@
 import { SecurityService } from '../../../../shared/security/security.service.js';
-import type { UILogger } from '../../core/ui-logger.service.js';
+import type { UILoggerService } from '../../core/ui-logger.service.js';
 
 /**
  * SecurityController
@@ -10,7 +10,7 @@ export class SecurityController {
 
   constructor(
     private securityService: SecurityService,
-    private uiLogger: UILogger
+    private logger: UILoggerService
   ) {}
 
   // --- [공통 유틸리티] ---
@@ -44,7 +44,7 @@ export class SecurityController {
         el.value = new TextDecoder().decode(bytes);
       }
     } catch (e: any) {
-      this.uiLogger.log(`[Format] Conversion Error: ${e.message}`, 'error');
+      this.logger.log(`[Format] Conversion Error: ${e.message}`, true);
       // 실패 시 체크박스 상태 복구는 View에서 처리하거나 그대로 둠
     }
   }
@@ -61,7 +61,7 @@ export class SecurityController {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     (document.getElementById('aes-key') as HTMLInputElement).value = result;
-    this.uiLogger.log('[AES] New random 32-byte key generated', 'info');
+    this.logger.log('[AES] New random 32-byte key generated');
   }
 
   public async testAesEncrypt(): Promise<void> {
@@ -71,9 +71,9 @@ export class SecurityController {
       
       const result = await this.securityService.aesEncrypt(input, key);
       (document.getElementById('aes-result') as HTMLTextAreaElement).value = result;
-      this.uiLogger.log(`[AES] Encrypted: ${input.substring(0, 10)}...`, 'info');
+      this.logger.log(`[AES] Encrypted: ${input.substring(0, 10)}...`);
     } catch (e: any) {
-      this.uiLogger.log(`[AES] Encryption Error: ${e.message}`, 'error');
+      this.logger.log(`[AES] Encryption Error: ${e.message}`, true);
     }
   }
 
@@ -84,9 +84,9 @@ export class SecurityController {
       
       const result = await this.securityService.aesDecrypt(encrypted, key);
       (document.getElementById('aes-result') as HTMLTextAreaElement).value = result;
-      this.uiLogger.log(`[AES] Decrypted successfully`, 'info');
+      this.logger.log(`[AES] Decrypted successfully`);
     } catch (e: any) {
-      this.uiLogger.log(`[AES] Decryption Error: ${e.message}`, 'error');
+      this.logger.log(`[AES] Decryption Error: ${e.message}`, true);
     }
   }
 
@@ -106,39 +106,39 @@ export class SecurityController {
         `[Public Key - HEX]\n${pubHex}\n\n[Public Key - PEM]\n${pubPem}\n\n` +
         `[Private Key - HEX]\n${privHex}\n\n[Private Key - PEM]\n${privPem}`;
 
-      this.uiLogger.log(`[RSA] Key pair generated (${keySize}-bit)`, 'info');
+      this.logger.log(`[RSA] Key pair generated (${keySize}-bit)`);
     } catch (e: any) {
-      this.uiLogger.log(`[RSA] Key Generation Error: ${e.message}`, 'error');
+      this.logger.log(`[RSA] Key Generation Error: ${e.message}`, true);
     }
   }
 
   public async testRsaEncrypt(): Promise<void> {
     if (!this.rsaKeyPair) {
-      this.uiLogger.log('[RSA] Please generate keys first!', 'warn');
+      this.logger.log('[RSA] Please generate keys first!');
       return;
     }
     try {
       const input = (document.getElementById('rsa-input') as HTMLInputElement).value;
       const result = await this.securityService.rsaEncrypt(input, this.rsaKeyPair.publicKey);
       (document.getElementById('rsa-result') as HTMLTextAreaElement).value = result;
-      this.uiLogger.log('[RSA] Encrypted with Public Key', 'info');
+      this.logger.log('[RSA] Encrypted with Public Key');
     } catch (e: any) {
-      this.uiLogger.log(`[RSA] Encryption Error: ${e.message}`, 'error');
+      this.logger.log(`[RSA] Encryption Error: ${e.message}`, true);
     }
   }
 
   public async testRsaDecrypt(): Promise<void> {
     if (!this.rsaKeyPair) {
-      this.uiLogger.log('[RSA] Keys not found!', 'error');
+      this.logger.log('[RSA] Keys not found!', true);
       return;
     }
     try {
       const encrypted = (document.getElementById('rsa-result') as HTMLTextAreaElement).value;
       const result = await this.securityService.rsaDecrypt(encrypted, this.rsaKeyPair.privateKey);
       (document.getElementById('rsa-result') as HTMLTextAreaElement).value = result;
-      this.uiLogger.log('[RSA] Decrypted with Private Key', 'info');
+      this.logger.log('[RSA] Decrypted with Private Key');
     } catch (e: any) {
-      this.uiLogger.log(`[RSA] Decryption Error: ${e.message}`, 'error');
+      this.logger.log(`[RSA] Decryption Error: ${e.message}`, true);
     }
   }
 
@@ -159,9 +159,9 @@ export class SecurityController {
       stats.style.display = 'inline-block';
       stats.innerText = `${algo.toUpperCase()} | Original: ${originalSize}B | Compressed: ${compressedSize}B | Ratio: ${((compressedSize/originalSize)*100).toFixed(1)}%`;
       
-      this.uiLogger.log(`[Zip] Compressed (${algo}): ${originalSize}B -> ${compressedSize}B`, 'info');
+      this.logger.log(`[Zip] Compressed (${algo}): ${originalSize}B -> ${compressedSize}B`);
     } catch (e: any) {
-      this.uiLogger.log(`[Zip] Compression Error: ${e.message}`, 'error');
+      this.logger.log(`[Zip] Compression Error: ${e.message}`, true);
     }
   }
 
@@ -171,9 +171,9 @@ export class SecurityController {
       const algo = (document.getElementById('zip-algo') as HTMLSelectElement).value as CompressionFormat;
       const result = await this.securityService.decompress(encrypted, algo);
       (document.getElementById('zip-result') as HTMLTextAreaElement).value = result;
-      this.uiLogger.log(`[Zip] Decompressed (${algo}) successfully`, 'info');
+      this.logger.log(`[Zip] Decompressed (${algo}) successfully`);
     } catch (e: any) {
-      this.uiLogger.log(`[Zip] Decompression Error: ${e.message}`, 'error');
+      this.logger.log(`[Zip] Decompression Error: ${e.message}`, true);
     }
   }
 }

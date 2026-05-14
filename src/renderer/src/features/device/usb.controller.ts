@@ -1,5 +1,5 @@
 import { container } from '../../../../core/di/container.renderer.js';
-import type { UsbService } from '../../../../core/device/usb.service.js';
+import type { UsbService } from '../../../../features/device/usb.service.js';
 import type { UILoggerService } from '../../core/ui-logger.service.js';
 
 export class UsbController {

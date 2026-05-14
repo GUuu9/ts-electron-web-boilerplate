@@ -1,5 +1,5 @@
 import { container } from '../../../../core/di/container.renderer.js';
-import type { HttpClient } from '../../../../core/network/http.client.js';
+import type { HttpClient } from '../../../../features/network/http.client.js';
 import type { UILoggerService } from '../../core/ui-logger.service.js';
 
 export class HttpController {

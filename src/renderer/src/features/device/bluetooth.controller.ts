@@ -1,5 +1,5 @@
 import { container } from '../../../../core/di/container.renderer.js';
-import type { BluetoothService } from '../../../../core/device/bluetooth.service.js';
+import type { BluetoothService } from '../../../../features/device/bluetooth.service.js';
 import type { UILoggerService } from '../../core/ui-logger.service.js';
 
 const SERVICE_NAMES: Record<string, string> = {
