@@ -24,7 +24,7 @@ export class AICoreFeature implements CoreFeature {
     
     // AI 트리 실행 (5초 주기)
     setInterval(() => {
-      console.log('[AI Debug] Ticking trees...');
+      // console.log('[AI Debug] Ticking trees...');
       this.trees.forEach(t => {
         const status = t.tree.tick();
         console.log(`[AI Debug] Tree ${t.name} finished with status: ${status}`);

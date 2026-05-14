@@ -9,7 +9,6 @@ export class UIRouterService {
   private dashboardView: HTMLElement | null;
   private detailView: HTMLElement | null;
   private titleElement: HTMLElement | null;
-  private descElement: HTMLElement | null;
   private contentElement: HTMLElement | null;
   
   private currentCategory: string = '';
@@ -18,7 +17,6 @@ export class UIRouterService {
     this.dashboardView = document.getElementById('dashboard-view');
     this.detailView = document.getElementById('detail-view');
     this.titleElement = document.getElementById('test-title');
-    this.descElement = document.getElementById('test-desc');
     this.contentElement = document.getElementById('test-content');
   }
 
@@ -76,7 +74,7 @@ export class UIRouterService {
    * 카테고리별 레이아웃(제목, 탭 구성, 컨텐츠 영역)을 동적으로 렌더링합니다.
    */
   private renderCategoryLayout(category: string, subType: string): void {
-    if (!this.titleElement || !this.descElement || !this.contentElement) return;
+    if (!this.titleElement || !this.contentElement) return;
 
     // 1. 페이지 타이틀 설정
     const titles: Record<string, string> = {

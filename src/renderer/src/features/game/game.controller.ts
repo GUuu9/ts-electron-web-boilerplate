@@ -45,7 +45,7 @@ export class GameController {
 
     this.cameras.main.setBackgroundColor('#2c3e50');
 
-    const projectile = this.add.circle(100, 500, 15, 0x3498db);
+    const projectile = this.add.circle(25, 575, 15, 0x3498db);
     const target = this.add.circle(600, 400, 15, 0xe74c3c);
     const infoText = this.add.text(10, 10, '', { fontSize: '18px', color: '#ffffff' });
     
