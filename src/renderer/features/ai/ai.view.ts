@@ -63,13 +63,13 @@ export class AIView {
           (this as any).aimLine.setVisible(false);
           
           // 타겟
-          const targetCircle = this.add.circle(0, 0, 15, 0xff0000);
-          (this as any).targetObj = this.physics.add.existing(targetCircle, true); 
+          const targetGraphics = this.add.circle(0, 0, 15, 0xff0000);
+          (this as any).targetObj = this.physics.add.existing(targetGraphics, true); 
           (this as any).targetObj.setVisible(false);
           
           // 투사체
-          const projCircle = this.add.circle(0, 0, 8, 0x0000ff);
-          (this as any).projObj = this.physics.add.existing(projCircle, false);
+          const projGraphics = this.add.circle(100, 500, 8, 0x0000ff);
+          (this as any).projObj = this.physics.add.existing(projGraphics, false);
           (this as any).projObj.body.setBounce(0.8, 0.8);
           (this as any).projObj.body.setCollideWorldBounds(true);
           (this as any).projObj.setVisible(false);
@@ -80,52 +80,55 @@ export class AIView {
             viewModel.hitTarget();
             viewModel.respawnTarget();
             (this as any).projObj.setVisible(false);
-            (this as any).projObj.body.setAllowGravity(false);
+            (this as any).projObj.body.setEnable(false);
             (this as any).projObj.body.setVelocity(0, 0);
           });
         },
         update: function(this: Phaser.Scene) {
-          const data = viewModel.getRenderData();
-          if (!data.isViewActive) return;
+          try {
+            const data = viewModel.getRenderData();
+            if (!data.isViewActive) return;
 
-          self.statusText?.setText(`Status: ${data.status}`);
-          (this as any).angleText.setText(`Angle: ${((data.aimAngle || 0) * 180 / Math.PI).toFixed(1)}°`);
-          (this as any).powerText.setText(`Power: ${(data.aimForce || 0).toFixed(0)}`);
-          
-          // 타겟 설정
-          if (data.targetPos && !(this as any).targetObj.visible) {
-            (this as any).targetObj.setPosition(data.targetPos.x, data.targetPos.y);
-            (this as any).targetObj.setVisible(true);
-          }
-          
-          // 발사 시작
-          if (data.isThrowing && !(this as any).projObj.visible) {
-            const angle = data.aimAngle || 0;
-            const endX = 100 + Math.cos(angle) * 100;
-            const endY = 500 + Math.sin(angle) * 100;
-            (this as any).aimLine.setTo(100, 500, endX, endY);
-            (this as any).aimLine.setVisible(true);
+            self.statusText?.setText(`Status: ${data.status}`);
+            (this as any).angleText.setText(`Angle: ${((data.aimAngle || 0) * 180 / Math.PI).toFixed(1)}°`);
+            (this as any).powerText.setText(`Power: ${(data.aimForce || 0).toFixed(0)}`);
             
-            this.time.delayedCall(500, () => {
-                if (!(this as any).projObj) return;
-                (this as any).aimLine.setVisible(false);
-                (this as any).projObj.setVisible(true);
-                (this as any).projObj.setPosition(100, 500);
-                (this as any).projObj.body.setAllowGravity(true);
-                
-                this.physics.velocityFromRotation(angle, data.aimForce || 400, (this as any).projObj.body.velocity);
-            });
-          }
+            // 타겟 설정
+            if (data.targetPos && (this as any).targetObj) {
+              (this as any).targetObj.setPosition(data.targetPos.x, data.targetPos.y);
+              (this as any).targetObj.setVisible(true);
+            }
+            
+            // 발사 시작
+            if (data.isThrowing && (this as any).projObj && !(this as any).projObj.visible) {
+              const angle = data.aimAngle || 0;
+              const endX = 100 + Math.cos(angle) * 100;
+              const endY = 500 + Math.sin(angle) * 100;
+              (this as any).aimLine.setTo(100, 500, endX, endY);
+              (this as any).aimLine.setVisible(true);
+              
+              this.time.delayedCall(500, () => {
+                  if (!(this as any).projObj) return;
+                  (this as any).aimLine.setVisible(false);
+                  (this as any).projObj.setVisible(true);
+                  (this as any).projObj.body.setEnable(true);
+                  (this as any).projObj.setPosition(100, 500);
+                  (this as any).projObj.body.setAllowGravity(true);
+                  
+                  this.physics.velocityFromRotation(angle, data.aimForce || 400, (this as any).projObj.body.velocity);
+              });
+            }
 
-          // 바닥 충돌 체크 (miss)
-          if ((this as any).projObj.visible && (this as any).projObj.body.blocked.down) {
-            console.log('바닥 충돌, 재발사 준비');
-            (this as any).projObj.setVisible(false);
-            (this as any).projObj.body.setAllowGravity(false);
-            (this as any).projObj.body.setVelocity(0, 0);
-            viewModel.missTarget();
+            // 바닥 충돌
+            if ((this as any).projObj && (this as any).projObj.visible && (this as any).projObj.body.blocked.down) {
+              (this as any).projObj.setVisible(false);
+              (this as any).projObj.body.setEnable(false);
+              (this as any).projObj.body.setVelocity(0, 0);
+              viewModel.resetThrowing();
+            }
+          } catch (e) {
+            console.error('[AI Phaser Update Error]', e);
           }
-
         }
       }
     };

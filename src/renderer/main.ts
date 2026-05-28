@@ -21,7 +21,7 @@ async function bootstrap() {
 
   if (!isElectron) {
     // 웹 환경에서는 Desktop 전용 기능을 비활성화 처리
-    const desktopOnlyIds = ['nav-os', 'nav-system', 'nav-persistence', 'nav-serial', 'nav-media', 'nav-file', 'nav-logger'];
+    const desktopOnlyIds = ['nav-tcp', 'nav-udp', 'nav-os', 'nav-system', 'nav-persistence', 'nav-security', 'nav-serial', 'nav-media', 'nav-file', 'nav-logger'];
     desktopOnlyIds.forEach(id => {
       const el = document.getElementById(id);
       if (el) {
