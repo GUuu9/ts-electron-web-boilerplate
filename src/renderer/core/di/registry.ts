@@ -3,6 +3,7 @@ import { container } from './container.renderer.js';
 // Shared Services
 import { HttpClient } from '../../../shared/http-client/http.client.js';
 import { SocketClient } from '../../../shared/socket-client/socket.client.js';
+import { TranslationService } from '../../../shared/i18n/i18n.service.js';
 
 // Repositories
 import { HttpRepository } from '../../data/network/http/http.repository.js';
@@ -63,9 +64,11 @@ export class RendererRegistry {
     // 1. Data Layer
     const httpClient = new HttpClient();
     const socketClient = new SocketClient();
+    const translationService = new TranslationService();
     
     container.register('HttpClient', httpClient);
     container.register('SocketClient', socketClient);
+    container.register('TranslationService', translationService);
     
     container.register('HttpRepository', new HttpRepository(httpClient));
     container.register('SocketRepository', new SocketRepository(socketClient));
@@ -94,7 +97,14 @@ export class RendererRegistry {
     container.register('MediaViewModel', new MediaViewModel(container.get('MediaRepository'), container.get('DeviceRepository')));
     container.register('FileViewModel', new FileViewModel(container.get('FileRepository')));
     container.register('LoggerViewModel', new LoggerViewModel(container.get('LoggerRepository')));
-    container.register('AIViewModel', new AIViewModel(new AICore()));
+    
+    // AI Engine
+    const aiCore = new AICore();
+    const aiRunner = new AIRunner(aiCore, { mode: 'time', value: 30 });
+    container.register('AICore', aiCore);
+    container.register('AIRunner', aiRunner);
+
+    container.register('AIViewModel', new AIViewModel(aiCore));
     
     // 3. View & Binder Layer
     const httpView = new HttpView();
@@ -127,11 +137,8 @@ export class RendererRegistry {
     const aiBinder = new AIBinder(aiView, container.get('AIViewModel'));
     aiBinder.bind();
     
-    // 4. Engine & Navigation Layer
-    const aiCore = new AICore();
-    const aiRunner = new AIRunner(aiCore, { mode: 'time', value: 5000 });
+    // 4. Navigation Layer
     const navigator = new Navigator();
-    
     const navController = new NavController(navigator, { 
       httpView, socketView, tcpView, udpView, osView, systemView, 
       persistenceView, securityView, serialView, mediaView, fileView, loggerView, aiView
@@ -143,7 +150,5 @@ export class RendererRegistry {
     
     container.register('Navigator', navigator);
     container.register('NavController', navController);
-    container.register('AICore', aiCore);
-    container.register('AIRunner', aiRunner);
   }
 }

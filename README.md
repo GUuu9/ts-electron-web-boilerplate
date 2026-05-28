@@ -70,4 +70,4 @@ src/
 - **런타임**: Node.js v22+
 - **데스크탑**: Electron 34+
 - **웹**: Vite 6+
-- **상세 가이드**: [기능 추가 개발자 가이드](./docs/DEVELOPMENT_GUIDE.md)를 참조하십시오.
+- **상세 가이드**: [기능 추가 개발자 가이드](./docs/DEVELOPMENT_GUIDE.md), [다국어 처리 가이드](./docs/I18N_GUIDE.md)를 참조하십시오.
