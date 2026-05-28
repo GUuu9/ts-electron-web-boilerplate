@@ -1,0 +1,140 @@
+:root {
+  --primary: #4f46e5;
+  --bg: #0f172a;
+  --card-bg: #1e293b;
+  --text: #f8fafc;
+  --text-dim: #94a3b8;
+  --border: rgba(255, 255, 255, 0.1);
+  --input-bg: #0f172a;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+#app {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.8rem;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 0.8rem;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 80px;
+}
+
+.badge {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  margin-top: 0.5rem;
+  display: inline-block;
+  color: var(--text-dim);
+}
+
+.card.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.card.disabled:hover {
+  transform: none;
+  background: var(--card-bg);
+  border-color: var(--border);
+}
+
+.card h3 {
+  font-size: 0.9rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text);
+}
+
+#detail-view {
+  display: none;
+  background-color: var(--bg);
+  padding: 1rem;
+}
+
+.detail-header {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.back-btn {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.back-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* 컨테이너 및 장치 목록 가독성 확보 */
+#media-list-area, #gamepad-list-area, #special-request-area, #serial-rx-area, #persist-result {
+  background: var(--bg) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+  border-radius: 0.4rem;
+}
+
+.device-item {
+  color: var(--text);
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+  margin-bottom: 0.2rem;
+  border-radius: 0.4rem;
+}
+
+button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 0.4rem;
+  cursor: pointer;
+}
+
+input, textarea, select {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  padding: 0.6rem;
+  color: var(--text);
+  border-radius: 0.4rem;
+}
+

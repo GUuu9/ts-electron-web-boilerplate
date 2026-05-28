@@ -3,7 +3,7 @@
     "target": "ESNext",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "lib": ["ESNext", "DOM"],
     "outDir": "dist-electron",
     "rootDir": "src",
     "strict": true,
@@ -11,8 +11,8 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "types": ["node", "web-bluetooth", "w3c-web-usb", "w3c-web-hid"]
+    "types": ["node"]
   },
-  "include": ["src/core/**/*.ts", "src/main.ts", "src/preload.ts"],
+  "include": ["src/main/**/*.ts", "src/shared/**/*.ts"],
   "exclude": ["node_modules", "src/renderer/**/*"]
 }

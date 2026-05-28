@@ -1,241 +1,73 @@
-# TypeScript + Electron + Web 통합 개발 보일러플레이트
+# 프로젝트 개요
 
-이 프로젝트는 **Layered Architecture (계층형 아키텍처)**와 **의존성 주입(Dependency Injection)** 패턴을 적용하여, 하나의 소스 코드로 **웹 브라우저**와 **데스크탑(Mac, Windows, Linux)** 환경을 동시에 지원하도록 설계되었습니다.
+이 프로젝트는 **Backend(Main Process)**, **Frontend(Renderer)**, 그리고 **Shared(공통 로직)**로 명확히 분리된 계층형 아키텍처를 기반으로 합니다. **의존성 주입(DI)**, **단일 책임 원칙(SRP)**, **MVVM(Model-View-ViewModel)** 패턴을 적용하여 확장 가능하고 유지보수가 용이한 크로스 플랫폼 애플리케이션을 지향합니다.
+
+## 🏗 아키텍처 구조
+
+### 1. 프로세스별 계층 분리
+- **`src/main/` (Backend)**: Electron 메인 프로세스. OS 자원 제어, 백엔드 서비스, 시스템 인프라를 담당합니다.
+- **`src/renderer/` (Frontend)**: 브라우저 환경. 사용자 인터페이스(UI), 사용자 인터랙션, ViewModel을 통한 상태 관리를 담당합니다.
+- **`src/shared/` (Common)**: 플랫폼 의존성이 없는 순수 비즈니스 로직, 모델(Model), 데이터 변환, 행동 트리(AI) 엔진 등을 관리합니다.
+
+### 2. 설계 원칙
+- **의존성 주입 (DI)**: 모든 서비스와 컨트롤러는 DI 컨테이너를 통해 관리되어 결합도를 낮춥니다.
+- **단일 책임 원칙 (SRP)**: 각 모듈은 하나의 기능적 도메인만을 책임지며, 복잡한 로직은 세부 클래스로 분리합니다.
+- **MVVM 패턴**:
+  - **Model**: `src/shared/`의 데이터 및 비즈니스 로직.
+  - **View**: `src/renderer/`의 사용자 화면 구성 요소.
+  - **ViewModel**: `src/renderer/`의 컨트롤러 계층. View의 상태를 관리하고 백엔드와 상호작용합니다.
 
 ---
 
-## 🚀 핵심 특징 (Core Features)
+## 📂 폴더 구조 가이드
 
-- **One Codebase, Multi-Platform**: Vite와 Electron을 결합하여 웹과 데스크탑 화면을 동시에 개발 및 배포합니다.
-- **Shared Business Logic**: `src/shared` 폴더의 로직은 플랫폼(Node.js/Browser)에 관계없이 공통으로 사용됩니다.
-- **Secure Desktop Integration**: `Context Isolation` 및 `Preload` 스크립트를 통해 웹 화면에서 안전하게 데스크탑 OS API를 호출합니다.
-- **Layered Architecture**: Controller-Service-Repository 패턴을 지향하여 유지보수성과 확장성을 극대화합니다.
-
----
-
-## 🏗 아키텍처 구조 (Architecture)
-
-### 1. 계층 분리 (Layered Architecture)
-- **Renderer (UI)**: Vite + TypeScript 기반의 프론트엔드 (웹 브라우저 및 Electron 화면).
-- **Main (Desktop Core)**: Electron 메인 프로세스로 OS 자원(파일 시스템, 창 관리 등) 제어.
-- **Shared (Core Logic)**: 플랫폼 독립적인 순수 비즈니스 로직 및 유틸리티.
-
-### 2. 폴더 구조 가이드
 ```text
 src/
-├── core/             # [Main/Infra] 앱의 엔진 (DI, Bridge, Registry, Core Interface)
-├── features/         # [Main/Feature] 도메인 기반 백엔드 로직 (Network, Device, OS 등)
-├── shared/           # [Shared] 플랫폼 공용 비즈니스 로직 및 타입 정의
-├── renderer/         # [Renderer] 프론트엔드 UI 소스
-│   ├── public/       # 정적 자산 (Favicon 등)
-│   ├── src/          # UI 소스 코드
-│   │   ├── core/     # [Renderer] UI 인프라 (Router, UI Logger)
-│   │   ├── features/ # [Renderer] UI Hub & Sub 컨트롤러 (SRP 적용)
-│   │   ├── styles/   # 글로벌 및 컴포넌트 CSS 스타일
-│   │   └── main.ts   # Renderer 진입점 및 의존성 주입(DI) 조립
-│   └── index.html    # 앱의 메인 HTML 템플릿
-├── main.ts           # Electron 메인 프로세스 진입점 (창 관리 및 IPC 핸들러)
-└── preload.ts        # 보안 브릿지 (Main-Renderer 간 안전한 API 노출)
+├── main/             # Backend: OS 자원 및 백엔드 로직
+│   ├── core/         # 백엔드 엔진 (DI 컨테이너, IPC 핸들러, Registry)
+│   ├── features/     # 도메인별 백엔드 서비스 (Network, Device, OS 등)
+│   ├── main.ts       # 앱 진입점 (프로세스 오케스트레이션)
+│   └── preload.ts    # 보안 브릿지 (IPC 통신 계층)
+├── renderer/         # Frontend: UI/UX 및 ViewModel
+│   ├── core/         # UI 인프라 (Router, Logger, UI DI, Navigation)
+│   ├── data/         # Data Layer (Repository/DataSource)
+│   ├── features/     # 도메인별 ViewModel 및 View 컴포넌트
+│   ├── styles/       # 스타일 정의
+│   └── main.ts       # 렌더러 진입점
+└── shared/           # 공용 계층: 플랫폼 독립적 모델/로직
+    └── [service-name]/ # 서비스명 기반 구조 (models, client 등)
 ```
 
-### 💡 프로세스별 구조 이해 (Main vs Renderer)
-이 프로젝트는 **Main(Node.js)**과 **Renderer(Browser)** 프로세스가 독립적인 앱처럼 동작하며, 각각 동일한 **Layered Architecture** 원칙을 적용하고 있습니다.
+---
 
-- **`src/core/` & `src/features/`**:
-  - **환경**: Node.js
-  - **역할**: 파일 시스템, 하드웨어 저수준 제어, 서버 소켓 운영 등 **OS 자원 관리**가 핵심입니다.
-  - **특징**: 브라우저 API를 사용할 수 없으며, 성능과 보안이 중요한 로직을 담당합니다.
+## 🧩 아키텍처 상세 및 파일 역할
 
-- **`src/renderer/src/` 하위의 `core`, `features`**:
-  - **환경**: Web Browser (Chromium)
-  - **역할**: 사용자 인터랙션, 화면 전환, 데이터 입력 폼 처리 등 **UI/UX 관리**가 핵심입니다.
-  - **특징**: Node.js API에 직접 접근할 수 없으며(보안상 금지), 필요 시 `preload.ts`를 통한 IPC 통신으로 Main 프로세스에 작업을 요청합니다.
+### 1. 프론트엔드 (Frontend / Renderer): MVVM
+| 레이어 | 역할 및 파일 규칙 |
+| :--- | :--- |
+| **View** | `*.view.ts`: 순수 HTML 템플릿 렌더링 및 DOM 요소 접근. 비즈니스 로직 금지. |
+| **Binder** | `*.view.ts` 내 Binder 클래스: View의 이벤트를 ViewModel 메서드와 연결. |
+| **ViewModel** | `*.viewmodel.ts`: UI 상태 관리 및 데이터 가공. Repository를 주입받아 로직 수행. |
+| **Repository** | `data/**/*.repository.ts`: 데이터 계층. 백엔드(IPC) 또는 저장소 통신 캡슐화. |
 
-- **`src/shared/`**:
-  - 계산 로직, 유효성 검사, 공통 인터페이스 등 **환경에 의존하지 않는 순수 비즈니스 로직**을 담습니다. 두 프로세스 모두에서 안전하게 임포트하여 중복 코드를 방지합니다.
+### 2. 백엔드 (Backend / Main): 서비스 기반
+| 레이어 | 역할 및 파일 규칙 |
+| :--- | :--- |
+| **Core Service** | `features/**/*.server.ts` 등: 실제 Node.js API를 사용하는 저수준 서비스. |
+| **Core Module** | `features/**/*.core.ts`: `BackendModule` 구현, IPC 핸들러 등록 및 관리. |
+| **IPC Bridge** | `features/**/*.bridge.ts`: 백엔드 기능을 렌더러에 노출하는 브릿지 규격. |
+
+### 3. 파일 별칭 및 역할 요약
+- `*.view.ts`: **UI 레이아웃**. DOM 구조 생성 및 요소 식별. 로직 금지.
+- `*.viewmodel.ts`: **UI 로직**. ViewModel의 상태 관리 및 서비스 호출.
+- `*.binder.ts`: **연결 계층**. View 이벤트와 ViewModel 메서드를 바인딩.
+- `*.repository.ts`: **데이터 추상화**. 백엔드 IPC 호출/저장소 캡슐화.
+- `*.core.ts`: **백엔드 모듈**. 백엔드 인스턴스 관리 및 IPC 통신 운영.
 
 ---
 
-## 🏗 아키텍처 및 설계 원칙
-
-1. **Layered Architecture**: Controller-Service-Repository 패턴을 엄격히 준수합니다.
-2. **Single Responsibility Principle (SRP)**: 각 컨트롤러와 서비스는 하나의 기능 또는 도메인만을 책임집니다. 기능이 복잡해질 경우 세부 컨트롤러(예: `BluetoothController`, `UsbController`)로 분리하여 관리합니다.
-3. **Dependency Injection (DI)**: 모든 의존성은 컨테이너를 통해 주입하며, 하드코딩된 인스턴스 생성을 지양합니다.
-
----
-
-## 🛠 기술 스택 (Tech Stack)
-
-- **Language**: TypeScript 5.x
-- **Runtime**: Node.js v22.x (LTS) - `nvm` 사용 권장
-- **Desktop**: Electron 34.x (Chromium + Node.js)
-- **Web/Bundler**: Vite 6.x
-- **Packaging**: Electron Builder (dmg, exe, AppImage 지원)
-- **Testing**: Vitest
-
-### 📦 주요 패키지 및 용도 (Key Packages & Purpose)
-
-| 패키지명 | 용도 | 상세 설명 |
-| :--- | :--- | :--- |
-| **typescript** | 언어 및 타입 안정성 | 전 과정에서 타입 체크를 통해 런타임 에러를 방지하고 최신 문법을 지원합니다. |
-| **electron** | 데스크탑 앱 프레임워크 | Chromium과 Node.js를 결합하여 웹 기술로 크로스 플랫폼 데스크탑 앱을 구동합니다. |
-| **vite** | 빌드 도구 및 개발 서버 | 매우 빠른 HMR(Hot Module Replacement)을 제공하며, 웹 및 렌더러 소스를 번들링합니다. |
-| **electron-builder** | 패키징 및 배포 | 작성된 코드를 Mac(.dmg), Win(.exe), Linux용 단독 실행 파일로 패키징합니다. |
-| **vitest** | 단위 테스트 | Vite 기반의 빠른 테스트 환경을 제공하여 공유 로직(Service)의 안정성을 검증합니다. |
-| **@types/node** | Node.js 타입 정의 | Electron 메인 프로세스에서 Node.js API(fs, path 등)를 사용할 때 타입 힌트를 제공합니다. |
-
----
-
-## 🛠 코어 기능 및 호환성 (Core Features & Compatibility)
-
-이 프로젝트의 코어 기능들은 실행 환경(Web vs Desktop)에 따라 사용 가능 여부가 다릅니다.
-
-| 기능 (Core) | 호환성 (Web/OS) | 사용 패키지 (Dependencies) | 용도 |
-| :--- | :--- | :--- | :--- |
-| **DI Container** | 전 플랫폼 공용 | 자체 구현 (TypeScript) | 객체 생명주기 및 의존성 주입 관리 |
-| **HttpClient** | 전 플랫폼 공용 | `axios` | REST API 통신 (HTTP/HTTPS) |
-| **SocketClient** | 전 플랫폼 공용 | `socket.io-client` | 실시간 양방향 이벤트 통신 (Client) |
-| **SocketServer** | **Desktop 전용** | `socket.io` | 로컬 실시간 통신 서버 운영 |
-| **TcpClient** | **Desktop 전용** | `net` (Node.js) | IPC 브릿지를 통한 저수준 스트림 통신 |
-| **TcpServer** | **Desktop 전용** | `net` (Node.js) | 멀티 클라이언트 접속 가능한 TCP 서버 |
-| **UdpClient** | **Desktop 전용** | `dgram` (Node.js) | 비연결형 패킷 통신 (Bind/Unbind 지원) |
-| **ConverterService**| 전 플랫폼 공용 | 순수 TS | 데이터 변환 (Hex 변환 등 공통 로직) |
-| **UI Logger** | 전 플랫폼 공용 | 순수 TS + CSS | 플로팅, 도킹, 외부 창 분리 및 양방향 커맨드 제어 |
-| **Database** | **Desktop 전용** | `sqlite3` (예정) | 로컬 SQLite 데이터베이스 관리 |
-| **BluetoothService** | 전 플랫폼 공용 | `Web Bluetooth API` | 블루투스 LE 장치 검색 및 통신 |
-| **UsbService** | 전 플랫폼 공용 | `Web MediaDevices API` | 전용 USB 기기, 게임패드, 커스텀 컨트롤러 연결 |
-| **MediaService** | 전 플랫폼 공용 | `WebHID API` | 마이크, 헤드셋 목록 확인 및 오디오 스트림 획득 |
-| **DeviceWatcherService** | **Desktop 전용** | `USB/Media Events` | 하드웨어 장치 연결/해제 실시간 모니터링 |
-| **PersistenceService** | **Desktop 전용** | `electron-store`, `crypto` | 암호화된 사용자 데이터 영구 저장 |
-| **SerialService** | **Desktop 전용** | `serialport` | 하드웨어 시리얼 포트(RS232, UART) 통신 제어 |
-| **SystemInfoService** | **Desktop 전용** | `systeminformation` | CPU, 메모리 등 시스템 리소스 모니터링 |
-
----
-
-## ⚙️ 실행 및 빌드 가이드 (Developer Guide)
-
-### 1. 환경 설치 (Node.js v22 권장)
-프로젝트의 최신 패키지들은 Node.js v22 이상의 환경을 필요로 합니다. `nvm`이 설치되어 있다면 다음 명령어로 버전을 맞출 수 있습니다.
-
-```bash
-# Node.js v22 설치 및 사용
-nvm install 22
-nvm use 22
-
-# 의존성 설치
-npm install
-```
-
-### 2. 개발 모드 실행
-- **Web 브라우저 실행**: `npm run dev` (http://localhost:5173)
-- **데스크탑 앱 실행**: `npm run electron:dev` (Vite 서버 구동 후 실행)
-
-### 3. 빌드 및 배포
-- **웹 전용 빌드**: `npm run build:web` (`dist/` 폴더 생성)
-- **플랫폼별 앱 배포**: `npm run dist` (`release/` 폴더에 dmg, exe, AppImage 생성)
-
----
-
-## 🎨 앱 커스터마이징 (Customizing)
-
-애플리케이션의 이름과 아이콘을 본인의 브랜드에 맞춰 수정하는 방법입니다.
-
-### 1. 앱 이름(표시명) 수정
--   **데스크탑 앱 이름**: `package.json`의 `"productName": "My App Name"` 필드를 수정하세요. (설치 파일명 및 창 제목에 반영됨)
--   **웹 탭 제목**: `src/renderer/index.html`의 `<title>My App Name</title>` 태그를 수정하세요.
-
-### 2. 아이콘 수정
--   **데스크탑 앱 아이콘 (Electron)**: 
-    -   `build/` 폴더에 `icon.png` (1024x1024 권장) 파일을 넣으세요.
-    -   macOS: `icon.icns`, Windows: `icon.ico` 파일을 직접 넣어두면 우선적으로 사용됩니다.
--   **웹 브라우저 아이콘 (Favicon)**: 
-    -   `src/renderer/public/favicon.ico` 파일을 교체하세요.
-
----
-
-## 🧭 개발 중 주기적으로 관리해야 할 파일 (Key Maintenance Files)
-
-1.  **`src/core/di/container.ts`**: 새로운 `Service`나 `Controller` 클래스를 등록하여 주입 체계를 완성합니다.
-2.  **`src/main.ts` & `src/preload.ts`**: OS 전용 기능 호출을 위한 IPC 통신을 정의합니다.
-3.  **`package.json`**: 라이브러리 추가 및 앱 배포 설정을 관리합니다.
-4.  **`.env` & `.env.example`**: 환경 변수 및 보안 키를 관리합니다.
-
----
-
-## 🏗 Dependency Injection (DI) 가이드
-
-애플리케이션의 **의존성 주입(Dependency Injection)**과 **객체 생명주기**를 중앙에서 관리하는 핵심 인프라 [DI_GUIDE.md](./src/core/di/DI_GUIDE.md)
-
----
-
-## 🔌 Device Control 가이드  
-
-블루투스, USB, HID, 미디어(마이크/헤드셋) 장치를 연결하고 제어하는 인프라 계층 [DEVICE_GUIDE.md](./src/core/device/DEVICE_GUIDE.md)
-
----
-
-## 🌐 Network Infra 가이드
-
-다양한 프로토콜(HTTP, TCP, UDP, Socket.io)을 통한 외부 통신을 담당하는 인프라 계층 [NETWORK_GUIDE.md](./src/core/network/NETWORK_GUIDE.md)
-
----
-
-## 🔒 OS별 권한 설정 가이드 (Permissions)
-
-macOS Sandbox, Windows 방화벽 등 운영체제별 네트워크 및 하드웨어 접근 권한 가이드 [PERMISSION_GUIDE.md](./PERMISSION_GUIDE.md)
-
----
-
-## 🖥 Renderer Architecture 가이드
-
-Vite 기반의 렌더러 프로세스 내부 구조와 UI 레이어드 아키텍처 및 IPC 통신 원칙 [RENDERER_GUIDE.md](./src/renderer/RENDERER_GUIDE.md)
-
----
-
-## 🛡 Audit Logger & Safety 가이드
-
-이 프로젝트는 안정성을 위해 시스템의 주요 동작을 기록하는 `AuditLogger`를 운영[LOGGER_GUIDE.md](./src/core/logger/LOGGER_GUIDE.md)
-
----
-
-## 🌐 다국어(i18n) 설정 가이드
-
-플랫폼 공용 언어 팩 관리 및 렌더러 다국어 적용 가이드 [I18N_GUIDE.md](./src/shared/i18n/I18N_GUIDE.md)
-
----
-
-## 💾 Persistence Service 가이드
-
-이 서비스는 애플리케이션의 설정, 게임 진행도, 사용자 데이터 등을 **암호화하여 로컬 디스크에 영구 저장**하는 기능을 제공 [PERSISTENCE_GUIDE.md](./src/core/persistence/PERSISTENCE_GUIDE.md)
-
----
-
-## 🔐 Security & Compression 가이드 (Shared)
-
-AES-256-GCM, RSA-OAEP 암호화 및 멀티 알고리즘 데이터 압축 인프라 [SECURITY_GUIDE.md](./src/shared/security/SECURITY_GUIDE.md)
-
----
-
-## 📊 System Info Service 가이드
-
-호스트 OS의 리소스 사용량(CPU, 메모리)과 앱의 실행 상태 정보를 수집 [SYSTEM_INFO_GUIDE.md](./src/core/system/SYSTEM_INFO_GUIDE.md)
-
----
-
-## 🖥 Main Process 개발 가이드
-
-Electron 메인 프로세스(`src/main.ts`)의 구조와 IPC 통신 작성 표준 가이드 [MAIN_PROCESS_GUIDE.md](./src/core/MAIN_PROCESS_GUIDE.md)
-
-## 🌉 Preload Bridge 가이드
-
-메인 프로세스의 기능을 렌더러에 안전하게 노출하는 브릿지 작성 및 관리 가이드 [BRIDGE_GUIDE.md](./src/core/bridge/BRIDGE_GUIDE.md)
-
-## 🧠 Behavior Tree AI 가이드
-
-AI 의사결정 로직을 관리하는 모듈러 시스템 개발 가이드 [AI_GUIDE.md](./src/features/ai/AI_GUIDE.md)
-
----
-
-## 📜 변경 이력 (Changelog)
-
-프로젝트의 상세한 개발 단계, 실행 명령어, 핵심 코드 변경 내역은 [CHANGELOG.md](./changelogs/CHANGELOG.md)
+## 🚀 개발 가이드
+- **런타임**: Node.js v22+
+- **데스크탑**: Electron 34+
+- **웹**: Vite 6+
+- **상세 가이드**: [기능 추가 개발자 가이드](./docs/DEVELOPMENT_GUIDE.md)를 참조하십시오.
