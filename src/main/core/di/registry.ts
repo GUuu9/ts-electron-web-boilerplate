@@ -1,3 +1,4 @@
+import { SocketCore } from '../../features/network/socket/socket.core.js';
 import { TcpCoreModule } from '../../features/network/tcp/tcp.core.js';
 import { UdpCoreModule } from '../../features/network/udp/udp.core.js';
 import { OSCoreModule } from '../../features/os/os.core.js';
@@ -18,6 +19,7 @@ import { BackendModule } from '../backend-module.js';
 export class MainRegistry {
   public static initBackend(mainWindow: any): void {
     const modules: BackendModule[] = [
+      new SocketCore(),
       new TcpCoreModule(),
       new UdpCoreModule(),
       new OSCoreModule(),

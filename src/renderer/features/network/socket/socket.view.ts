@@ -1,7 +1,7 @@
 import { SocketViewModel } from './socket.viewmodel.js';
 
 /**
- * SocketView (View)
+ * SocketView: UI 템플릿 및 요소 정의
  */
 export class SocketView {
   public render(containerId: string): void {
@@ -9,30 +9,60 @@ export class SocketView {
     if (!container) return;
 
     container.innerHTML = `
-      <div class="network-view">
-        <h3><i data-lucide="zap"></i> Socket.io Test</h3>
-        <input type="text" id="socket-url" value="http://localhost:3000" />
-        <button id="connect-btn">Connect</button>
-        <hr />
-        <input type="text" id="msg-input" placeholder="Message" />
-        <button id="send-btn">Send</button>
+      <div id="socket-view">
+        <!-- Server UI -->
+        <section>
+          <h3>Socket Server</h3>
+          <input type="number" id="server-port" value="3000" />
+          <button id="toggle-server">Start Server</button>
+
+          <h4>Broadcast</h4>
+          <input type="text" id="server-event" placeholder="Event Name" value="message" />
+          <input type="text" id="server-msg" placeholder="Message" />
+          <button id="broadcast-btn">Broadcast</button>
+        </section>
+
+        <!-- Client UI -->
+        <section>
+          <h3>Socket Client</h3>
+          <input type="text" id="client-url" value="http://localhost:3000" />
+          <button id="connect-client">Connect</button>
+
+          <h4>Send Message</h4>
+          <input type="text" id="client-event" placeholder="Event Name" value="message" />
+          <input type="text" id="client-msg" placeholder="Message" />
+          <button id="send-msg-btn">Send Message</button>
+        </section>
+
+        <!-- Log UI -->
+        <section>
+          <h3>Log</h3>
+          <div id="log-area" style="height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 5px; font-family: monospace; font-size: 12px; background: #f9f9f9;"></div>
+        </section>
       </div>
     `;
-    (window as any).lucide?.createIcons();
   }
 
   public get elements() {
     return {
-      get socketUrl() { return document.getElementById('socket-url') as HTMLInputElement; },
-      get connectBtn() { return document.getElementById('connect-btn'); },
-      get msgInput() { return document.getElementById('msg-input') as HTMLInputElement; },
-      get sendBtn() { return document.getElementById('send-btn'); }
+      get toggleServerBtn() { return document.getElementById('toggle-server') as HTMLButtonElement; },
+      get broadcastBtn() { return document.getElementById('broadcast-btn') as HTMLButtonElement; },
+      get serverPortInput() { return document.getElementById('server-port') as HTMLInputElement; },
+      get serverEventInput() { return document.getElementById('server-event') as HTMLInputElement; },
+      get serverMsgInput() { return document.getElementById('server-msg') as HTMLInputElement; },
+      
+      get connectClientBtn() { return document.getElementById('connect-client') as HTMLButtonElement; },
+      get sendMsgBtn() { return document.getElementById('send-msg-btn') as HTMLButtonElement; },
+      get clientUrlInput() { return document.getElementById('client-url') as HTMLInputElement; },
+      get clientEventInput() { return document.getElementById('client-event') as HTMLInputElement; },
+      get clientMsgInput() { return document.getElementById('client-msg') as HTMLInputElement; },
+      get logArea() { return document.getElementById('log-area') as HTMLDivElement; },
     };
   }
 }
 
 /**
- * SocketBinder (Event Mapper)
+ * SocketBinder: View와 ViewModel 연결
  */
 export class SocketBinder {
   constructor(
@@ -40,17 +70,33 @@ export class SocketBinder {
     private readonly viewModel: SocketViewModel
   ) {}
 
-  public bind() {
-    document.addEventListener('click', (event) => {
-      const target = event.target as HTMLElement;
-      
-      if (target.id === 'connect-btn') {
-        this.viewModel.connect(this.view.elements.socketUrl.value);
-        alert('Socket connection attempt started...');
+  public bind(): void {
+    // 로그 콜백 설정
+    this.viewModel.setLogCallback((msg) => {
+      const logArea = this.view.elements.logArea;
+      if (logArea) {
+        logArea.innerHTML += `<div>${msg}</div>`;
+        logArea.scrollTop = logArea.scrollHeight;
       }
+    });
 
-      if (target.id === 'send-btn') {
-        this.viewModel.sendMessage('chat', this.view.elements.msgInput.value);
+    document.addEventListener('click', async (event) => {
+      const target = event.target as HTMLElement;
+      const { 
+        toggleServerBtn, broadcastBtn, serverPortInput, serverEventInput, serverMsgInput,
+        connectClientBtn, sendMsgBtn, clientUrlInput, clientEventInput, clientMsgInput
+      } = this.view.elements;
+
+      if (target === toggleServerBtn) {
+        await this.viewModel.toggleServer(parseInt(serverPortInput.value));
+        toggleServerBtn.innerText = this.viewModel.isServerRunning ? 'Stop Server' : 'Start Server';
+        toggleServerBtn.style.backgroundColor = this.viewModel.isServerRunning ? '#ff4d4f' : '#52c41a';
+      } else if (target === broadcastBtn) {
+        await this.viewModel.broadcast(serverEventInput.value, serverMsgInput.value);
+      } else if (target === connectClientBtn) {
+        this.viewModel.connect(clientUrlInput.value);
+      } else if (target === sendMsgBtn) {
+        this.viewModel.sendMessage(clientEventInput.value, clientMsgInput.value);
       }
     });
   }
