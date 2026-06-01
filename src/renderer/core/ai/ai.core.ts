@@ -9,8 +9,8 @@ export class AICore {
   private trees: Map<string, BehaviorTree> = new Map();
 
   constructor() {
-    this.registerTree('example', createExampleTree());
-    this.registerTree('shooter', createShooterTree());
+    // this.registerTree('example', createExampleTree());
+    // this.registerTree('shooter', createShooterTree());
   }
 
   // 행동 트리를 등록합니다.

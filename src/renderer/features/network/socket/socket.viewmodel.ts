@@ -8,12 +8,24 @@ export class SocketViewModel {
     return this.isServerRunningState;
   }
 
+  public get isClientConnecting(): boolean {
+    return this.isClientConnected;
+  }
+
   // 기존 private 변수명을 변경하여 getter와 충돌 방지
   private isServerRunningState: boolean = false;
   private isClientConnected: boolean = false;
   private onLogCallback: (msg: string) => void = () => {};
 
-  constructor(private readonly repository: SocketRepository) {}
+  constructor(private readonly repository: SocketRepository) {
+    // 데스크톱 환경에서만 서버 수신 메시지 리스너 등록
+    if (this.repository.isDesktop) {
+      this.repository.onServerReceived((payload: any) => {
+        const { event, socketId, data } = payload;
+        this.log(`[Server Received] Event: ${event}, Client: ${socketId}, Data: ${JSON.stringify(data)}`);
+      });
+    }
+  }
 
   public setLogCallback(callback: (msg: string) => void) {
     this.onLogCallback = callback;
@@ -42,16 +54,33 @@ export class SocketViewModel {
     this.log(`Broadcast [${event}]: ${JSON.stringify(data)}`);
   }
 
+  public async subscribeServerEvent(event: string): Promise<void> {
+    await this.repository.listenServerEvent(event);
+    this.log(`Server now listening for [${event}]`);
+  }
+
   // --- 클라이언트 기능 ---
-  public connect(url: string): void {
-    this.repository.connect(url);
-    this.isClientConnected = true;
-    this.log(`Client Connected to ${url}`);
-    
-    // 수신 이벤트 로그 등록 (예시로 'message' 이벤트)
-    this.repository.on('message', (data: any) => {
-      this.log(`Received [message]: ${JSON.stringify(data)}`);
+  public async toggleClient(url: string): Promise<void> {
+    if (this.isClientConnected) {
+      this.repository.disconnect();
+      this.isClientConnected = false;
+      this.log(`Client Disconnected`);
+    } else {
+      this.repository.connect(url);
+      this.isClientConnected = true;
+      this.log(`Client Connected to ${url}`);
+    }
+  }
+
+  public subscribeClientEvent(event: string): void {
+    if (!this.isClientConnected) {
+      this.log('Client not connected');
+      return;
+    }
+    this.repository.on(event, (data: any) => {
+      this.log(`Received [${event}]: ${JSON.stringify(data)}`);
     });
+    this.log(`Client now listening for [${event}]`);
   }
 
   public sendMessage(event: string, data: any): void {

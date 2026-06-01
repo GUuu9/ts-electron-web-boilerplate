@@ -71,7 +71,7 @@ export class RendererRegistry {
     container.register('TranslationService', translationService);
     
     container.register('HttpRepository', new HttpRepository(httpClient));
-    container.register('SocketRepository', new SocketRepository(socketClient));
+    container.register('SocketRepository', new SocketRepository(container.get('SocketClient')));
     container.register('TcpRepository', new TcpRepository());
     container.register('UdpRepository', new UdpRepository());
     container.register('OsRepository', new OsRepository());

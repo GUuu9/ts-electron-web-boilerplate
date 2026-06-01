@@ -9,6 +9,9 @@
 - [**COMMIT_00002**](./commit_00002.md) : AI 및 물리기반 슈팅 시스템 구현.
 - [**COMMIT_00003**](./commit_00003.md) : DI 구조 리팩토링 및 다국어/방어적 프로그래밍 구현.
 - [**COMMIT_00004**](./commit_00004.md) : Socket 서버 및 클라이언트 기능 확장.
+- [**COMMIT_00005**](./commit_00005.md) : Socket 동적 이벤트 수신 기능 추가 및 방어적 프로그래밍 적용.
+- [**COMMIT_00006**](./commit_00006.md) : TCP Server/Client 확장 및 로그 기능 추가.
+- [**COMMIT_00007**](./commit_00007.md) : UDP 기능 확장 및 로그 기능 추가.
 
 ---
 

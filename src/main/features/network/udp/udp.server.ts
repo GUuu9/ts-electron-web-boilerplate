@@ -1,25 +1,37 @@
 import * as dgram from 'dgram';
 
 /**
- * UdpServer (Backend Service)
- * 실제 OS 자원을 제어하는 UDP 통신 로직
+ * UdpService (Backend Service)
  */
-export class UdpServer {
+export class UdpService {
   private socket: dgram.Socket | null = null;
 
-  public bind(port: number, onMessage: (msg: Buffer, remoteInfo: dgram.RemoteInfo) => void) {
+  // UDP는 Connectionless이므로 Server/Client 구분이 모호하지만, 
+  // 기능적으로 Bind(수신대기)와 Send(발신)로 분리합니다.
+  public bind(port: number, onData: (msg: string, remoteInfo: dgram.RemoteInfo) => void) {
+    if (this.socket) this.socket.close();
+    
     this.socket = dgram.createSocket('udp4');
-    this.socket.on('message', onMessage);
-    this.socket.bind(port);
+    this.socket.on('message', (msg, rinfo) => {
+      onData(msg.toString(), rinfo);
+    });
+    this.socket.bind(port, () => {
+      console.log(`[UDP] Bound to port ${port}`);
+    });
   }
 
   public send(msg: string, port: number, address: string) {
+    if (!this.socket) this.socket = dgram.createSocket('udp4');
+    
     const buffer = Buffer.from(msg);
-    this.socket?.send(buffer, port, address);
+    this.socket.send(buffer, port, address, (err) => {
+      if (err) console.error('[UDP] Send error:', err);
+    });
   }
 
   public close() {
     this.socket?.close();
     this.socket = null;
+    console.log('[UDP] Socket closed');
   }
 }

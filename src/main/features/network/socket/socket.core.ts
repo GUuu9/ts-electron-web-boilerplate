@@ -24,5 +24,13 @@ export class SocketCore implements BackendModule {
     ipcMain.handle('socket:broadcast', async (_, event: string, data: any) => {
       this.socketServer.broadcast(event, data);
     });
+
+    ipcMain.handle('socket:listenEvent', async (_, event: string) => {
+      this.socketServer.listenEvent(event, (socketId: string, data: any) => {
+        if (mainWindow) {
+          mainWindow.webContents.send('socket:onServerReceived', { event, socketId, data });
+        }
+      });
+    });
   }
 }
