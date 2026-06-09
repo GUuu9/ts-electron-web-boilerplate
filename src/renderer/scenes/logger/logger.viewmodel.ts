@@ -1,4 +1,4 @@
-import { LoggerService } from '../../features/operationData/logger/services/logger.service.js';
+import { LoggerService } from '../../domains/logger/services/logger.service.js';
 
 /**
  * Logger ViewModel

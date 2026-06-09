@@ -21,34 +21,34 @@ import { FileRepository } from '../../data/file/file.repository.js';
 import { LoggerRepository } from '../../data/logger/logger.repository.js';
 
 // ViewModels
-import { HttpViewModel } from '../../features/network/http/http.viewmodel.js';
-import { SocketViewModel } from '../../features/network/socket/socket.viewmodel.js';
-import { TcpViewModel } from '../../features/network/tcp/tcp.viewmodel.js';
-import { UdpViewModel } from '../../features/network/udp/udp.viewmodel.js';
-import { OsViewModel } from '../../features/os/os.viewmodel.js';
-import { SystemViewModel } from '../../features/system/system.viewmodel.js';
-import { PersistenceViewModel } from '../../features/persistence/persistence.viewmodel.js';
-import { SecurityViewModel } from '../../features/security/security.viewmodel.js';
-import { SerialViewModel } from '../../features/serial/serial.viewmodel.js';
-import { MediaViewModel } from '../../features/media/media.viewmodel.js';
-import { FileViewModel } from '../../features/file/file.viewmodel.js';
-import { LoggerViewModel } from '../../features/logger/logger.viewmodel.js';
-import { AIViewModel } from '../../features/ai/ai.viewmodel.js';
+import { HttpViewModel } from '../../domains/network/http/http.viewmodel.js';
+import { SocketViewModel } from '../../domains/network/socket/socket.viewmodel.js';
+import { TcpViewModel } from '../../domains/network/tcp/tcp.viewmodel.js';
+import { UdpViewModel } from '../../domains/network/udp/udp.viewmodel.js';
+import { OsViewModel } from '../../domains/os/os.viewmodel.js';
+import { SystemViewModel } from '../../domains/system/system.viewmodel.js';
+import { PersistenceViewModel } from '../../domains/persistence/persistence.viewmodel.js';
+import { SecurityViewModel } from '../../domains/security/security.viewmodel.js';
+import { SerialViewModel } from '../../domains/serial/serial.viewmodel.js';
+import { MediaViewModel } from '../../domains/media/media.viewmodel.js';
+import { FileViewModel } from '../../domains/file/file.viewmodel.js';
+import { LoggerViewModel } from '../../domains/logger/logger.viewmodel.js';
+import { AIViewModel } from '../../domains/ai/ai.viewmodel.js';
 
 // Views & Binders
-import { HttpView, HttpBinder } from '../../features/network/http/http.view.js';
-import { SocketView, SocketBinder } from '../../features/network/socket/socket.view.js';
-import { TcpView, TcpBinder } from '../../features/network/tcp/tcp.view.js';
-import { UdpView, UdpBinder } from '../../features/network/udp/udp.view.js';
-import { OsView, OsBinder } from '../../features/os/os.view.js';
-import { SystemView, SystemBinder } from '../../features/system/system.view.js';
-import { PersistenceView, PersistenceBinder } from '../../features/persistence/persistence.view.js';
-import { SecurityView, SecurityBinder } from '../../features/security/security.view.js';
-import { SerialView, SerialBinder } from '../../features/serial/serial.view.js';
-import { MediaView, MediaBinder } from '../../features/media/media.view.js';
-import { FileView, FileBinder } from '../../features/file/file.view.js';
-import { LoggerView, LoggerBinder } from '../../features/logger/logger.view.js';
-import { AIView, AIBinder } from '../../features/ai/ai.view.js';
+import { HttpView, HttpBinder } from '../../domains/network/http/http.view.js';
+import { SocketView, SocketBinder } from '../../domains/network/socket/socket.view.js';
+import { TcpView, TcpBinder } from '../../domains/network/tcp/tcp.view.js';
+import { UdpView, UdpBinder } from '../../domains/network/udp/udp.view.js';
+import { OsView, OsBinder } from '../../domains/os/os.view.js';
+import { SystemView, SystemBinder } from '../../domains/system/system.view.js';
+import { PersistenceView, PersistenceBinder } from '../../domains/persistence/persistence.view.js';
+import { SecurityView, SecurityBinder } from '../../domains/security/security.view.js';
+import { SerialView, SerialBinder } from '../../domains/serial/serial.view.js';
+import { MediaView, MediaBinder } from '../../domains/media/media.view.js';
+import { FileView, FileBinder } from '../../domains/file/file.view.js';
+import { LoggerView, LoggerBinder } from '../../domains/logger/logger.view.js';
+import { AIView, AIBinder } from '../../domains/ai/ai.view.js';
 
 // Core
 import { AICore } from '../ai/ai.core.js';

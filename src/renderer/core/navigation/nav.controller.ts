@@ -1,18 +1,18 @@
 import { Navigator } from './navigator.js';
-import { HttpView } from '../../features/network/http/http.view.js';
-import { SocketView } from '../../features/network/socket/socket.view.js';
-import { TcpView } from '../../features/network/tcp/tcp.view.js';
-import { UdpView } from '../../features/network/udp/udp.view.js';
-import { OsView } from '../../features/os/os.view.js';
-import { SystemView } from '../../features/system/system.view.js';
-import { PersistenceView } from '../../features/persistence/persistence.view.js';
-import { SecurityView } from '../../features/security/security.view.js';
-import { SerialView } from '../../features/serial/serial.view.js';
-import { MediaView } from '../../features/media/media.view.js';
-import { FileView } from '../../features/file/file.view.js';
-import { LoggerView } from '../../features/logger/logger.view.js';
-import { AIView, AIBinder } from '../../features/ai/ai.view.js';
-import { AIViewModel } from '../../features/ai/ai.viewmodel.js';
+import { HttpView } from '../../domains/network/http/http.view.js';
+import { SocketView } from '../../domains/network/socket/socket.view.js';
+import { TcpView } from '../../domains/network/tcp/tcp.view.js';
+import { UdpView } from '../../domains/network/udp/udp.view.js';
+import { OsView } from '../../domains/os/os.view.js';
+import { SystemView } from '../../domains/system/system.view.js';
+import { PersistenceView } from '../../domains/persistence/persistence.view.js';
+import { SecurityView } from '../../domains/security/security.view.js';
+import { SerialView } from '../../domains/serial/serial.view.js';
+import { MediaView } from '../../domains/media/media.view.js';
+import { FileView } from '../../domains/file/file.view.js';
+import { LoggerView } from '../../domains/logger/logger.view.js';
+import { AIView, AIBinder } from '../../domains/ai/ai.view.js';
+import { AIViewModel } from '../../domains/ai/ai.viewmodel.js';
 
 /**
  * NavController

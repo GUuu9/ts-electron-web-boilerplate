@@ -17,8 +17,8 @@ export class VisionCore implements BackendModule {
   }
 
   setupHandlers(mainWindow: BrowserWindow | null): void {
-    ipcMain.handle('vision:captureScreen', async () => {
-      return await this.server.captureScreen();
+    ipcMain.handle('vision:processScreen', async () => {
+      return await this.server.processScreen();
     });
   }
 }

@@ -2,8 +2,8 @@
  * Vision Repository
  */
 export class VisionRepository {
-  public async captureScreen(): Promise<string> {
+  public async processScreen(): Promise<string> {
     if (!(window as any).electronAPI?.vision) return '';
-    return await (window as any).electronAPI.vision.captureScreen();
+    return await (window as any).electronAPI.vision.processScreen();
   }
 }
