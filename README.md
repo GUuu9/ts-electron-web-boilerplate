@@ -31,7 +31,8 @@ src/
 ├── renderer/         # Frontend: UI/UX 및 ViewModel
 │   ├── core/         # UI 인프라 (Router, Logger, UI DI, Navigation)
 │   ├── data/         # Data Layer (Repository/DataSource)
-│   ├── features/     # 도메인별 ViewModel 및 View 컴포넌트
+│   ├── features/     # 특정 화면(Feature)에 특화된 복합 비즈니스 로직 조합(Service)
+│   ├── scenes/       # 도메인별 ViewModel 및 View 컴포넌트
 │   ├── styles/       # 스타일 정의
 │   └── main.ts       # 렌더러 진입점
 └── shared/           # 공용 계층: 플랫폼 독립적 모델/로직
@@ -40,29 +41,65 @@ src/
 
 ---
 
-## 🧩 아키텍처 상세 및 파일 역할
+## 🏗 아키텍처 역할 정의 (Architecture Role Definitions)
 
-### 1. 프론트엔드 (Frontend / Renderer): MVVM
-| 레이어 | 역할 및 파일 규칙 |
-| :--- | :--- |
-| **View** | `*.view.ts`: 순수 HTML 템플릿 렌더링 및 DOM 요소 접근. 비즈니스 로직 금지. |
-| **Binder** | `*.view.ts` 내 Binder 클래스: View의 이벤트를 ViewModel 메서드와 연결. |
-| **ViewModel** | `*.viewmodel.ts`: UI 상태 관리 및 데이터 가공. Repository를 주입받아 로직 수행. |
-| **Repository** | `data/**/*.repository.ts`: 데이터 계층. 백엔드(IPC) 또는 저장소 통신 캡슐화. |
+아키텍처의 일관성을 유지하고 각 파일의 책임을 명확히 하기 위해 다음과 같이 역할을 정의합니다.
 
-### 2. 백엔드 (Backend / Main): 서비스 기반
-| 레이어 | 역할 및 파일 규칙 |
-| :--- | :--- |
-| **Core Service** | `features/**/*.server.ts` 등: 실제 Node.js API를 사용하는 저수준 서비스. |
-| **Core Module** | `features/**/*.core.ts`: `BackendModule` 구현, IPC 핸들러 등록 및 관리. |
-| **IPC Bridge** | `features/**/*.bridge.ts`: 백엔드 기능을 렌더러에 노출하는 브릿지 규격. |
+### 1. UI & Presentation Layer (Renderer/Frontend)
 
-### 3. 파일 별칭 및 역할 요약
-- `*.view.ts`: **UI 레이아웃**. DOM 구조 생성 및 요소 식별. 로직 금지.
-- `*.viewmodel.ts`: **UI 로직**. ViewModel의 상태 관리 및 서비스 호출.
-- `*.binder.ts`: **연결 계층**. View 이벤트와 ViewModel 메서드를 바인딩.
-- `*.repository.ts`: **데이터 추상화**. 백엔드 IPC 호출/저장소 캡슐화.
-- `*.core.ts`: **백엔드 모듈**. 백엔드 인스턴스 관리 및 IPC 통신 운영.
+#### 🎮 View (`src/renderer/scenes/*.view.ts`)
+- **역할**: 게임의 메인 씬 (Back Layer). 게임 플레이, 월드 이동, 상호작용 관리.
+
+#### 📊 ViewModel (`*.viewmodel.ts`)
+- **역할**: View와 Service 사이의 상태 중재자.
+
+#### 🧩 UI Component (`src/renderer/scenes/_components/[name]/*.ts`)
+- **역할**: View에 직접 삽입 가능한 재사용 UI 요소(Button, Text 등).
+
+### 2. Business Logic Layer (Service)
+
+#### 🌐 Domain Service (`src/renderer/features/[domain]/services/*.service.ts`)
+- **역할**: 도메인 엔티티의 **상태 관리 및 비즈니스 로직** 처리.
+
+#### 🛠 Feature Service (`src/renderer/scenes/[feature]/services/*.service.ts`)
+- **역할**: 특정 화면(Feature)에 특화된 **복합 비즈니스 로직** 조합.
+
+### 3. Data & State Layer
+
+#### 💾 Domain State (`src/renderer/features/operationData/[domain]/*.state.ts`)
+- **역할**: 해당 도메인에 국한된 **단일 진실 공급원(SSOT)**.
+
+#### 🗄 Persistence Service (`src/renderer/features/operationData/persistence.service.ts`)
+- **역할**: 데이터를 디스크에 저장하고 불러오는 **공통 인프라**.
+
+#### 📂 Game Data Service (`src/renderer/features/operationData/game-data.service.ts`)
+- **역할**: 전체 시스템의 **데이터 생명주기** 관리.
+
+#### 🗃 Repository (`*.repository.ts` 또는 `source/`)
+- **역할**: 원시 데이터(JSON, DB, API)에 접근하는 **데이터 공급원**.
+
+### 4. Architecture Support (DI & Core)
+
+#### 📦 Container (`*.container.ts`)
+- **역할**: 객체의 **인스턴스 생성 및 수명 주기** 관리.
+
+#### 📑 Registry (`registry.ts`)
+- **역할**: 의존성 주입을 위한 **중앙 등록소**.
+
+#### 🏗 Bridge (`*.bridge.ts`)
+- **역할**: Electron의 **Main 프로세스와 Renderer 프로세스 간의 통신** 통로.
+
+---
+
+## 🛠 개발 및 리팩토링 표준 규칙
+
+### 1. 의존성 격리 규칙
+- **View(Scene/ViewModel)**는 `features/operationData/[domain]/services/`에 있는 도메인 서비스 또는 Feature Service만 호출할 수 있습니다.
+- **Repository**는 오직 `Domain Service` 내부에서만 사용하며, 외부로 절대 노출하지 않습니다.
+
+### 2. 상태 변경 감지 표준
+- 모든 **Domain State**는 `BaseState`를 상속받아 `subscribe(callback: () => void)`를 구현합니다.
+- 데이터가 변경되면 반드시 서비스 내부에서 상태를 업데이트하고 `notify()`를 호출하여 구독 중인 ViewModel에게 갱신 알림을 전파해야 합니다.
 
 ---
 

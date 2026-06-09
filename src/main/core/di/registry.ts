@@ -9,6 +9,8 @@ import { SerialCoreModule } from '../../features/serial/serial.core.js';
 import { MediaCoreModule } from '../../features/media/media.core.js';
 import { FileCoreModule } from '../../features/file/file.core.js';
 import { LoggerCoreModule } from '../../features/logger/logger.core.js';
+import { AutomationCore } from '../../features/automation/automation.core.js';
+import { VisionCore } from '../../features/vision/vision.core.js';
 import { container } from './container.main.js';
 import { BackendModule } from '../backend-module.js';
 
@@ -30,6 +32,8 @@ export class MainRegistry {
       new MediaCoreModule(),
       new FileCoreModule(),
       new LoggerCoreModule(),
+      new AutomationCore(),
+      new VisionCore(),
     ];
 
     // 컨테이너에 등록 및 초기화

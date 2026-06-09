@@ -1,4 +1,4 @@
-import { FileRepository } from '../../data/file/file.repository.js';
+import { FileRepository } from '../../data/ipc/file/file.repository.js';
 
 /**
  * File ViewModel

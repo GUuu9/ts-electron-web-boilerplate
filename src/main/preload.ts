@@ -10,6 +10,8 @@ import { serialBridge } from './features/serial/serial.bridge.js';
 import { mediaBridge } from './features/media/media.bridge.js';
 import { fileBridge } from './features/file/file.bridge.js';
 import { loggerBridge } from './features/logger/logger.bridge.js';
+import { automationBridge } from './features/automation/automation.bridge.js';
+import { visionBridge } from './features/vision/vision.bridge.js';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   platform: process.platform,
@@ -23,5 +25,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   serial: serialBridge,
   media: mediaBridge,
   file: fileBridge,
-  logger: loggerBridge
+  logger: loggerBridge,
+  automation: automationBridge,
+  vision: visionBridge
 });

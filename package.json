@@ -28,6 +28,7 @@
   "author": "Developer <developer@example.com>",
   "license": "ISC",
   "devDependencies": {
+    "@nut-tree-fork/nut-js": "^4.2.6",
     "@types/dotenv": "^8.2.3",
     "@types/node": "^22.13.4",
     "@types/serialport": "^10.2.0",

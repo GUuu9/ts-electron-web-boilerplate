@@ -1,5 +1,5 @@
-import { MediaRepository } from '../../data/media/media.repository.js';
-import { DeviceRepository } from '../../data/media/device.repository.js';
+import { MediaRepository } from '../../data/ipc/media/media.repository.js';
+import { DeviceRepository } from '../../data/ipc/media/device.repository.js';
 
 /**
  * Media ViewModel
