@@ -1,4 +1,4 @@
-import { UdpRepository } from '../../../data/network/udp/udp.repository.js';
+import { UdpSceneService } from './udpTest.service.js';
 
 /**
  * UdpViewModel (ViewModel)
@@ -6,8 +6,8 @@ import { UdpRepository } from '../../../data/network/udp/udp.repository.js';
 export class UdpViewModel {
   private onLogCallback: (msg: string) => void = () => {};
 
-  constructor(private readonly repository: UdpRepository) {
-    this.repository.onData(({ msg, rinfo }) => {
+  constructor(private readonly service: UdpSceneService) {
+    this.service.onData(({ msg, rinfo }) => {
       this.log(`[UDP Received] From ${rinfo.address}:${rinfo.port}: ${msg}`);
     });
   }
@@ -22,17 +22,29 @@ export class UdpViewModel {
   }
 
   public async bind(port: number): Promise<void> {
-    await this.repository.bind(port);
-    this.log(`[UDP] Bound to port ${port}`);
+    try {
+      await this.service.bind(port);
+      this.log(`[UDP] Bound to port ${port}`);
+    } catch(e) {
+      this.log(`[UDP] Bind Error: ${e}`);
+    }
   }
 
   public async send(msg: string, port: number, address: string): Promise<void> {
-    await this.repository.send(msg, port, address);
-    this.log(`[UDP Sent] To ${address}:${port}: ${msg}`);
+    try {
+      await this.service.send(msg, port, address);
+      this.log(`[UDP Sent] To ${address}:${port}: ${msg}`);
+    } catch(e) {
+      this.log(`[UDP] Send Error: ${e}`);
+    }
   }
 
   public async close(): Promise<void> {
-    await this.repository.close();
-    this.log(`[UDP] Socket closed`);
+    try {
+      await this.service.close();
+      this.log(`[UDP] Socket closed`);
+    } catch(e) {
+      this.log(`[UDP] Close Error: ${e}`);
+    }
   }
 }

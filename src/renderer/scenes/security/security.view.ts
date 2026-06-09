@@ -77,7 +77,7 @@ export class SecurityBinder {
       if (target.id === 'aes-gen-btn') {
         const { aesKeyInput } = this.view.elements;
         const key = await this.viewModel.generateAesKey();
-        if (aesKeyInput) aesKeyInput.value = key;
+        if (aesKeyInput) aesKeyInput.value = key!.toString();
       }
 
       // AES Test
@@ -88,7 +88,7 @@ export class SecurityBinder {
           return;
         }
         const res = await this.viewModel.testAes(aesInput.value, aesKeyInput.value);
-        if (aesResult) aesResult.innerHTML = `Enc: ${res.encrypted.substring(0, 30)}...<br>Dec: ${res.decrypted}`;
+        if (aesResult) aesResult.innerHTML = `Enc: ${res!.encrypted.substring(0, 30)}...<br>Dec: ${res!.decrypted}`;
       }
 
       // RSA Gen
@@ -102,7 +102,7 @@ export class SecurityBinder {
         const { rsaInput, rsaResult } = this.view.elements;
         try {
           const res = await this.viewModel.testRsa(rsaInput.value);
-          if (rsaResult) rsaResult.innerHTML = `Enc (Base64): ${res.encrypted.substring(0, 30)}...<br>Dec: ${res.decrypted}`;
+          if (rsaResult) rsaResult.innerHTML = `Enc (Base64): ${res!.encrypted.substring(0, 30)}...<br>Dec: ${res!.decrypted}`;
         } catch (e) {
           alert('Generate keys first!');
         }

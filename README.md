@@ -48,7 +48,7 @@ src/
 ### 1. UI & Presentation Layer (Renderer/Frontend)
 
 #### 🎮 View (`src/renderer/scenes/*.view.ts`)
-- **역할**: 게임의 메인 씬 (Back Layer). 게임 플레이, 월드 이동, 상호작용 관리.
+- **역할**: 메인 씬 (Back Layer). 상호작용 관리.
 
 #### 📊 ViewModel (`*.viewmodel.ts`)
 - **역할**: View와 Service 사이의 상태 중재자.
@@ -94,7 +94,7 @@ src/
 ## 🛠 개발 및 리팩토링 표준 규칙
 
 ### 1. 의존성 격리 규칙
-- **View(Scene/ViewModel)**는 `features/operationData/[domain]/services/`에 있는 도메인 서비스 또는 Feature Service만 호출할 수 있습니다.
+- **View(Scene/ViewModel)**는 `features/[domain]/services/`에 있는 도메인 서비스 또는 Feature Service만 호출할 수 있습니다.
 - **Repository**는 오직 `Domain Service` 내부에서만 사용하며, 외부로 절대 노출하지 않습니다.
 
 ### 2. 상태 변경 감지 표준

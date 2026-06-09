@@ -1,34 +1,28 @@
-import { SecurityRepository } from '../../data/security/security.repository.js';
+import { SecuritySceneService } from './securityTest.service.js';
 
 /**
  * Security ViewModel
  */
 export class SecurityViewModel {
-  constructor(private readonly repository: SecurityRepository) {}
+  constructor(private readonly service: SecuritySceneService) {}
 
   public async generateAesKey() {
-    return await this.repository.aesGenerate();
+    try { return await this.service.aesGenerate(); } catch(e) { console.error(e); return null; }
   }
 
   public async testAes(text: string, keyHex: string) {
-    const encrypted = await this.repository.aesEncrypt(text, keyHex);
-    const decrypted = await this.repository.aesDecrypt(encrypted, keyHex);
-    return { encrypted, decrypted };
+    try { return await this.service.testAes(text, keyHex); } catch(e) { console.error(e); return null; }
   }
 
   public async generateRsa() {
-    return await this.repository.rsaGenerate();
+    try { return await this.service.rsaGenerate(); } catch(e) { console.error(e); return null; }
   }
 
   public async testRsa(text: string) {
-    const encrypted = await this.repository.rsaEncrypt(text);
-    const decrypted = await this.repository.rsaDecrypt(encrypted);
-    return { encrypted, decrypted };
+    try { return await this.service.testRsa(text); } catch(e) { console.error(e); return null; }
   }
 
   public async testCompress(text: string) {
-    const info = await this.repository.compress(text);
-    const decompressed = await this.repository.decompress(info.base64);
-    return { ...info, decompressed };
+    try { return await this.service.testCompress(text); } catch(e) { console.error(e); return null; }
   }
 }

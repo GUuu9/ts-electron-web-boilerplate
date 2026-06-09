@@ -64,7 +64,7 @@ export class PersistenceBinder {
           const key = keyInput.value;
           const data = await this.viewModel.loadData(key);
           if (resultArea) {
-            resultArea.innerText = data !== null ? data : 'No data found';
+            resultArea.innerText = data !== null ? data!.toString() : 'No data found';
           }
         } catch (error) {
           if (resultArea) resultArea.innerText = 'Load failed';

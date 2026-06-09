@@ -1,41 +1,41 @@
-import { TcpRepository } from '../../../data/network/tcp/tcp.repository.js';
+import { TcpSceneService } from './tcpTest.service.js';
+import { TcpState } from './tcp.state.js';
 
 /**
  * TcpViewModel (ViewModel)
  */
 export class TcpViewModel {
-  public isServerRunning: boolean = false;
-  public isClientConnected: boolean = false;
+  public readonly state = new TcpState();
   private onLogCallback: (msg: string) => void = () => {};
 
-  constructor(private readonly repository: TcpRepository) {
+  constructor(private readonly service: TcpSceneService) {
     this.initEventListeners();
   }
 
   private initEventListeners() {
-    if (!this.repository.isDesktop) return;
+    if (!this.service.isDesktop) return;
 
     // Server Events
-    this.repository.onServerConnected((clientId) => {
+    this.service.onServerConnected((clientId) => {
       this.log(`[Server] Client connected: ${clientId}`);
     });
-    this.repository.onServerDisconnected((clientId) => {
+    this.service.onServerDisconnected((clientId) => {
       this.log(`[Server] Client disconnected: ${clientId}`);
     });
-    this.repository.onServerData(({ clientId, data }) => {
+    this.service.onServerData(({ clientId, data }) => {
       this.log(`[Server Received] From ${clientId}: ${data}`);
     });
 
     // Client Events
-    this.repository.onClientConnected(() => {
-      this.isClientConnected = true;
+    this.service.onClientConnected(() => {
+      this.state.isClientConnected = true;
       this.log(`[Client] Connected to server`);
     });
-    this.repository.onClientDisconnected(() => {
-      this.isClientConnected = false;
+    this.service.onClientDisconnected(() => {
+      this.state.isClientConnected = false;
       this.log(`[Client] Disconnected from server`);
     });
-    this.repository.onClientData((data) => {
+    this.service.onClientData((data) => {
       this.log(`[Client Received] From Server: ${data}`);
     });
   }
@@ -51,33 +51,49 @@ export class TcpViewModel {
 
   // --- Server Actions ---
   public async toggleServer(port: number): Promise<void> {
-    if (this.isServerRunning) {
-      await this.repository.stopServer();
-      this.isServerRunning = false;
-      this.log('[Server] Stopped');
-    } else {
-      await this.repository.startServer(port);
-      this.isServerRunning = true;
-      this.log(`[Server] Started on port ${port}`);
+    try {
+      if (this.state.isServerRunning) {
+        await this.service.stopServer();
+        this.state.isServerRunning = false;
+        this.log('[Server] Stopped');
+      } else {
+        await this.service.startServer(port);
+        this.state.isServerRunning = true;
+        this.log(`[Server] Started on port ${port}`);
+      }
+    } catch(e) {
+      this.log(`[Server] Toggle Error: ${e}`);
     }
   }
 
   public async serverBroadcast(data: string): Promise<void> {
-    await this.repository.serverBroadcast(data);
-    this.log(`[Server Sent] Broadcast: ${data}`);
+    try {
+      await this.service.serverBroadcast(data);
+      this.log(`[Server Sent] Broadcast: ${data}`);
+    } catch(e) {
+      this.log(`[Server] Broadcast Error: ${e}`);
+    }
   }
 
   // --- Client Actions ---
   public async toggleClient(host: string, port: number): Promise<void> {
-    if (this.isClientConnected) {
-      await this.repository.disconnect();
-    } else {
-      await this.repository.connect(host, port);
+    try {
+      if (this.state.isClientConnected) {
+        await this.service.disconnect();
+      } else {
+        await this.service.connect(host, port);
+      }
+    } catch(e) {
+      this.log(`[Client] Toggle Error: ${e}`);
     }
   }
 
   public async clientSend(data: string): Promise<void> {
-    await this.repository.clientSend(data);
-    this.log(`[Client Sent] To Server: ${data}`);
+    try {
+      await this.service.clientSend(data);
+      this.log(`[Client Sent] To Server: ${data}`);
+    } catch(e) {
+      this.log(`[Client] Send Error: ${e}`);
+    }
   }
 }

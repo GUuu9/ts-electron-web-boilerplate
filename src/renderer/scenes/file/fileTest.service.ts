@@ -1,7 +1,7 @@
 import { FileService } from '../../domains/file/services/file.service.js'
 import { LoggerService } from '../../domains/logger/services/logger.service.js';
 
-export class FileTestService {
+export class FileSceneService {
   constructor(
     private fileService: FileService,
     private loggerService: LoggerService

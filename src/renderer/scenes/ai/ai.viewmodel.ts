@@ -1,10 +1,14 @@
 import { AICore } from '../../core/ai/ai.core.js';
+import { AISceneService } from './aiTest.service.js';
 
 /**
  * AI ViewModel
  */
 export class AIViewModel {
-  constructor(private readonly aiCore: AICore) {}
+  constructor(
+    private readonly aiCore: AICore,
+    private readonly aiSceneService: AISceneService
+  ) {}
 
   // AI가 경험을 저장하는 메모리 (거리 -> 최적의 bias)
   private memory: { distance: number, bias: number }[] = [];
@@ -22,45 +26,51 @@ export class AIViewModel {
     return this.isActive;
   }
 
-  public respawnTarget() {
-    const tree = this.aiCore.getTree('shooter');
-    if (tree) {
-      tree.getBlackboard().set('targetPos', { x: 600 + Math.random() * 100, y: 100 + Math.random() * 400 });
+  public async respawnTarget() {
+    try {
+      await this.aiSceneService.updateTargetPosition({ 
+        x: 600 + Math.random() * 100, 
+        y: 100 + Math.random() * 400 
+      });
+    } catch (error) {
+      console.error('AIViewModel respawnTarget 오류:', error);
     }
   }
 
-  public resetThrowing() {
-    const tree = this.aiCore.getTree('shooter');
-    if (tree) {
-      tree.getBlackboard().set('isThrowing', false);
+  public async resetThrowing() {
+    try {
+      await this.aiSceneService.setThrowingState(false);
+    } catch (error) {
+      console.error('AIViewModel resetThrowing 오류:', error);
     }
   }
 
-  public missTarget() {
-    const tree = this.aiCore.getTree('shooter');
-    if (tree) {
-      const bb = tree.getBlackboard();
-      const currentBias = bb.get('aimBias') || 0;
-      
-      const correction = (Math.random() - 0.5) * 0.2; 
-      bb.set('aimBias', currentBias + correction);
-      bb.set('isThrowing', false);
+  public async missTarget() {
+    try {
+      const correction = (Math.random() - 0.5) * 0.2;
+      await this.aiSceneService.updateAimBias(correction);
+    } catch (error) {
+      console.error('AIViewModel missTarget 오류:', error);
     }
   }
   
-  public hitTarget() {
-    const tree = this.aiCore.getTree('shooter');
-    if (tree) {
-      const bb = tree.getBlackboard();
-      const dist = bb.get('lastDistance');
-      const bias = bb.get('aimBias');
-      
-      if (dist !== undefined && bias !== undefined) {
-        this.memory.push({ distance: dist, bias: bias });
-        console.log(`[AI] 명중! 학습 완료 (거리: ${dist.toFixed(0)}, bias: ${bias.toFixed(2)}). 메모리 크기: ${this.memory.length}`);
+  public async hitTarget() {
+    try {
+      const tree = this.aiCore.getTree('shooter');
+      if (tree) {
+        const bb = tree.getBlackboard();
+        const dist = bb.get('lastDistance');
+        const bias = bb.get('aimBias');
+        
+        if (dist !== undefined && bias !== undefined) {
+          this.memory.push({ distance: dist, bias: bias });
+          await this.aiSceneService.recordMemory(dist, bias);
+        }
+        
+        await this.aiSceneService.setThrowingState(false);
       }
-      
-      bb.set('isThrowing', false);
+    } catch (error) {
+      console.error('AIViewModel hitTarget 오류:', error);
     }
   }
 

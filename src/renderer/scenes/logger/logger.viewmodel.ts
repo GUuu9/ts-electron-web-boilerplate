@@ -1,16 +1,16 @@
-import { LoggerService } from '../../domains/logger/services/logger.service.js';
+import { LoggerSceneService } from './loggerTest.service.js';
 
 /**
  * Logger ViewModel
  */
 export class LoggerViewModel {
-  constructor(private readonly service: LoggerService) {}
+  constructor(private readonly service: LoggerSceneService) {}
 
   public async selectLogFile() {
-    return await this.service.selectLogFile();
+    try { return await this.service.selectLogFile(); } catch (e) { console.error('LoggerViewModel selectLogFile 오류:', e); return null; }
   }
 
   public async addLog(level: 'INFO' | 'ERROR' | 'DEBUG', message: string) {
-    await this.service.log(level, message);
+    try { await this.service.addLog(level, message); } catch (e) { console.error('LoggerViewModel addLog 오류:', e); }
   }
 }

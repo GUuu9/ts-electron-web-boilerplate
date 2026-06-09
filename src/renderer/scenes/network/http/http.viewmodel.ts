@@ -1,17 +1,18 @@
-import { HttpRepository } from '../../../data/network/http/http.repository.js';
+import { HttpSceneService } from './httpTest.service.js';
 
 /**
  * HttpViewModel (ViewModel)
  */
 export class HttpViewModel {
-  constructor(private readonly repository: HttpRepository) {}
+  constructor(private readonly service: HttpSceneService) {}
 
   public async fetchData(url: string): Promise<any> {
     try {
-      return await this.repository.fetchRemoteData(url);
+      return await this.service.fetchData(url);
     } catch (error) {
       console.error('[HttpViewModel] Fetch error:', error);
-      throw error;
+      // 필요시 UI 에러 상태 처리 추가
+      return null;
     }
   }
 }
