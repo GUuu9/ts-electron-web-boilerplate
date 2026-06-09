@@ -3,12 +3,15 @@ export type MacroActionType = 'CLICK' | 'KEY_INPUT' | 'WAIT';
 
 export interface MacroAction {
   type: MacroActionType;
-  params: any;
-  delayBeforeMs?: number;
-  condition?: {
-    type: 'IMAGE_MATCH';
-    targetImage: string; // 이미지 식별자
+  params: {
+    x?: number; // Click
+    y?: number; // Click
+    text?: string; // KeyInput
+    key?: string; // KeyInput
+    durationMs?: number; // KeyInput(Hold) / Wait
+    targetImage?: string; // Image Condition
   };
+  delayBeforeMs?: number;
 }
 
 export interface MacroSequence {

@@ -103,13 +103,74 @@ body {
   color: white;
 }
 
-/* 컨테이너 및 장치 목록 가독성 확보 */
-#media-list-area, #gamepad-list-area, #special-request-area, #serial-rx-area, #persist-result {
-  background: var(--bg) !important;
-  color: var(--text) !important;
+/* Macro View Styles */
+.macro-view {
+  padding: 1rem;
+}
+
+.macro-view .controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.macro-view #macro-loop-count {
+  width: 80px;
+}
+
+.macro-view .builder {
+  background: var(--card-bg);
+  padding: 1rem;
+  border-radius: 0.8rem;
   border: 1px solid var(--border);
+}
+
+.macro-view #macro-action-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.macro-view #macro-action-table th,
+.macro-view #macro-action-table td {
   padding: 0.5rem;
-  border-radius: 0.4rem;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.macro-view #macro-action-table th {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.macro-view #macro-action-table input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.2rem;
+}
+
+.macro-view .params-cell {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.macro-view .params-cell input {
+  width: 60px !important;
+}
+
+.macro-view .add-action-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.macro-view .remove-action-btn {
+  background: #ef4444;
+  color: white;
+  padding: 0.2rem 0.5rem;
 }
 
 .device-item {

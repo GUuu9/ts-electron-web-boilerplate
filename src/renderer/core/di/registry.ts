@@ -224,9 +224,7 @@ export class RendererRegistry {
 
   private static registerNavigation() {
     const navigator = new Navigator();
-    const navController = new NavController(navigator, container.get('Views'), {
-      aiViewModel: container.get('AIViewModel')
-    });
+    const navController = new NavController(navigator, container.get('Views'));
     
     container.register('Navigator', navigator);
     container.register('NavController', navController);

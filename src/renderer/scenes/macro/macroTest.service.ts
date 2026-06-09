@@ -14,17 +14,32 @@ export class MacroSceneService {
 
   public async executeAction(action: MacroAction): Promise<void> {
     // 1. 이미지 조건 확인 (Vision)
-    if (action.condition?.type === 'IMAGE_MATCH') {
+    if (action. condition?.type === 'IMAGE_MATCH') {
       await this.logger.log('INFO', `이미지 확인 중: ${action.condition.targetImage}`);
+      // 실제 구현: const match = await this.vision.findImage(action.condition.targetImage);
     }
 
     // 2. 액션 실행 (Automation)
     try {
-      if (action.type === 'CLICK') {
-        await this.automation.moveMouse(action.params.x, action.params.y);
-        await this.automation.clickMouse('left');
-      } else if (action.type === 'KEY_INPUT') {
-        await this.automation.typeText(action.params.text);
+      switch (action.type) {
+        case 'CLICK':
+          if (action.params.x !== undefined && action.params.y !== undefined) {
+            await this.automation.moveMouse(action.params.x, action.params.y);
+          }
+          await this.automation.clickMouse('left', action.params.durationMs);
+          break;
+        
+        case 'KEY_INPUT':
+          if (action.params.text) {
+            await this.automation.typeText(action.params.text);
+          } else if (action.params.key) {
+            await this.automation.pressKey(action.params.key, action.params.durationMs);
+          }
+          break;
+          
+        case 'WAIT':
+          await new Promise(r => setTimeout(r, action.params.durationMs || 1000));
+          break;
       }
       await this.logger.log('INFO', `액션 실행 완료: ${action.type}`);
     } catch (e) {

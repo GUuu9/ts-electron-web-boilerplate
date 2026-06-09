@@ -13,7 +13,6 @@ import { FileView } from '../../scenes/file/file.view.js';
 import { LoggerView } from '../../scenes/logger/logger.view.js';
 import { MacroView } from '../../scenes/macro/macro.view.js';
 import { AIView } from '../../scenes/ai/ai.view.js';
-import { AIViewModel } from '../../scenes/ai/ai.viewmodel.js';
 
 /**
  * NavController
@@ -37,9 +36,6 @@ export class NavController {
       loggerView: LoggerView;
       macroView: MacroView;
       aiView: AIView;
-    },
-    private readonly viewModels: {
-      aiViewModel: AIViewModel;
     }
   ) {}
 
@@ -64,7 +60,6 @@ export class NavController {
         case 'nav-macro': this.navigator.navigate(this.views.macroView); break;
         case 'nav-ai': this.navigator.navigate(this.views.aiView); break;
         case 'nav-back': 
-          this.viewModels.aiViewModel.setActive(false);
           this.navigator.showDashboard(); 
           break;
       }

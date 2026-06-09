@@ -1,0 +1,35 @@
+{
+  "id": "default",
+  "name": "New Macro",
+  "actions": [
+    {
+      "type": "CLICK",
+      "params": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "CLICK",
+      "params": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "CLICK",
+      "params": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "CLICK",
+      "params": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  ],
+  "loopCount": 1
+}
