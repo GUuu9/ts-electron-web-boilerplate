@@ -11,7 +11,8 @@ import { SerialView } from '../../scenes/serial/serial.view.js';
 import { MediaView } from '../../scenes/media/media.view.js';
 import { FileView } from '../../scenes/file/file.view.js';
 import { LoggerView } from '../../scenes/logger/logger.view.js';
-import { AIView, AIBinder } from '../../scenes/ai/ai.view.js';
+import { MacroView } from '../../scenes/macro/macro.view.js';
+import { AIView } from '../../scenes/ai/ai.view.js';
 import { AIViewModel } from '../../scenes/ai/ai.viewmodel.js';
 
 /**
@@ -34,10 +35,8 @@ export class NavController {
       mediaView: MediaView;
       fileView: FileView;
       loggerView: LoggerView;
+      macroView: MacroView;
       aiView: AIView;
-    },
-    private readonly binders: {
-      aiBinder: AIBinder;
     },
     private readonly viewModels: {
       aiViewModel: AIViewModel;
@@ -62,10 +61,8 @@ export class NavController {
         case 'nav-media': this.navigator.navigate(this.views.mediaView); break;
         case 'nav-file': this.navigator.navigate(this.views.fileView); break;
         case 'nav-logger': this.navigator.navigate(this.views.loggerView); break;
-        case 'nav-ai': 
-          this.navigator.navigate(this.views.aiView); 
-          this.binders.aiBinder.init();
-          break;
+        case 'nav-macro': this.navigator.navigate(this.views.macroView); break;
+        case 'nav-ai': this.navigator.navigate(this.views.aiView); break;
         case 'nav-back': 
           this.viewModels.aiViewModel.setActive(false);
           this.navigator.showDashboard(); 
