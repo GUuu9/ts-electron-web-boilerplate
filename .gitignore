@@ -3,6 +3,7 @@ node_modules/
 dist/
 dist-electron/
 release/
+venv/
 
 # 환경 변수 및 설정 (절대 커밋 금지)
 .env
