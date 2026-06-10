@@ -463,19 +463,19 @@ export class MacroBinder {
   ) {}
 
   public bind() {
-    // ViewModel의 상태 변경을 감시하여 UI 하이라이트 업데이트
-    this.viewModel.setStatusChangeListener((index) => {
-      this.view.highlightAction(index);
+    // 1. 상태 변경 구독 (State -> View)
+    this.viewModel.state.subscribe(() => {
+      this.view.highlightAction(this.viewModel.state.currentActionIndex);
     });
 
     let currentPickingIndex = -1;
 
-    // 전역 단축키 이벤트 수신 (Main -> Renderer)
+    // 2. 전역 단축키 이벤트 수신 (Main -> Renderer)
     if ((window as any).electronAPI) {
       (window as any).electronAPI.automation.onStartShortcut(async () => {
         const loopInput = this.view.elements.loopCountInput;
         const loopCount = loopInput ? parseInt(loopInput.value) : 1;
-        const seq = this.viewModel.getSequence();
+        const seq = { ...this.viewModel.state.currentSequence };
         seq.loopCount = loopCount;
         this.viewModel.setSequence(seq);
         await this.viewModel.runMacro();
@@ -489,17 +489,19 @@ export class MacroBinder {
         if (currentPickingIndex !== -1) {
           const pos = await this.viewModel.getMousePosition();
           if (pos) {
-            const actions = this.viewModel.getSequence().actions;
-            actions[currentPickingIndex].params.x = pos.x;
-            actions[currentPickingIndex].params.y = pos.y;
-            this.view.updateActionList(actions);
+            const seq = { ...this.viewModel.state.currentSequence };
+            seq.actions[currentPickingIndex].params.x = pos.x;
+            seq.actions[currentPickingIndex].params.y = pos.y;
+            this.viewModel.setSequence(seq);
+            this.view.updateActionList(seq.actions);
             currentPickingIndex = -1;
           }
         }
       });
     }
 
-    // Drag & Drop Handlers
+    // 3. 이벤트 바인딩
+    // (이하 drag/drop 및 click 핸들러는 그대로 유지하되, viewModel.getSequence() 대신 viewModel.state.currentSequence를 사용하도록 수정)
     let draggedIndex = -1;
 
     document.addEventListener('dragstart', (e) => {
@@ -533,7 +535,7 @@ export class MacroBinder {
         const dropIndex = parseInt(target.getAttribute('data-index') || '-1');
         if (draggedIndex !== -1 && dropIndex !== -1 && draggedIndex !== dropIndex) {
           this.viewModel.reorderAction(draggedIndex, dropIndex);
-          this.view.updateActionList(this.viewModel.getSequence().actions);
+          this.view.updateActionList(this.viewModel.state.currentSequence.actions);
         }
       }
     });
@@ -545,7 +547,7 @@ export class MacroBinder {
       if (target.id === 'macro-run-btn' || target.closest('#macro-run-btn')) {
         const loopInput = this.view.elements.loopCountInput;
         const loopCount = loopInput ? parseInt(loopInput.value) : 1;
-        const seq = this.viewModel.getSequence();
+        const seq = { ...this.viewModel.state.currentSequence };
         seq.loopCount = loopCount;
         this.viewModel.setSequence(seq);
         await this.viewModel.runMacro();
@@ -555,7 +557,7 @@ export class MacroBinder {
       else if (target.id === 'macro-load-btn' || target.closest('#macro-load-btn')) {
         const success = await this.viewModel.load();
         if (success) {
-          const seq = this.viewModel.getSequence();
+          const seq = this.viewModel.state.currentSequence;
           const loopInput = this.view.elements.loopCountInput;
           if (loopInput) loopInput.value = seq.loopCount.toString();
           this.view.updateActionList(seq.actions);
@@ -585,13 +587,13 @@ export class MacroBinder {
         }
         
         this.viewModel.addAction({ type, params: defaultParams, delayBeforeMs: 100 });
-        this.view.updateActionList(this.viewModel.getSequence().actions);
+        this.view.updateActionList(this.viewModel.state.currentSequence.actions);
       }
       else if (target.classList.contains('remove-action-btn')) {
         const index = parseInt(target.getAttribute('data-index') || '-1');
         if (index !== -1) {
           this.viewModel.removeAction(index);
-          this.view.updateActionList(this.viewModel.getSequence().actions);
+          this.view.updateActionList(this.viewModel.state.currentSequence.actions);
         }
       }
       // Coordinate Picker
