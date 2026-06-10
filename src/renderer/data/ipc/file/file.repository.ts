@@ -14,4 +14,8 @@ export class FileRepository {
     if (!(window as any).electronAPI?.file) return null;
     return await (window as any).electronAPI.file.openDialog();
   }
+  public async saveDialog(): Promise<string | null> {
+    if (!(window as any).electronAPI?.file) return null;
+    return await (window as any).electronAPI.file.saveDialog();
+  }
 }

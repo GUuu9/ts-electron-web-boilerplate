@@ -28,3 +28,4 @@ out/
 *.exe
 *.AppImage
 dev-notes/
+temp/

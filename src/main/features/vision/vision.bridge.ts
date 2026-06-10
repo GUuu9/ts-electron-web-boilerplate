@@ -5,4 +5,6 @@ import { ipcRenderer } from 'electron';
  */
 export const visionBridge = {
   processScreen: () => ipcRenderer.invoke('vision:processScreen'),
+  findImage: (templatePath: string, similarity: number = 0.8) => 
+    ipcRenderer.invoke('vision:findImage', templatePath, similarity),
 };

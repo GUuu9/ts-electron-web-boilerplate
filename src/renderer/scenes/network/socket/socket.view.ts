@@ -95,7 +95,12 @@ export class SocketBinder {
   ) {}
 
   public bind(): void {
-    // 로그 콜백 설정
+    // 1. 상태 변경 구독 (State -> View)
+    this.viewModel.state.subscribe(() => {
+      this.updateUI();
+    });
+
+    // 2. 로그 콜백 설정
     this.viewModel.setLogCallback((msg) => {
       const logArea = this.view.elements.logArea;
       if (logArea) {
@@ -104,6 +109,7 @@ export class SocketBinder {
       }
     });
 
+    // 3. 이벤트 바인딩
     document.addEventListener('click', async (event) => {
       const target = event.target as HTMLElement;
       const { 
@@ -113,8 +119,6 @@ export class SocketBinder {
 
       if (target === toggleServerBtn) {
         await this.viewModel.toggleServer(parseInt(serverPortInput.value));
-        toggleServerBtn.innerText = this.viewModel.isServerRunning ? 'Stop Server' : 'Start Server';
-        toggleServerBtn.style.backgroundColor = this.viewModel.isServerRunning ? '#ff4d4f' : '#4f46e5';
       } 
       else if (target === broadcastBtn) {
         await this.viewModel.broadcast(serverEventInput.value, serverMsgInput.value);
@@ -124,8 +128,6 @@ export class SocketBinder {
       }
       else if (target === toggleClientBtn) {
         await this.viewModel.toggleClient(clientUrlInput.value);
-        toggleClientBtn.innerText = this.viewModel.isClientConnecting ? 'Disconnect' : 'Connect';
-        toggleClientBtn.style.backgroundColor = this.viewModel.isClientConnecting ? '#ff4d4f' : '#4f46e5';
       } 
       else if (target === sendMsgBtn) {
         this.viewModel.sendMessage(clientEventInput.value, clientMsgInput.value);
@@ -134,5 +136,24 @@ export class SocketBinder {
         this.viewModel.subscribeClientEvent(clientListenEventInput.value);
       }
     });
+
+    // 초기 UI 업데이트
+    this.updateUI();
+  }
+
+  private updateUI() {
+    const { toggleServerBtn, toggleClientBtn } = this.view.elements;
+    
+    if (toggleServerBtn) {
+      const isRunning = this.viewModel.isServerRunning;
+      toggleServerBtn.innerText = isRunning ? 'Stop Server' : 'Start Server';
+      toggleServerBtn.style.backgroundColor = isRunning ? '#ff4d4f' : '#4f46e5';
+    }
+
+    if (toggleClientBtn) {
+      const isConnected = this.viewModel.isClientConnected;
+      toggleClientBtn.innerText = isConnected ? 'Disconnect' : 'Connect';
+      toggleClientBtn.style.backgroundColor = isConnected ? '#ff4d4f' : '#4f46e5';
+    }
   }
 }

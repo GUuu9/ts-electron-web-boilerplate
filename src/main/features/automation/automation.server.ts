@@ -10,6 +10,11 @@ export class AutomationServer {
     await mouse.setPosition({ x, y });
   }
 
+  public async getMousePosition(): Promise<{ x: number, y: number }> {
+    const pos = await mouse.getPosition();
+    return { x: pos.x, y: pos.y };
+  }
+
   public async clickMouse(button: 'left' | 'right' | 'middle', durationMs?: number): Promise<void> {
     const btn = button === 'left' ? Button.LEFT : button === 'right' ? Button.RIGHT : Button.MIDDLE;
     if (durationMs) {
@@ -19,6 +24,20 @@ export class AutomationServer {
     } else {
       await mouse.click(btn);
     }
+  }
+
+  public async doubleClickMouse(): Promise<void> {
+    await mouse.doubleClick(Button.LEFT);
+  }
+
+  public async scrollMouse(amount: number): Promise<void> {
+    if (amount > 0) await mouse.scrollUp(amount);
+    else await mouse.scrollDown(Math.abs(amount));
+  }
+
+  public async dragMouse(fromX: number, fromY: number, toX: number, toY: number): Promise<void> {
+    await mouse.setPosition({ x: fromX, y: fromY });
+    await mouse.drag([{ x: toX, y: toY }]);
   }
 
   public async typeText(text: string): Promise<void> {

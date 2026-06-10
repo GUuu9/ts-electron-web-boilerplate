@@ -15,8 +15,18 @@ export class FileServer {
 
   public async showOpenDialog(): Promise<string | null> {
     const { canceled, filePaths } = await dialog.showOpenDialog({
-      properties: ['openFile']
+      properties: ['openFile'],
+      filters: [{ name: 'JSON Files', extensions: ['json'] }]
     });
     return canceled ? null : filePaths[0];
+  }
+
+  public async showSaveDialog(): Promise<string | null> {
+    const { canceled, filePath } = await dialog.showSaveDialog({
+      title: 'Save Macro File',
+      defaultPath: 'macro.json',
+      filters: [{ name: 'JSON Files', extensions: ['json'] }]
+    });
+    return canceled ? null : filePath || null;
   }
 }

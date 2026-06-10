@@ -27,6 +27,9 @@ export class SocketViewModel {
     this.onLogCallback(`[${timestamp}] ${msg}`);
   }
 
+  public get isServerRunning() { return this.state.isServerRunning; }
+  public get isClientConnected() { return this.state.isClientConnected; }
+
   // --- 서버 기능 ---
   public async toggleServer(port: number): Promise<void> {
     try {

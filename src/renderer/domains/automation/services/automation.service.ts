@@ -7,8 +7,24 @@ export class AutomationService {
     await this.repository.moveMouse(x, y);
   }
 
+  public async getMousePosition(): Promise<{ x: number, y: number } | null> {
+    return await this.repository.getMousePosition();
+  }
+
   public async clickMouse(button: 'left' | 'right' | 'middle', durationMs?: number): Promise<void> {
     await this.repository.clickMouse(button, durationMs);
+  }
+
+  public async doubleClickMouse(): Promise<void> {
+    await this.repository.doubleClickMouse();
+  }
+
+  public async scrollMouse(amount: number): Promise<void> {
+    await this.repository.scrollMouse(amount);
+  }
+
+  public async dragMouse(fromX: number, fromY: number, toX: number, toY: number): Promise<void> {
+    await this.repository.dragMouse(fromX, fromY, toX, toY);
   }
 
   public async typeText(text: string): Promise<void> {

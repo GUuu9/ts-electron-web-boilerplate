@@ -14,4 +14,8 @@ export class FileService {
   public async openDialog(): Promise<string | null> {
     return await this.repository.openDialog();
   }
+
+  public async saveDialog(): Promise<string | null> {
+    return await this.repository.saveDialog();
+  }
 }

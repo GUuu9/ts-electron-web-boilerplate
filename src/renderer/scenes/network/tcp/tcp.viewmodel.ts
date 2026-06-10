@@ -49,6 +49,9 @@ export class TcpViewModel {
     this.onLogCallback(`[${timestamp}] ${msg}`);
   }
 
+  public get isServerRunning() { return this.state.isServerRunning; }
+  public get isClientConnected() { return this.state.isClientConnected; }
+
   // --- Server Actions ---
   public async toggleServer(port: number): Promise<void> {
     try {

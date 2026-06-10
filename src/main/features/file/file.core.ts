@@ -16,5 +16,6 @@ export class FileCoreModule implements BackendModule {
     ipcMain.handle('file-read', (_, path: string) => this.server.readFile(path));
     ipcMain.handle('file-write', (_, path: string, content: string) => this.server.writeFile(path, content));
     ipcMain.handle('file-open-dialog', () => this.server.showOpenDialog());
+    ipcMain.handle('file-save-dialog', () => this.server.showSaveDialog());
   }
 }
