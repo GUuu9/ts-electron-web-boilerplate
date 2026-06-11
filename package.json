@@ -52,7 +52,9 @@
     },
     "files": [
       "dist-electron/**/*",
-      "dist/**/*"
+      "dist/**/*",
+      "venv/**/*",
+      "scripts/**/*"
     ],
     "mac": {
       "target": [

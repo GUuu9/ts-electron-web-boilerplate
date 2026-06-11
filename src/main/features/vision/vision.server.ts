@@ -20,6 +20,29 @@ export class VisionServer {
     console.log(`[Vision] Temporary directory initialized at: ${this.tempDir}`);
   }
 
+  private getPythonPath(): string {
+    // 개발 환경과 배포 환경(앱 내부)의 경로 차이를 고려하여 설정
+    const isPackaged = !process.env.NODE_ENV || process.env.NODE_ENV === 'production';
+    // Windows와 macOS/Linux의 실행 파일 경로 차이
+    const pythonExecutable = process.platform === 'win32' ? 'python.exe' : 'python';
+    
+    if (isPackaged) {
+      // 배포된 앱 내부의 venv 경로
+      return path.join(process.resourcesPath, 'venv', 'bin', pythonExecutable);
+    } else {
+      // 개발 환경에서의 venv 경로
+      return path.join(process.cwd(), 'venv', process.platform === 'win32' ? 'Scripts' : 'bin', pythonExecutable);
+    }
+  }
+
+  private getScriptPath(): string {
+    const isPackaged = !process.env.NODE_ENV || process.env.NODE_ENV === 'production';
+    if (isPackaged) {
+      return path.join(process.resourcesPath, 'scripts', 'vision_processor.py');
+    }
+    return path.join(process.cwd(), 'scripts', 'vision_processor.py');
+  }
+
   /**
    * 화면 캡처 후 Python으로 엣지 검출을 수행합니다.
    */
@@ -38,7 +61,7 @@ export class VisionServer {
     }
 
     return new Promise((resolve, reject) => {
-      const python = spawn('python3', ['scripts/vision_processor.py', tmpPath]);
+      const python = spawn(this.getPythonPath(), [this.getScriptPath(), tmpPath]);
       let data = '';
       python.stdout.on('data', (d) => data += d);
       python.on('close', () => {
@@ -85,7 +108,7 @@ export class VisionServer {
     }
 
     return new Promise((resolve) => {
-      const python = spawn('python3', ['scripts/vision_processor.py', 'FIND', screenPath, templatePath, similarity.toString()]);
+      const python = spawn(this.getPythonPath(), [this.getScriptPath(), 'FIND', screenPath, templatePath, similarity.toString()]);
       let data = '';
       python.stdout.on('data', (d) => data += d);
       python.on('close', () => {
