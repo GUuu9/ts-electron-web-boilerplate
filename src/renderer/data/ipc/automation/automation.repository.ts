@@ -2,6 +2,18 @@
  * Automation Repository
  */
 export class AutomationRepository {
+  public onStartShortcut(callback: () => void): void {
+    if (!(window as any).electronAPI?.automation) return;
+    (window as any).electronAPI.automation.onStartShortcut(callback);
+  }
+  public onStopShortcut(callback: () => void): void {
+    if (!(window as any).electronAPI?.automation) return;
+    (window as any).electronAPI.automation.onStopShortcut(callback);
+  }
+  public onPickShortcut(callback: () => void): void {
+    if (!(window as any).electronAPI?.automation) return;
+    (window as any).electronAPI.automation.onPickShortcut(callback);
+  }
   public async moveMouse(x: number, y: number): Promise<void> {
     if (!(window as any).electronAPI?.automation) return;
     await (window as any).electronAPI.automation.moveMouse(x, y);

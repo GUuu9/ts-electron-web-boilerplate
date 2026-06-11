@@ -7,6 +7,18 @@ export class MacroViewModel {
 
   constructor(private service: MacroSceneService) {}
 
+  public onStartShortcut(callback: () => void) {
+    this.service.onStartShortcut(callback);
+  }
+
+  public onStopShortcut(callback: () => void) {
+    this.service.onStopShortcut(callback);
+  }
+
+  public onPickShortcut(callback: () => void) {
+    this.service.onPickShortcut(callback);
+  }
+
   /**
    * ViewModel을 초기화하고 현재 시퀀스 데이터를 반환합니다.
    * View가 렌더링될 때 호출되어 최신 상태를 화면에 반영합니다.
@@ -65,6 +77,10 @@ export class MacroViewModel {
 
   public async getMousePosition(): Promise<{ x: number, y: number } | null> {
     return await this.service.getMousePosition();
+  }
+
+  public async openImageDialog(): Promise<string | null> {
+    return await this.service.openImageDialog();
   }
 
   public async save() {

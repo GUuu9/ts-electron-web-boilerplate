@@ -12,6 +12,18 @@ export class MacroSceneService {
     private logger: LoggerService
   ) {}
 
+  public onStartShortcut(callback: () => void) {
+    this.automation.onStartShortcut(callback);
+  }
+
+  public onStopShortcut(callback: () => void) {
+    this.automation.onStopShortcut(callback);
+  }
+
+  public onPickShortcut(callback: () => void) {
+    this.automation.onPickShortcut(callback);
+  }
+
   public async executeAction(action: MacroAction): Promise<void> {
 
 
@@ -120,6 +132,10 @@ export class MacroSceneService {
 
   public async getMousePosition() {
     return await this.automation.getMousePosition();
+  }
+
+  public async openImageDialog(): Promise<string | null> {
+    return await this.file.openDialog([{ name: 'Images', extensions: ['jpg', 'png', 'gif', 'bmp'] }]);
   }
 
   public async saveMacro(sequence: MacroSequence): Promise<void> {

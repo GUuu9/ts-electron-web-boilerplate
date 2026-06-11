@@ -485,34 +485,32 @@ export class MacroBinder {
     let currentPickingIndex = -1;
 
     // 2. 전역 단축키 이벤트 수신 (Main -> Renderer)
-    if ((window as any).electronAPI) {
-      (window as any).electronAPI.automation.onStartShortcut(async () => {
-        const loopInput = this.view.elements.loopCountInput;
-        const loopCount = loopInput ? parseInt(loopInput.value) : 1;
-        const seq = { ...this.viewModel.state.currentSequence };
-        seq.loopCount = loopCount;
-        this.viewModel.setSequence(seq);
-        await this.viewModel.runMacro();
-      });
+    this.viewModel.onStartShortcut(async () => {
+      const loopInput = this.view.elements.loopCountInput;
+      const loopCount = loopInput ? parseInt(loopInput.value) : 1;
+      const seq = { ...this.viewModel.state.currentSequence };
+      seq.loopCount = loopCount;
+      this.viewModel.setSequence(seq);
+      await this.viewModel.runMacro();
+    });
 
-      (window as any).electronAPI.automation.onStopShortcut(() => {
-        this.viewModel.stopMacro();
-      });
+    this.viewModel.onStopShortcut(() => {
+      this.viewModel.stopMacro();
+    });
 
-      (window as any).electronAPI.automation.onPickShortcut(async () => {
-        if (currentPickingIndex !== -1) {
-          const pos = await this.viewModel.getMousePosition();
-          if (pos) {
-            const seq = { ...this.viewModel.state.currentSequence };
-            seq.actions[currentPickingIndex].params.x = pos.x;
-            seq.actions[currentPickingIndex].params.y = pos.y;
-            this.viewModel.setSequence(seq);
-            this.view.updateActionList(seq.actions);
-            currentPickingIndex = -1;
-          }
+    this.viewModel.onPickShortcut(async () => {
+      if (currentPickingIndex !== -1) {
+        const pos = await this.viewModel.getMousePosition();
+        if (pos) {
+          const seq = { ...this.viewModel.state.currentSequence };
+          seq.actions[currentPickingIndex].params.x = pos.x;
+          seq.actions[currentPickingIndex].params.y = pos.y;
+          this.viewModel.setSequence(seq);
+          this.view.updateActionList(seq.actions);
+          currentPickingIndex = -1;
         }
-      });
-    }
+      }
+    });
 
     // 3. 이벤트 바인딩
     // (이하 drag/drop 및 click 핸들러는 그대로 유지하되, viewModel.getSequence() 대신 viewModel.state.currentSequence를 사용하도록 수정)
@@ -626,9 +624,7 @@ export class MacroBinder {
       else if (target.classList.contains('browse-image-btn')) {
         const index = parseInt(target.getAttribute('data-index') || '-1');
         if (index !== -1) {
-            const filePath = await (window as any).electronAPI?.file?.openDialog([
-              { name: 'Images', extensions: ['jpg', 'png', 'gif', 'bmp'] },
-            ]);
+            const filePath = await this.viewModel.openImageDialog();
             if (filePath) {
                 const actions = this.viewModel.getSequence().actions;
                 actions[index].params.targetImage = filePath;

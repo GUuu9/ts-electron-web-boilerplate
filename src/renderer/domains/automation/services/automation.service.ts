@@ -3,6 +3,18 @@ import { AutomationRepository } from '../../../data/ipc/automation/automation.re
 export class AutomationService {
   constructor(private repository: AutomationRepository) {}
 
+  public onStartShortcut(callback: () => void): void {
+    this.repository.onStartShortcut(callback);
+  }
+
+  public onStopShortcut(callback: () => void): void {
+    this.repository.onStopShortcut(callback);
+  }
+
+  public onPickShortcut(callback: () => void): void {
+    this.repository.onPickShortcut(callback);
+  }
+
   public async moveMouse(x: number, y: number): Promise<void> {
     await this.repository.moveMouse(x, y);
   }
