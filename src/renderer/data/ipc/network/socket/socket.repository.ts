@@ -1,4 +1,4 @@
-import { SocketClient } from '../../../../shared/socket-client/socket.client.js';
+import { SocketClient } from '../../../../../shared/socket-client/socket.client.js';
 
 /**
  * SocketRepository (Data Layer)

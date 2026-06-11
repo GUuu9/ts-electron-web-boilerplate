@@ -3,9 +3,11 @@ import { MacroAction, MacroActionType } from './macro.models.js';
 
 /**
  * Macro View
+ * 매크로 빌더의 UI 렌더링 및 요소 접근을 담당합니다.
  */
 export class MacroView {
   private container: HTMLElement | null = null;
+  private viewModel!: MacroViewModel;
 
   public render(containerId: string): void {
     this.container = document.getElementById(containerId);
@@ -336,6 +338,15 @@ export class MacroView {
       </div>
     `;
     (window as any).lucide?.createIcons();
+
+    // 페이지 진입 시 데이터 초기화 및 화면 표시
+    const currentSeq = this.viewModel.init();
+    this.updateActionList(currentSeq.actions);
+    
+    const elements = this.elements;
+    if (elements.loopCountInput) {
+      elements.loopCountInput.value = currentSeq.loopCount.toString();
+    }
   }
 
   public get elements() {
@@ -463,6 +474,9 @@ export class MacroBinder {
   ) {}
 
   public bind() {
+    // View에 ViewModel 주입 (render 시 init 호출을 위함)
+    (this.view as any).viewModel = this.viewModel;
+
     // 1. 상태 변경 구독 (State -> View)
     this.viewModel.state.subscribe(() => {
       this.view.highlightAction(this.viewModel.state.currentActionIndex);
@@ -612,7 +626,9 @@ export class MacroBinder {
       else if (target.classList.contains('browse-image-btn')) {
         const index = parseInt(target.getAttribute('data-index') || '-1');
         if (index !== -1) {
-            const filePath = await (window as any).electronAPI?.file?.openDialog();
+            const filePath = await (window as any).electronAPI?.file?.openDialog([
+              { name: 'Images', extensions: ['jpg', 'png', 'gif', 'bmp'] },
+            ]);
             if (filePath) {
                 const actions = this.viewModel.getSequence().actions;
                 actions[index].params.targetImage = filePath;

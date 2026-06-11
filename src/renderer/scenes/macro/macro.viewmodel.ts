@@ -7,6 +7,14 @@ export class MacroViewModel {
 
   constructor(private service: MacroSceneService) {}
 
+  /**
+   * ViewModel을 초기화하고 현재 시퀀스 데이터를 반환합니다.
+   * View가 렌더링될 때 호출되어 최신 상태를 화면에 반영합니다.
+   */
+  public init(): MacroSequence {
+    return this.state.currentSequence;
+  }
+
   public getSequence() { return this.state.currentSequence; }
   
   public setSequence(seq: MacroSequence) { this.state.currentSequence = seq; }

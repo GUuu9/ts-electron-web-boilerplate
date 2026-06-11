@@ -124,7 +124,8 @@ export class MacroSceneService {
 
   public async saveMacro(sequence: MacroSequence): Promise<void> {
     try {
-      const filePath = await this.file.saveDialog();
+      // 매크로 전용 JSON 필터 적용
+      const filePath = await this.file.saveDialog([{ name: 'Macro Files', extensions: ['json'] }], 'macro.json');
       if (!filePath) return;
 
       await this.file.write(filePath, JSON.stringify(sequence, null, 2));
@@ -137,7 +138,8 @@ export class MacroSceneService {
 
   public async loadMacro(): Promise<MacroSequence | null> {
     try {
-      const filePath = await this.file.openDialog();
+      // 매크로 전용 JSON 필터 적용
+      const filePath = await this.file.openDialog([{ name: 'Macro Files', extensions: ['json'] }]);
       if (!filePath) return null;
 
       const content = await this.file.read(filePath);
