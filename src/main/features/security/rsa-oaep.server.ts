@@ -4,9 +4,9 @@ import * as crypto from 'crypto';
  * RSA-OAEP 비대칭 암호화 유틸리티 (Main Process 전용)
  */
 export class RsaOaepUtil {
-  public static generateKeyPair() {
+  public static generateKeyPair(modulusLength: number = 2048) {
     return crypto.generateKeyPairSync('rsa', {
-      modulusLength: 2048,
+      modulusLength,
       publicKeyEncoding: { type: 'spki', format: 'pem' },
       privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
     });

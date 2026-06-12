@@ -24,9 +24,9 @@ export class SecuritySceneService {
     }
   }
 
-  public async rsaGenerate(): Promise<any> {
-    await this.loggerService.log('INFO', 'RSA 키 생성');
-    try { return await this.service.rsaGenerate(); } catch(e) { await this.loggerService.log('ERROR', `RSA 생성 실패: ${e}`); throw e; }
+  public async rsaGenerate(keyLength: number): Promise<any> {
+    await this.loggerService.log('INFO', `RSA 키 생성 (길이: ${keyLength})`);
+    try { return await this.service.rsaGenerate(keyLength); } catch(e) { await this.loggerService.log('ERROR', `RSA 생성 실패: ${e}`); throw e; }
   }
 
   public async testRsa(text: string) {
@@ -41,11 +41,11 @@ export class SecuritySceneService {
     }
   }
 
-  public async testCompress(text: string) {
-    await this.loggerService.log('INFO', '압축 테스트 시작');
+  public async testCompress(text: string, algo: 'gzip' | 'brotli') {
+    await this.loggerService.log('INFO', `압축 테스트 시작 (방식: ${algo})`);
     try {
-      const info = await this.service.compress(text);
-      const decompressed = await this.service.decompress(info.base64);
+      const info = await this.service.compress(text, algo);
+      const decompressed = await this.service.decompress(info.base64, algo);
       return { ...info, decompressed };
     } catch(e) {
       await this.loggerService.log('ERROR', `압축 테스트 실패: ${e}`);

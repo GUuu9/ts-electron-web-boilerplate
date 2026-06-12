@@ -7,29 +7,43 @@
     <!-- AES Section -->
     <div style="display: flex; flex-direction: column; gap: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
       <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);"><i data-lucide="lock"></i> AES-256-GCM</h4>
-      <button id="aes-gen-btn" class="btn btn-outline" style="width: fit-content;">Generate AES Key</button>
-      <input type="text" id="aes-key" placeholder="AES Key (Hex)" />
+      <button id="aes-gen-btn" class="btn btn-outline" style="width: fit-content;">Generate New AES Key</button>
+      <label>Current Key (Hex)</label>
+      <textarea id="aes-key" style="height: 50px;" placeholder="AES Key (Hex)"></textarea>
       <div style="display: flex; gap: 0.5rem;">
         <input type="text" id="aes-input" value="Hello AES!" style="flex: 1;" />
-        <button id="aes-test-btn" class="btn btn-primary">Test AES</button>
+        <button id="aes-test-btn" class="btn btn-primary">Encrypt & Decrypt</button>
       </div>
-      <div id="aes-result" style="background: var(--input-bg); border: 1px solid var(--border); padding: 0.5rem; border-radius: 0.5rem; font-size: 0.85rem; color: var(--text-dim);"></div>
+      <label>Result (Encrypted Hex)</label>
+      <textarea id="aes-result" readonly style="height: 60px; font-size: 0.8rem;"></textarea>
     </div>
 
     <!-- RSA Section -->
     <div style="display: flex; flex-direction: column; gap: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
-      <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);"><i data-lucide="key-round"></i> RSA-OAEP (2048bit)</h4>
-      <button id="rsa-gen-btn" class="btn btn-outline" style="width: fit-content;">Generate RSA Keys</button>
+      <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);"><i data-lucide="key-round"></i> RSA-OAEP</h4>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <select id="rsa-key-length">
+          <option value="2048">2048-bit</option>
+          <option value="4096">4096-bit</option>
+        </select>
+        <button id="rsa-gen-btn" class="btn btn-outline">Generate RSA Keys</button>
+      </div>
+      <textarea id="rsa-key-public" placeholder="Public Key" style="height: 60px; font-size: 0.8rem;"></textarea>
       <div style="display: flex; gap: 0.5rem;">
         <input type="text" id="rsa-input" value="Hello RSA!" style="flex: 1;" />
-        <button id="rsa-test-btn" class="btn btn-primary">Test RSA</button>
+        <button id="rsa-test-btn" class="btn btn-primary">Encrypt & Decrypt</button>
       </div>
-      <div id="rsa-result" style="background: var(--input-bg); border: 1px solid var(--border); padding: 0.5rem; border-radius: 0.5rem; font-size: 0.85rem; color: var(--text-dim);"></div>
+      <label>Result (Encrypted Base64)</label>
+      <textarea id="rsa-result" readonly style="height: 60px; font-size: 0.8rem;"></textarea>
     </div>
 
     <!-- Compression Section -->
     <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-      <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);"><i data-lucide="package-minus"></i> Gzip Compression</h4>
+      <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);"><i data-lucide="package-minus"></i> Compression Test</h4>
+      <select id="compress-algo">
+        <option value="gzip">Gzip</option>
+        <option value="brotli">Brotli</option>
+      </select>
       <textarea id="compress-input" style="height: 60px;">Repeat this text to see compression in action! Repeat this text to see compression in action!</textarea>
       <button id="compress-test-btn" class="btn btn-primary" style="width: fit-content;">Test Compression</button>
       <div id="compress-result" style="background: var(--input-bg); border: 1px solid var(--border); padding: 0.5rem; border-radius: 0.5rem; font-size: 0.85rem; color: var(--text-dim);"></div>

@@ -20,7 +20,7 @@ export class PersistenceServer {
     const jsonStr = JSON.stringify(value);
     
     // 1. 압축
-    const compressed = await CompressUtil.compress(jsonStr);
+    const compressed = await CompressUtil.compress(jsonStr, 'gzip');
     
     // 2. 암호화 (바이너리를 hex로 변환하여 저장하거나 base64 사용 가능, 여기선 hex 문자열 처리)
     const encrypted = AesGcmUtil.encrypt(compressed.toString('hex'), this.secretKey);
@@ -37,7 +37,7 @@ export class PersistenceServer {
       const decryptedHex = AesGcmUtil.decrypt(encrypted, this.secretKey);
       
       // 2. 압축 해제
-      const decompressed = await CompressUtil.decompress(Buffer.from(decryptedHex, 'hex'));
+      const decompressed = await CompressUtil.decompress(Buffer.from(decryptedHex, 'hex'), 'gzip');
       
       return JSON.parse(decompressed);
     } catch (e) {

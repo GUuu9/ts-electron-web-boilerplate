@@ -26,8 +26,8 @@ export class SecurityCoreModule implements BackendModule {
     });
 
     // RSA Test
-    ipcMain.handle('test-rsa-generate', () => {
-      this.rsaKeys = RsaOaepUtil.generateKeyPair();
+    ipcMain.handle('test-rsa-generate', (_, keyLength: number) => {
+      this.rsaKeys = RsaOaepUtil.generateKeyPair(keyLength);
       return { publicKey: this.rsaKeys.publicKey };
     });
     ipcMain.handle('test-rsa-encrypt', (_, text: string) => {
@@ -42,16 +42,16 @@ export class SecurityCoreModule implements BackendModule {
     });
 
     // Compress Test
-    ipcMain.handle('test-compress', async (_, text: string) => {
-      const compressed = await CompressUtil.compress(text);
+    ipcMain.handle('test-compress', async (_, text: string, algo: 'gzip' | 'brotli') => {
+      const compressed = await CompressUtil.compress(text, algo);
       return {
         base64: compressed.toString('base64'),
         originalSize: Buffer.from(text).length,
         compressedSize: compressed.length
       };
     });
-    ipcMain.handle('test-decompress', async (_, base64: string) => {
-      return await CompressUtil.decompress(Buffer.from(base64, 'base64'));
+    ipcMain.handle('test-decompress', async (_, base64: string, algo: 'gzip' | 'brotli') => {
+      return await CompressUtil.decompress(Buffer.from(base64, 'base64'), algo);
     });
   }
 }

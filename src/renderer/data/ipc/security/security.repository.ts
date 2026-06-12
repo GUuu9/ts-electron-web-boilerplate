@@ -18,8 +18,8 @@ export class SecurityRepository {
   public async aesDecrypt(enc: string, keyHex: string): Promise<string> {
     try { return await this.security.aesDecrypt(enc, keyHex); } catch { return ''; }
   }
-  public async rsaGenerate(): Promise<any> {
-    try { return await this.security.rsaGenerate(); } catch { return null; }
+  public async rsaGenerate(keyLength: number): Promise<any> {
+    try { return await this.security.rsaGenerate(keyLength); } catch { return null; }
   }
   public async rsaEncrypt(text: string): Promise<string> {
     try { return await this.security.rsaEncrypt(text); } catch { return ''; }
@@ -27,10 +27,10 @@ export class SecurityRepository {
   public async rsaDecrypt(base64: string): Promise<string> {
     try { return await this.security.rsaDecrypt(base64); } catch { return ''; }
   }
-  public async compress(text: string): Promise<any> {
-    try { return await this.security.compress(text); } catch { return null; }
+  public async compress(text: string, algo: 'gzip' | 'brotli'): Promise<any> {
+    try { return await this.security.compress(text, algo); } catch { return null; }
   }
-  public async decompress(base64: string): Promise<string> {
-    try { return await this.security.decompress(base64); } catch { return ''; }
+  public async decompress(base64: string, algo: 'gzip' | 'brotli'): Promise<string> {
+    try { return await this.security.decompress(base64, algo); } catch { return ''; }
   }
 }

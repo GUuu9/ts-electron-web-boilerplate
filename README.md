@@ -32,8 +32,8 @@ src/
 │   ├── core/         # UI 인프라 (Router, Logger, UI DI, Navigation)
 │   ├── data/         # Data Layer (Repository/DataSource)
 │   ├── features/     # 특정 화면(Feature)에 특화된 복합 비즈니스 로직 조합(Service)
-│   ├── scenes/       # 도메인별 ViewModel 및 View 컴포넌트
-│   ├── styles/       # 스타일 정의
+│   ├── scenes/       # 도메인별 ViewModel 및 View 컴포넌트(TS, HTML, State)
+│   ├── styles/       # 디자인 시스템 (partials/ 모듈화)
 │   └── main.ts       # 렌더러 진입점
 └── shared/           # 공용 계층: 플랫폼 독립적 모델/로직
     └── [service-name]/ # 서비스명 기반 구조 (models, client 등)
@@ -43,12 +43,10 @@ src/
 
 ## 🏗 아키텍처 역할 정의 (Architecture Role Definitions)
 
-아키텍처의 일관성을 유지하고 각 파일의 책임을 명확히 하기 위해 다음과 같이 역할을 정의합니다.
-
 ### 1. UI & Presentation Layer (Renderer/Frontend)
 
-#### 🎮 View (`src/renderer/scenes/*.view.ts`)
-- **역할**: 메인 씬 (Back Layer). 상호작용 관리.
+#### 🎮 View (`src/renderer/scenes/*.view.ts`, `*.view.html`)
+- **역할**: 메인 씬 (Back Layer). 상호작용 관리. 템플릿은 별도 HTML 파일로 관리.
 
 #### 📊 ViewModel (`*.viewmodel.ts`)
 - **역할**: View와 Service 사이의 상태 중재자.
@@ -59,21 +57,19 @@ src/
 ### 2. Business Logic Layer (Service)
 
 #### 🌐 Domain Service (`src/renderer/features/[domain]/services/*.service.ts`)
-- **역할**: 도메인 엔티티의 **상태 관리 및 비즈니스 로직** 처리.
+- **역할**: 도메인 엔티티의 **상태 관리 및 비즈니스 로직** 처리. (전역 공유 상태 관리 포함)
 
 #### 🛠 Feature Service (`src/renderer/scenes/[feature]/services/*.service.ts`)
 - **역할**: 특정 화면(Feature)에 특화된 **복합 비즈니스 로직** 조합.
 
 ### 3. Data & State Layer
 
-#### 💾 Domain State (`src/renderer/features/operationData/[domain]/*.state.ts`)
-- **역할**: 해당 도메인에 국한된 **단일 진실 공급원(SSOT)**.
+#### 💾 State (`*.state.ts`)
+- **Scene State**: `src/renderer/scenes/` 하위. 특정 View/ViewModel에서만 사용하는 UI 전용 상태.
+- **Domain State**: `src/renderer/features/operationData/` 하위. 여러 씬이나 서비스에서 공유되는 전역 상태.
 
 #### 🗄 Persistence Service (`src/renderer/features/operationData/persistence.service.ts`)
 - **역할**: 데이터를 디스크에 저장하고 불러오는 **공통 인프라**.
-
-#### 📂 Game Data Service (`src/renderer/features/operationData/game-data.service.ts`)
-- **역할**: 전체 시스템의 **데이터 생명주기** 관리.
 
 #### 🗃 Repository (`*.repository.ts` 또는 `source/`)
 - **역할**: 원시 데이터(JSON, DB, API)에 접근하는 **데이터 공급원**.
@@ -91,15 +87,24 @@ src/
 
 ---
 
-## 🛠 개발 및 리팩토링 표준 규칙
+## 🛠 주요 변경 및 개발 표준 규칙
 
-### 1. 의존성 격리 규칙
+### 1. UI 디자인 표준
+- **HTML/CSS 분리**: 모든 View는 HTML 템플릿(`*.view.html`)과 CSS partial(`styles/partials/`)을 사용하여 모듈화합니다.
+- **가이드라인**: [CSS 디자인 가이드](./docs/CSS_STYLE_GUIDE.md)를 준수하십시오.
+
+### 2. 상태 관리 표준
+- **상태 정의 및 분리**:
+  - **Local State (Scene State)**: 해당 씬에서만 필요한 데이터는 `scenes/**/state.ts`에 위치합니다.
+  - **Shared State (Domain State)**: 여러 기능/씬에서 공유해야 하는 데이터는 `features/**/state.ts`에 위치합니다.
+- **상태 변경 감지**: 모든 상태 클래스는 `BaseState`를 상속받아 `subscribe(callback: () => void)`를 구현합니다. 데이터 변경 시 `notify()`를 호출하여 구독자에게 전파합니다.
+
+### 3. 성능 최적화 (AI 엔진)
+- **생명주기 최적화**: AI 엔진(`AIRunner`)은 `AIView`가 렌더링될 때만 시작하고, 이탈 시 `destroy()`를 통해 중지하여 리소스 낭비를 방지합니다.
+
+### 4. 의존성 격리 규칙
 - **View(Scene/ViewModel)**는 `features/[domain]/services/`에 있는 도메인 서비스 또는 Feature Service만 호출할 수 있습니다.
 - **Repository**는 오직 `Domain Service` 내부에서만 사용하며, 외부로 절대 노출하지 않습니다.
-
-### 2. 상태 변경 감지 표준
-- 모든 **Domain State**는 `BaseState`를 상속받아 `subscribe(callback: () => void)`를 구현합니다.
-- 데이터가 변경되면 반드시 서비스 내부에서 상태를 업데이트하고 `notify()`를 호출하여 구독 중인 ViewModel에게 갱신 알림을 전파해야 합니다.
 
 ---
 
