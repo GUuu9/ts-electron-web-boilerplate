@@ -9,12 +9,26 @@ export class FileView {
     if (!container) return;
 
     container.innerHTML = `
-      <div class="network-view">
-        <h3><i data-lucide="file-text"></i> File System</h3>
-        <button id="file-open-btn">Open File</button>
-        <input type="text" id="file-path" readonly style="width: 100%; margin: 10px 0;" placeholder="No file selected" />
-        <textarea id="file-content" style="width: 100%; height: 200px;" placeholder="File content"></textarea>
-        <button id="file-save-btn">Save</button>
+      <div class="view-container file-view">
+        <header class="view-header">
+          <h3 class="view-title"><i data-lucide="file-text"></i> File System</h3>
+          <div class="view-actions">
+            <button id="file-open-btn" class="btn btn-outline"><i data-lucide="folder-open"></i> Open File</button>
+            <button id="file-save-btn" class="btn btn-primary"><i data-lucide="save"></i> Save</button>
+          </div>
+        </header>
+
+        <section class="view-content" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label>File Path</label>
+            <input type="text" id="file-path" readonly placeholder="No file selected" style="width: 100%;" />
+          </div>
+          
+          <div style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
+            <label>Content</label>
+            <textarea id="file-content" placeholder="File content" style="width: 100%; height: 400px; font-family: monospace;"></textarea>
+          </div>
+        </section>
       </div>
     `;
     (window as any).lucide?.createIcons();
@@ -44,7 +58,7 @@ export class FileBinder {
       const target = event.target as HTMLElement;
       const el = this.view.elements;
 
-      if (target.id === 'file-open-btn') {
+      if (target.id === 'file-open-btn' || target.closest('#file-open-btn')) {
         const result = await this.viewModel.pickAndRead();
         if (result) {
           el.pathInput.value = result.path;
@@ -52,7 +66,7 @@ export class FileBinder {
         }
       }
 
-      if (target.id === 'file-save-btn') {
+      if (target.id === 'file-save-btn' || target.closest('#file-save-btn')) {
         if (!el.pathInput.value) return alert('No file selected');
         await this.viewModel.saveFile(el.pathInput.value, el.contentInput.value);
         alert('Saved!');

@@ -9,15 +9,28 @@ export class PersistenceView {
     if (!container) return;
 
     container.innerHTML = `
-      <div class="network-view">
-        <h3><i data-lucide="database"></i> Data Persistence (Encrypted)</h3>
-        <input type="text" id="persist-key" placeholder="Key" value="user-settings" />
-        <textarea id="persist-value" placeholder="Value (JSON or String)" style="width: 100%; height: 100px; margin-top: 10px;"></textarea>
-        <div style="margin-top: 10px;">
-          <button id="persist-save-btn">Save</button>
-          <button id="persist-load-btn">Load</button>
-        </div>
-        <pre id="persist-result" style="margin-top: 15px; background: #f4f4f4; padding: 10px; border-radius: 4px;"></pre>
+      <div class="view-container persistence-view">
+        <header class="view-header">
+          <h3 class="view-title"><i data-lucide="database"></i> Data Persistence (Encrypted)</h3>
+        </header>
+        <section class="view-content" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label>Key</label>
+            <input type="text" id="persist-key" placeholder="Key" value="user-settings" />
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label>Value (JSON or String)</label>
+            <textarea id="persist-value" placeholder="Value" style="height: 150px;"></textarea>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button id="persist-save-btn" class="btn btn-primary"><i data-lucide="save"></i> Save</button>
+            <button id="persist-load-btn" class="btn btn-outline"><i data-lucide="folder-open"></i> Load</button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem;">
+            <label>Result</label>
+            <pre id="persist-result" style="background: var(--input-bg); border: 1px solid var(--border); padding: 1rem; border-radius: 0.5rem; font-size: 0.85rem; color: var(--text); min-height: 50px;">No data loaded</pre>
+          </div>
+        </section>
       </div>
     `;
     (window as any).lucide?.createIcons();
@@ -48,7 +61,7 @@ export class PersistenceBinder {
       const target = event.target as HTMLElement;
       const { keyInput, valueInput, resultArea } = this.view.elements;
 
-      if (target.id === 'persist-save-btn') {
+      if (target.id === 'persist-save-btn' || target.closest('#persist-save-btn')) {
         try {
           const key = keyInput.value;
           const value = valueInput.value;
@@ -59,7 +72,7 @@ export class PersistenceBinder {
         }
       }
 
-      if (target.id === 'persist-load-btn') {
+      if (target.id === 'persist-load-btn' || target.closest('#persist-load-btn')) {
         try {
           const key = keyInput.value;
           const data = await this.viewModel.loadData(key);

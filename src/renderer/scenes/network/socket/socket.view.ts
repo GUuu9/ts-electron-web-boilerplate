@@ -9,58 +9,59 @@ export class SocketView {
     if (!container) return;
 
     container.innerHTML = `
-      <div id="socket-view">
-        <!-- Server UI -->
-        <section>
-          <h3>Socket Server:Desktop</h3>
-          <div class="input-group">
-            <input type="number" id="server-port" value="3000" />
-            <button id="toggle-server">Start Server</button>
+      <div class="view-container socket-view">
+        <header class="view-header">
+          <h3 class="view-title"><i data-lucide="zap"></i> Socket Communication</h3>
+        </header>
+
+        <section class="view-content" style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <!-- Server UI -->
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);">Server (Desktop)</h4>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="number" id="server-port" value="3000" style="width: 80px;" />
+                <button id="toggle-server" class="btn btn-outline" style="flex: 1;">Start Server</button>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="server-listen-event" placeholder="Event to Listen" value="chat" style="flex: 1;" />
+                <button id="server-listen-btn" class="btn btn-outline">Listen</button>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="server-event" placeholder="Event" value="message" style="width: 80px;" />
+                <input type="text" id="server-msg" placeholder="Message" style="flex: 1;" />
+                <button id="broadcast-btn" class="btn btn-primary">Broadcast</button>
+              </div>
+            </div>
+
+            <!-- Client UI -->
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);">Client</h4>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="client-url" value="http://localhost:3000" style="flex: 1;" />
+                <button id="toggle-client" class="btn btn-outline">Connect</button>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="client-listen-event" placeholder="Event to Listen" value="message" style="flex: 1;" />
+                <button id="client-listen-btn" class="btn btn-outline">Listen</button>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="client-event" placeholder="Event" value="message" style="width: 80px;" />
+                <input type="text" id="client-msg" placeholder="Message" style="flex: 1;" />
+                <button id="send-msg-btn" class="btn btn-primary">Send</button>
+              </div>
+            </div>
           </div>
 
-          <h4>Server Event Subscription</h4>
-          <div class="input-group">
-            <input type="text" id="server-listen-event" placeholder="Event to Listen" value="chat" />
-            <button id="server-listen-btn">Listen</button>
+          <!-- Log UI -->
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);">Log</h4>
+            <div id="log-area" style="height: 150px; overflow-y: auto; background: var(--input-bg); border: 1px solid var(--border); padding: 0.75rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.85rem; color: var(--text);"></div>
           </div>
-
-          <h4>Broadcast</h4>
-          <div class="input-group">
-            <input type="text" id="server-event" placeholder="Event Name" value="message" />
-            <input type="text" id="server-msg" placeholder="Message" />
-            <button id="broadcast-btn">Broadcast</button>
-          </div>
-        </section>
-
-        <!-- Client UI -->
-        <section>
-          <h3>Socket Client</h3>
-          <div class="input-group">
-            <input type="text" id="client-url" value="http://localhost:3000" />
-            <button id="toggle-client">Connect</button>
-          </div>
-
-          <h4>Client Event Subscription</h4>
-          <div class="input-group">
-            <input type="text" id="client-listen-event" placeholder="Event to Listen" value="message" />
-            <button id="client-listen-btn">Listen</button>
-          </div>
-
-          <h4>Send Message</h4>
-          <div class="input-group">
-            <input type="text" id="client-event" placeholder="Event Name" value="message" />
-            <input type="text" id="client-msg" placeholder="Message" />
-            <button id="send-msg-btn">Send Message</button>
-          </div>
-        </section>
-
-        <!-- Log UI -->
-        <section>
-          <h3>Log</h3>
-          <div id="log-area" style="height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 5px; font-family: monospace; font-size: 12px; background: #555;"></div>
         </section>
       </div>
     `;
+    (window as any).lucide?.createIcons();
   }
 
   public get elements() {
@@ -117,22 +118,22 @@ export class SocketBinder {
         toggleClientBtn, sendMsgBtn, clientListenBtn, clientUrlInput, clientEventInput, clientMsgInput, clientListenEventInput
       } = this.view.elements;
 
-      if (target === toggleServerBtn) {
+      if (target === toggleServerBtn || target.closest('#toggle-server')) {
         await this.viewModel.toggleServer(parseInt(serverPortInput.value));
       } 
-      else if (target === broadcastBtn) {
+      else if (target === broadcastBtn || target.closest('#broadcast-btn')) {
         await this.viewModel.broadcast(serverEventInput.value, serverMsgInput.value);
       } 
-      else if (target === serverListenBtn) {
+      else if (target === serverListenBtn || target.closest('#server-listen-btn')) {
         await this.viewModel.subscribeServerEvent(serverListenEventInput.value);
       }
-      else if (target === toggleClientBtn) {
+      else if (target === toggleClientBtn || target.closest('#toggle-client')) {
         await this.viewModel.toggleClient(clientUrlInput.value);
       } 
-      else if (target === sendMsgBtn) {
+      else if (target === sendMsgBtn || target.closest('#send-msg-btn')) {
         this.viewModel.sendMessage(clientEventInput.value, clientMsgInput.value);
       }
-      else if (target === clientListenBtn) {
+      else if (target === clientListenBtn || target.closest('#client-listen-btn')) {
         this.viewModel.subscribeClientEvent(clientListenEventInput.value);
       }
     });
@@ -147,13 +148,13 @@ export class SocketBinder {
     if (toggleServerBtn) {
       const isRunning = this.viewModel.isServerRunning;
       toggleServerBtn.innerText = isRunning ? 'Stop Server' : 'Start Server';
-      toggleServerBtn.style.backgroundColor = isRunning ? '#ff4d4f' : '#4f46e5';
+      toggleServerBtn.className = isRunning ? 'btn btn-danger' : 'btn btn-outline';
     }
 
     if (toggleClientBtn) {
       const isConnected = this.viewModel.isClientConnected;
       toggleClientBtn.innerText = isConnected ? 'Disconnect' : 'Connect';
-      toggleClientBtn.style.backgroundColor = isConnected ? '#ff4d4f' : '#4f46e5';
+      toggleClientBtn.className = isConnected ? 'btn btn-danger' : 'btn btn-outline';
     }
   }
 }

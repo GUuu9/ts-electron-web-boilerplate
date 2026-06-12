@@ -13,9 +13,13 @@ export class AIView {
     if (!container) return;
 
     container.innerHTML = `
-      <div class="ai-view">
-        <h3><i data-lucide="brain"></i> Behavior Tree AI (Physics)</h3>
-        <div id="ai-phaser-container" style="width: 800px; height: 600px; border: 1px solid var(--border-color);"></div>
+      <div class="view-container ai-view">
+        <header class="view-header">
+          <h3 class="view-title"><i data-lucide="brain"></i> Behavior Tree AI (Physics)</h3>
+        </header>
+        <section class="view-content" style="display: flex; justify-content: center; align-items: center; background: #000; padding: 0; overflow: hidden;">
+          <div id="ai-phaser-container" style="width: 800px; height: 600px;"></div>
+        </section>
       </div>
     `;
     (window as any).lucide?.createIcons();

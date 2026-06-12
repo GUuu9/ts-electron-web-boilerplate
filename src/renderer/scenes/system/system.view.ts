@@ -9,12 +9,19 @@ export class SystemView {
     if (!container) return;
 
     container.innerHTML = `
-      <div class="network-view">
-        <h3><i data-lucide="cpu"></i> System Information</h3>
-        <button id="refresh-system-btn">Refresh Status</button>
-        <div id="system-info-content" style="margin-top: 15px; font-family: monospace; white-space: pre-wrap; background: var(--bg); color: var(--text); padding: 10px; border-radius: 4px; border: 1px solid var(--border);">
-          Click "Refresh Status" to load...
-        </div>
+      <div class="view-container system-view">
+        <header class="view-header">
+          <h3 class="view-title"><i data-lucide="cpu"></i> System Information</h3>
+          <div class="view-actions">
+            <button id="refresh-system-btn" class="btn btn-primary"><i data-lucide="refresh-cw"></i> Refresh Status</button>
+          </div>
+        </header>
+        
+        <section class="view-content">
+          <pre id="system-info-content" style="background: var(--input-bg); border: 1px solid var(--border); padding: 1rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.85rem; color: var(--text); overflow-x: auto;">
+            Click "Refresh Status" to load...
+          </pre>
+        </section>
       </div>
     `;
     (window as any).lucide?.createIcons();
@@ -40,7 +47,7 @@ export class SystemBinder {
   public bind() {
     document.addEventListener('click', async (event) => {
       const target = event.target as HTMLElement;
-      if (target.id === 'refresh-system-btn') {
+      if (target.id === 'refresh-system-btn' || target.closest('#refresh-system-btn')) {
         const contentArea = this.view.elements.contentArea;
         if (contentArea) contentArea.innerText = 'Loading...';
 

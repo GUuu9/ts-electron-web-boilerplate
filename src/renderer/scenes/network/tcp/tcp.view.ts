@@ -9,42 +9,46 @@ export class TcpView {
     if (!container) return;
 
     container.innerHTML = `
-      <div id="tcp-view">
-        <!-- Server UI -->
-        <section>
-          <h3>TCP Server:Desktop</h3>
-          <div class="input-group">
-            <input type="number" id="tcp-server-port" value="8888" />
-            <button id="tcp-toggle-server-btn">Start Server</button>
+      <div class="view-container tcp-view">
+        <header class="view-header">
+          <h3 class="view-title"><i data-lucide="radio"></i> TCP Communication</h3>
+        </header>
+
+        <section class="view-content" style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <!-- Server UI -->
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);">Server (Desktop)</h4>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="number" id="tcp-server-port" value="8888" style="width: 80px;" />
+                <button id="tcp-toggle-server-btn" class="btn btn-outline" style="flex: 1;">Start Server</button>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="tcp-server-msg" placeholder="Message to broadcast" style="flex: 1;" />
+                <button id="tcp-broadcast-btn" class="btn btn-primary">Broadcast</button>
+              </div>
+            </div>
+
+            <!-- Client UI -->
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);">Client</h4>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="tcp-client-host" value="127.0.0.1" style="flex: 1;" />
+                <input type="number" id="tcp-client-port" value="8888" style="width: 80px;" />
+                <button id="tcp-toggle-client-btn" class="btn btn-outline">Connect</button>
+              </div>
+              <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="tcp-client-msg" placeholder="Message to server" style="flex: 1;" />
+                <button id="tcp-client-send-btn" class="btn btn-primary">Send</button>
+              </div>
+            </div>
           </div>
 
-          <h4>Broadcast</h4>
-          <div class="input-group">
-            <input type="text" id="tcp-server-msg" placeholder="Message to broadcast" />
-            <button id="tcp-broadcast-btn">Broadcast</button>
+          <!-- Log UI -->
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);">Log</h4>
+            <div id="tcp-log-area" style="height: 150px; overflow-y: auto; background: var(--input-bg); border: 1px solid var(--border); padding: 0.75rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.85rem; color: var(--text);"></div>
           </div>
-        </section>
-
-        <!-- Client UI -->
-        <section>
-          <h3>TCP Client:Desktop</h3>
-          <div class="input-group">
-            <input type="text" id="tcp-client-host" value="127.0.0.1" />
-            <input type="number" id="tcp-client-port" value="8888" />
-            <button id="tcp-toggle-client-btn">Connect</button>
-          </div>
-
-          <h4>Send Message</h4>
-          <div class="input-group">
-            <input type="text" id="tcp-client-msg" placeholder="Message to server" />
-            <button id="tcp-client-send-btn">Send</button>
-          </div>
-        </section>
-
-        <!-- Log UI -->
-        <section>
-          <h3>Log</h3>
-          <div id="tcp-log-area" style="height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 5px; font-family: monospace; font-size: 12px; background: #555; color: #fff;"></div>
         </section>
       </div>
     `;
@@ -88,7 +92,7 @@ export class TcpBinder {
     this.viewModel.setLogCallback((msg) => {
       const { logArea } = this.view.elements;
       if (logArea) {
-        logArea.innerHTML += `<div>${msg}</div>`;
+        logArea.innerHTML += `<div style="margin-bottom: 0.2rem;">${msg}</div>`;
         logArea.scrollTop = logArea.scrollHeight;
       }
     });
@@ -101,16 +105,16 @@ export class TcpBinder {
         toggleClientBtn, clientHostInput, clientPortInput, clientSendBtn, clientMsgInput
       } = this.view.elements;
 
-      if (target === toggleServerBtn) {
+      if (target === toggleServerBtn || target.closest('#tcp-toggle-server-btn')) {
         await this.viewModel.toggleServer(parseInt(serverPortInput.value));
       }
-      else if (target === broadcastBtn) {
+      else if (target === broadcastBtn || target.closest('#tcp-broadcast-btn')) {
         await this.viewModel.serverBroadcast(serverMsgInput.value);
       }
-      else if (target === toggleClientBtn) {
+      else if (target === toggleClientBtn || target.closest('#tcp-toggle-client-btn')) {
         await this.viewModel.toggleClient(clientHostInput.value, parseInt(clientPortInput.value));
       }
-      else if (target === clientSendBtn) {
+      else if (target === clientSendBtn || target.closest('#tcp-client-send-btn')) {
         await this.viewModel.clientSend(clientMsgInput.value);
       }
     });
@@ -125,13 +129,13 @@ export class TcpBinder {
     if (toggleServerBtn) {
       const isRunning = this.viewModel.isServerRunning;
       toggleServerBtn.innerText = isRunning ? 'Stop Server' : 'Start Server';
-      toggleServerBtn.style.backgroundColor = isRunning ? '#ff4d4f' : '#4f46e5';
+      toggleServerBtn.className = isRunning ? 'btn btn-danger' : 'btn btn-outline';
     }
 
     if (toggleClientBtn) {
       const isConnected = this.viewModel.isClientConnected;
       toggleClientBtn.innerText = isConnected ? 'Disconnect' : 'Connect';
-      toggleClientBtn.style.backgroundColor = isConnected ? '#ff4d4f' : '#4f46e5';
+      toggleClientBtn.className = isConnected ? 'btn btn-danger' : 'btn btn-outline';
     }
   }
 }

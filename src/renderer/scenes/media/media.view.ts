@@ -9,33 +9,38 @@ export class MediaView {
     if (!container) return;
 
     container.innerHTML = `
-      <div class="network-view">
-        <h3><i data-lucide="settings-2"></i> Media & Input Devices</h3>
+      <div class="view-container media-view">
+        <header class="view-header">
+          <h3 class="view-title"><i data-lucide="settings-2"></i> Media & Input Devices</h3>
+        </header>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-          <!-- 1. Standard Media -->
-          <section>
-            <h4><i data-lucide="mic"></i> Cameras & Microphones</h4>
-            <button id="refresh-media-btn">Refresh Devices</button>
-            <div id="media-list-area" style="margin-top: 10px; font-size: 0.85em; max-height: 150px; overflow-y: auto; background: #f9f9f9; padding: 5px;"></div>
-          </section>
+        <section class="view-content" style="display: flex; flex-direction: column; gap: 1.5rem;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <!-- 1. Standard Media -->
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);">Cameras & Microphones</h4>
+              <button id="refresh-media-btn" class="btn btn-outline"><i data-lucide="refresh-cw"></i> Refresh Devices</button>
+              <div id="media-list-area" style="background: var(--input-bg); border: 1px solid var(--border); padding: 0.75rem; border-radius: 0.5rem; font-size: 0.85rem; height: 150px; overflow-y: auto;">
+                Click refresh to see devices...
+              </div>
+            </div>
 
-          <!-- 2. Gamepads -->
-          <section>
-            <h4><i data-lucide="gamepad-2"></i> Game Controllers</h4>
-            <button id="check-gamepad-btn">Check Gamepads</button>
-            <div id="gamepad-list-area" style="margin-top: 10px; font-size: 0.85em; max-height: 150px; overflow-y: auto; background: #f9f9f9; padding: 5px;"></div>
-          </section>
-        </div>
+            <!-- 2. Gamepads -->
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);">Game Controllers</h4>
+              <button id="check-gamepad-btn" class="btn btn-outline"><i data-lucide="gamepad-2"></i> Check Gamepads</button>
+              <div id="gamepad-list-area" style="background: var(--input-bg); border: 1px solid var(--border); padding: 0.75rem; border-radius: 0.5rem; font-size: 0.85rem; height: 150px; overflow-y: auto;">
+                Click check to detect...
+              </div>
+            </div>
+          </div>
 
-        <hr style="margin: 20px 0;" />
-
-        <!-- 3. Specialized (BT/USB/HID) -->
-        <section>
-          <h4><i data-lucide="plug-zap"></i> Specialized Device Requests</h4>
-          <p style="font-size: 0.8em; color: #666;">These will populate when the system triggers a device selection request.</p>
-          <div id="special-request-area" style="padding: 10px; border: 1px dashed #ccc; background: #fafafa; min-height: 50px;">
-            Waiting for device request...
+          <!-- 3. Specialized (BT/USB/HID) -->
+          <div style="border-top: 1px solid var(--border); padding-top: 1rem;">
+            <h4 style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--text-dim);"><i data-lucide="plug-zap"></i> Specialized Device Requests</h4>
+            <div id="special-request-area" style="background: var(--input-bg); border: 1px dashed var(--border); padding: 1rem; border-radius: 0.5rem; font-size: 0.85rem; min-height: 50px;">
+              Waiting for device request...
+            </div>
           </div>
         </section>
       </div>
@@ -74,17 +79,14 @@ export class MediaBinder {
       const el = this.view.elements;
 
       // 1. Refresh Standard Media (Cameras, Mics)
-      if (target.id === 'refresh-media-btn') {
+      if (target.id === 'refresh-media-btn' || target.closest('#refresh-media-btn')) {
         try {
           const devs = await this.viewModel.getMediaDevices();
           if (el.mediaArea) {
             el.mediaArea.innerHTML = `
-              <strong>Video Input (${devs.videoIn.length}):</strong><br>
-              ${devs.videoIn.map(d => `- ${d.label || 'Unknown Camera'}`).join('<br>') || 'None'}
-              <br><br><strong>Audio Input (${devs.audioIn.length}):</strong><br>
-              ${devs.audioIn.map(d => `- ${d.label || 'Unknown Mic'}`).join('<br>') || 'None'}
-              <br><br><strong>Audio Output (${devs.audioOut.length}):</strong><br>
-              ${devs.audioOut.map(d => `- ${d.label || 'Unknown Speaker'}`).join('<br>') || 'None'}
+              <div style="margin-bottom: 0.5rem;"><strong>Video Input (${devs.videoIn.length}):</strong><br>${devs.videoIn.map(d => `- ${d.label || 'Unknown Camera'}`).join('<br>') || 'None'}</div>
+              <div style="margin-bottom: 0.5rem;"><strong>Audio Input (${devs.audioIn.length}):</strong><br>${devs.audioIn.map(d => `- ${d.label || 'Unknown Mic'}`).join('<br>') || 'None'}</div>
+              <div><strong>Audio Output (${devs.audioOut.length}):</strong><br>${devs.audioOut.map(d => `- ${d.label || 'Unknown Speaker'}`).join('<br>') || 'None'}</div>
             `;
           }
         } catch (err) {
@@ -93,12 +95,12 @@ export class MediaBinder {
       }
 
       // 2. Check Gamepads
-      if (target.id === 'check-gamepad-btn') {
+      if (target.id === 'check-gamepad-btn' || target.closest('#check-gamepad-btn')) {
         const gamepads = this.viewModel.getGamepads();
         if (el.gamepadArea) {
           el.gamepadArea.innerHTML = gamepads.length > 0 
-            ? gamepads.map(g => `🎮 <strong>${g.id}</strong><br>Index: ${g.index} | Buttons: ${g.buttons.length}`).join('<hr>')
-            : 'No gamepads detected. Connect a controller and press any button.';
+            ? gamepads.map(g => `<div style="margin-bottom: 0.5rem;">🎮 <strong>${g.id}</strong><br>Index: ${g.index} | Buttons: ${g.buttons.length}</div>`).join('<hr>')
+            : 'No gamepads detected.';
         }
       }
       
@@ -114,7 +116,7 @@ export class MediaBinder {
         }
       }
 
-      if (target.id === 'cancel-dev-btn') {
+      if (target.id === 'cancel-dev-btn' || target.closest('#cancel-dev-btn')) {
         this.viewModel.cancelSelect();
         if (el.specialArea) el.specialArea.innerHTML = 'Request cancelled.';
       }
@@ -126,16 +128,16 @@ export class MediaBinder {
     if (!el.specialArea) return;
 
     el.specialArea.innerHTML = `
-      <div style="padding: 5px; border: 1px solid orange; margin-bottom: 5px;">
+      <div style="padding: 0.5rem; border: 1px solid var(--primary); border-radius: 0.5rem; background: rgba(79, 70, 229, 0.1);">
         <strong>Select ${type} Device:</strong><br>
-        <div style="margin: 5px 0;">
+        <div style="margin: 0.5rem 0;">
           ${list.map(d => `
-            <button class="select-dev-btn" data-id="${d.deviceId}" data-type="${type}" style="margin: 2px; padding: 4px 8px; cursor: pointer;">
+            <button class="btn btn-primary select-dev-btn" data-id="${d.deviceId}" data-type="${type}" style="margin: 0.2rem; padding: 0.3rem 0.6rem; font-size: 0.75rem;">
               ${d.deviceName}
             </button>
           `).join('')}
         </div>
-        <button id="cancel-dev-btn" style="color: red; font-size: 0.8em; cursor: pointer;">Cancel Request</button>
+        <button id="cancel-dev-btn" class="btn btn-danger" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Cancel Request</button>
       </div>
     `;
   }

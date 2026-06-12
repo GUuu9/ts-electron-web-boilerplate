@@ -9,13 +9,21 @@ export class OsView {
     if (!container) return;
 
     container.innerHTML = `
-      <div class="network-view">
-        <h3><i data-lucide="monitor"></i> OS Integration Test</h3>
-        <div style="margin-bottom: 10px;">
-          <input type="text" id="os-title" placeholder="알림 제목" style="width: 100%; margin-bottom: 5px;" />
-          <textarea id="os-body" placeholder="알림 내용" style="width: 100%; height: 60px;"></textarea>
-        </div>
-        <button id="notify-btn">Send Notification</button>
+      <div class="view-container os-view">
+        <header class="view-header">
+          <h3 class="view-title"><i data-lucide="monitor"></i> OS Integration Test</h3>
+        </header>
+        <section class="view-content" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label>Title</label>
+            <input type="text" id="os-title" placeholder="Notification title" />
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label>Body</label>
+            <textarea id="os-body" placeholder="Notification body" style="height: 100px;"></textarea>
+          </div>
+          <button id="notify-btn" class="btn btn-primary"><i data-lucide="bell"></i> Send Notification</button>
+        </section>
       </div>
     `;
     (window as any).lucide?.createIcons();
@@ -42,9 +50,9 @@ export class OsBinder {
   public bind() {
     document.addEventListener('click', async (event) => {
       const target = event.target as HTMLElement;
-      if (target.id === 'notify-btn') {
-        const title = this.view.elements.titleInput.value || '기본 제목';
-        const body = this.view.elements.bodyInput.value || '기본 내용입니다.';
+      if (target.id === 'notify-btn' || target.closest('#notify-btn')) {
+        const title = this.view.elements.titleInput.value || 'Default Title';
+        const body = this.view.elements.bodyInput.value || 'Default Body.';
         await this.viewModel.sendNotification(title, body);
       }
     });
