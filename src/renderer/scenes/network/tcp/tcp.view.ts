@@ -1,4 +1,5 @@
 import { TcpViewModel } from './tcp.viewmodel.js';
+import tcpTemplate from './tcp.view.html?raw';
 
 /**
  * TcpView (View)
@@ -8,50 +9,7 @@ export class TcpView {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    container.innerHTML = `
-      <div class="view-container tcp-view">
-        <header class="view-header">
-          <h3 class="view-title"><i data-lucide="radio"></i> TCP Communication</h3>
-        </header>
-
-        <section class="view-content" style="display: flex; flex-direction: column; gap: 1.5rem;">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <!-- Server UI -->
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-              <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);">Server (Desktop)</h4>
-              <div style="display: flex; gap: 0.5rem;">
-                <input type="number" id="tcp-server-port" value="8888" style="width: 80px;" />
-                <button id="tcp-toggle-server-btn" class="btn btn-outline" style="flex: 1;">Start Server</button>
-              </div>
-              <div style="display: flex; gap: 0.5rem;">
-                <input type="text" id="tcp-server-msg" placeholder="Message to broadcast" style="flex: 1;" />
-                <button id="tcp-broadcast-btn" class="btn btn-primary">Broadcast</button>
-              </div>
-            </div>
-
-            <!-- Client UI -->
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-              <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);">Client</h4>
-              <div style="display: flex; gap: 0.5rem;">
-                <input type="text" id="tcp-client-host" value="127.0.0.1" style="flex: 1;" />
-                <input type="number" id="tcp-client-port" value="8888" style="width: 80px;" />
-                <button id="tcp-toggle-client-btn" class="btn btn-outline">Connect</button>
-              </div>
-              <div style="display: flex; gap: 0.5rem;">
-                <input type="text" id="tcp-client-msg" placeholder="Message to server" style="flex: 1;" />
-                <button id="tcp-client-send-btn" class="btn btn-primary">Send</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Log UI -->
-          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);">Log</h4>
-            <div id="tcp-log-area" style="height: 150px; overflow-y: auto; background: var(--input-bg); border: 1px solid var(--border); padding: 0.75rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.85rem; color: var(--text);"></div>
-          </div>
-        </section>
-      </div>
-    `;
+    container.innerHTML = tcpTemplate;
     (window as any).lucide?.createIcons();
   }
 

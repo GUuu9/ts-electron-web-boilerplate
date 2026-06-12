@@ -1,4 +1,5 @@
 import { UdpViewModel } from './udp.viewmodel.js';
+import udpTemplate from './udp.view.html?raw';
 
 /**
  * UdpView (View)
@@ -8,36 +9,7 @@ export class UdpView {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    container.innerHTML = `
-      <div class="view-container udp-view">
-        <header class="view-header">
-          <h3 class="view-title"><i data-lucide="send"></i> UDP Communication</h3>
-        </header>
-        
-        <section class="view-content" style="display: flex; flex-direction: column; gap: 1.5rem;">
-          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-            <input type="number" id="udp-port" value="5001" placeholder="Port" style="width: 80px;" />
-            <button id="udp-bind-btn" class="btn btn-outline">Bind Port</button>
-            <button id="udp-close-btn" class="btn btn-danger">Close</button>
-          </div>
-          
-          <div style="border-top: 1px solid var(--border); padding-top: 1rem;">
-            <h4 style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--text-dim);">Send Message</h4>
-            <div style="display: flex; gap: 0.5rem;">
-              <input type="text" id="udp-msg" placeholder="Message" style="flex: 1;" />
-              <input type="text" id="udp-addr" value="127.0.0.1" placeholder="Address" style="width: 120px;" />
-              <input type="number" id="udp-send-port" value="5001" placeholder="Port" style="width: 80px;" />
-              <button id="udp-send-btn" class="btn btn-primary">Send</button>
-            </div>
-          </div>
-          
-          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);">Log</h4>
-            <div id="udp-log-area" style="height: 150px; overflow-y: auto; background: var(--input-bg); border: 1px solid var(--border); padding: 0.75rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.85rem; color: var(--text);"></div>
-          </div>
-        </section>
-      </div>
-    `;
+    container.innerHTML = udpTemplate;
     (window as any).lucide?.createIcons();
   }
 

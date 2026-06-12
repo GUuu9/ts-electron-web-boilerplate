@@ -1,4 +1,5 @@
 import { MediaViewModel } from './media.viewmodel.js';
+import mediaTemplate from './media.view.html?raw';
 
 /**
  * Media View
@@ -8,43 +9,7 @@ export class MediaView {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    container.innerHTML = `
-      <div class="view-container media-view">
-        <header class="view-header">
-          <h3 class="view-title"><i data-lucide="settings-2"></i> Media & Input Devices</h3>
-        </header>
-        
-        <section class="view-content" style="display: flex; flex-direction: column; gap: 1.5rem;">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-            <!-- 1. Standard Media -->
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-              <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);">Cameras & Microphones</h4>
-              <button id="refresh-media-btn" class="btn btn-outline"><i data-lucide="refresh-cw"></i> Refresh Devices</button>
-              <div id="media-list-area" style="background: var(--input-bg); border: 1px solid var(--border); padding: 0.75rem; border-radius: 0.5rem; font-size: 0.85rem; height: 150px; overflow-y: auto;">
-                Click refresh to see devices...
-              </div>
-            </div>
-
-            <!-- 2. Gamepads -->
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-              <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);">Game Controllers</h4>
-              <button id="check-gamepad-btn" class="btn btn-outline"><i data-lucide="gamepad-2"></i> Check Gamepads</button>
-              <div id="gamepad-list-area" style="background: var(--input-bg); border: 1px solid var(--border); padding: 0.75rem; border-radius: 0.5rem; font-size: 0.85rem; height: 150px; overflow-y: auto;">
-                Click check to detect...
-              </div>
-            </div>
-          </div>
-
-          <!-- 3. Specialized (BT/USB/HID) -->
-          <div style="border-top: 1px solid var(--border); padding-top: 1rem;">
-            <h4 style="margin: 0 0 0.5rem 0; font-size: 0.9rem; color: var(--text-dim);"><i data-lucide="plug-zap"></i> Specialized Device Requests</h4>
-            <div id="special-request-area" style="background: var(--input-bg); border: 1px dashed var(--border); padding: 1rem; border-radius: 0.5rem; font-size: 0.85rem; min-height: 50px;">
-              Waiting for device request...
-            </div>
-          </div>
-        </section>
-      </div>
-    `;
+    container.innerHTML = mediaTemplate;
     (window as any).lucide?.createIcons();
   }
 

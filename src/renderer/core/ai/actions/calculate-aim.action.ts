@@ -26,7 +26,8 @@ export class CalculateAimAction extends BaseAction {
     // 현재 거리와 비슷한 과거 명중 데이터가 있으면 bias를 반영
     const similarMemory = memory.find(m => Math.abs(m.distance - distance) < 50);
     if (similarMemory) {
-        bias = similarMemory.bias;
+        // 학습 효과: 기존 bias에 새로운 데이터를 반영하여 점진적으로 보정
+        bias = (bias * 0.7) + (similarMemory.bias * 0.3);
     }
     
     angle += bias;
@@ -45,8 +46,10 @@ export class CalculateAimAction extends BaseAction {
     blackboard.set('aimAngle', angle);
     blackboard.set('aimForce', force);
     
-    // AI가 현재 타겟과 각도를 인지하고 있음을 확인하는 최소한의 로그
-    console.log(`[AI] 타겟 위치: (${target.x.toFixed(0)}, ${target.y.toFixed(0)}), 조준 각도: ${angle.toFixed(2)}, 오차 보정: ${bias.toFixed(2)}`);
+    // 로그 출력 빈도 제한 (5% 확률)
+    if (Math.random() < 0.05) {
+      console.log(`[AI] 타겟 위치: (${target.x.toFixed(0)}, ${target.y.toFixed(0)}), 조준 각도: ${angle.toFixed(2)}, 오차 보정: ${bias.toFixed(2)}`);
+    }
     
     return NodeStatus.Success;
   }

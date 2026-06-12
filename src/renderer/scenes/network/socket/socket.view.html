@@ -1,0 +1,51 @@
+<div class="view-container socket-view">
+  <header class="view-header">
+    <h3 class="view-title"><i data-lucide="zap"></i> Socket Communication</h3>
+  </header>
+
+  <section class="view-content" style="display: flex; flex-direction: column; gap: 1.5rem;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+      <!-- Server UI -->
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);">Server (Desktop)</h4>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="number" id="server-port" value="3000" style="width: 80px;" />
+          <button id="toggle-server" class="btn btn-outline" style="flex: 1;">Start Server</button>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="server-listen-event" placeholder="Event to Listen" value="chat" style="flex: 1;" />
+          <button id="server-listen-btn" class="btn btn-outline">Listen</button>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="server-event" placeholder="Event" value="message" style="width: 80px;" />
+          <input type="text" id="server-msg" placeholder="Message" style="flex: 1;" />
+          <button id="broadcast-btn" class="btn btn-primary">Broadcast</button>
+        </div>
+      </div>
+
+      <!-- Client UI -->
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);">Client</h4>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="client-url" value="http://localhost:3000" style="flex: 1;" />
+          <button id="toggle-client" class="btn btn-outline">Connect</button>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="client-listen-event" placeholder="Event to Listen" value="message" style="flex: 1;" />
+          <button id="client-listen-btn" class="btn btn-outline">Listen</button>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" id="client-event" placeholder="Event" value="message" style="width: 80px;" />
+          <input type="text" id="client-msg" placeholder="Message" style="flex: 1;" />
+          <button id="send-msg-btn" class="btn btn-primary">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Log UI -->
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+      <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);">Log</h4>
+      <div id="log-area" style="height: 150px; overflow-y: auto; background: var(--input-bg); border: 1px solid var(--border); padding: 0.75rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.85rem; color: var(--text);"></div>
+    </div>
+  </section>
+</div>

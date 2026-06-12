@@ -16,7 +16,7 @@ async function bootstrap() {
   const aiRunner = container.get<AIRunner>('AIRunner');
 
   navController.init();
-  aiRunner.start();
+  // aiRunner.start();
 
 
   if (!isElectron) {

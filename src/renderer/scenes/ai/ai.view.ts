@@ -1,5 +1,8 @@
 import { AIViewModel } from './ai.viewmodel.js';
 import * as Phaser from 'phaser';
+import { AIRunner } from '../../core/ai/ai.runner.js';
+import { container } from '../../core/di/container.renderer.js';
+import aiTemplate from './ai.view.html?raw';
 
 /**
  * AI View
@@ -7,25 +10,27 @@ import * as Phaser from 'phaser';
 export class AIView {
   private game: Phaser.Game | null = null;
   private statusText: Phaser.GameObjects.Text | null = null;
+  private aiRunner: AIRunner;
+
+  constructor(private readonly viewModel: AIViewModel) {
+    this.aiRunner = container.get<AIRunner>('AIRunner');
+  }
 
   public render(containerId: string): void {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    container.innerHTML = `
-      <div class="view-container ai-view">
-        <header class="view-header">
-          <h3 class="view-title"><i data-lucide="brain"></i> Behavior Tree AI (Physics)</h3>
-        </header>
-        <section class="view-content" style="display: flex; justify-content: center; align-items: center; background: #000; padding: 0; overflow: hidden;">
-          <div id="ai-phaser-container" style="width: 800px; height: 600px;"></div>
-        </section>
-      </div>
-    `;
+    container.innerHTML = aiTemplate;
     (window as any).lucide?.createIcons();
+    
+    // Start AI Runner and Initialize Phaser
+    this.aiRunner.start();
+    this.initPhaser();
   }
 
   public destroy() {
+    this.aiRunner.stop(); // AI 엔진 루프 정지
+    this.viewModel.setActive(false); // 리소스 해제 시 ViewModel에 상태 알림
     if (this.game) {
       this.game.destroy(true);
       this.game = null;
@@ -38,13 +43,13 @@ export class AIView {
     };
   }
 
-  public initPhaser(viewModel: AIViewModel) {
+  private initPhaser() {
     if (this.game) return;
 
     const container = this.elements.phaserContainer;
     if (!container) return;
 
-    viewModel.setActive(true);
+    this.viewModel.setActive(true);
 
     const self = this;
     const config: Phaser.Types.Core.GameConfig = {
@@ -81,8 +86,8 @@ export class AIView {
           // 충돌
           this.physics.add.collider((this as any).projObj, (this as any).targetObj, () => {
             console.log('명중!');
-            viewModel.hitTarget();
-            viewModel.respawnTarget();
+            self.viewModel.hitTarget();
+            self.viewModel.respawnTarget();
             (this as any).projObj.setVisible(false);
             (this as any).projObj.body.setEnable(false);
             (this as any).projObj.body.setVelocity(0, 0);
@@ -90,7 +95,7 @@ export class AIView {
         },
         update: function(this: Phaser.Scene) {
           try {
-            const data = viewModel.getRenderData();
+            const data = self.viewModel.getRenderData();
             if (!data.isViewActive) return;
 
             self.statusText?.setText(`Status: ${data.status}`);
@@ -128,7 +133,7 @@ export class AIView {
               (this as any).projObj.setVisible(false);
               (this as any).projObj.body.setEnable(false);
               (this as any).projObj.body.setVelocity(0, 0);
-              viewModel.resetThrowing();
+              self.viewModel.resetThrowing();
             }
           } catch (e) {
             console.error('[AI Phaser Update Error]', e);
@@ -137,23 +142,5 @@ export class AIView {
       }
     };
     this.game = new Phaser.Game(config);
-  }
-}
-
-/**
- * AI Binder
- */
-export class AIBinder {
-  constructor(
-    private readonly view: AIView,
-    private readonly viewModel: AIViewModel
-  ) {}
-
-  public bind() {
-    console.log('[AI] Binder initialized.');
-  }
-
-  public init() {
-    this.view.initPhaser(this.viewModel);
   }
 }

@@ -200,7 +200,7 @@ export class RendererRegistry {
     const mediaView = new MediaView();
     const fileView = new FileView();
     const loggerView = new LoggerView();
-    const aiView = new AIView();
+    const aiView = new AIView(container.get('AIViewModel'));
     const macroView = new MacroView();
 
     new HttpBinder(httpView, container.get('HttpViewModel')).bind();
@@ -216,7 +216,6 @@ export class RendererRegistry {
     new FileBinder(fileView, container.get('FileViewModel')).bind();
     new LoggerBinder(loggerView, container.get('LoggerViewModel')).bind();
     
-    new AIBinder(aiView, container.get('AIViewModel')).bind();
     new MacroBinder(macroView, container.get('MacroViewModel')).bind();
     
     container.register('Views', { httpView, socketView, tcpView, udpView, osView, systemView, persistenceView, securityView, serialView, mediaView, fileView, loggerView, aiView, macroView });

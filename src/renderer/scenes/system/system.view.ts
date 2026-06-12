@@ -1,4 +1,5 @@
 import { SystemViewModel } from './system.viewmodel.js';
+import systemTemplate from './system.view.html?raw';
 
 /**
  * System View
@@ -8,22 +9,7 @@ export class SystemView {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    container.innerHTML = `
-      <div class="view-container system-view">
-        <header class="view-header">
-          <h3 class="view-title"><i data-lucide="cpu"></i> System Information</h3>
-          <div class="view-actions">
-            <button id="refresh-system-btn" class="btn btn-primary"><i data-lucide="refresh-cw"></i> Refresh Status</button>
-          </div>
-        </header>
-        
-        <section class="view-content">
-          <pre id="system-info-content" style="background: var(--input-bg); border: 1px solid var(--border); padding: 1rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.85rem; color: var(--text); overflow-x: auto;">
-            Click "Refresh Status" to load...
-          </pre>
-        </section>
-      </div>
-    `;
+    container.innerHTML = systemTemplate;
     (window as any).lucide?.createIcons();
   }
 

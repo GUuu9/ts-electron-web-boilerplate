@@ -41,10 +41,19 @@ export class NavController {
 
   public init() {
     document.addEventListener('click', (event) => {
-      const target = (event.target as HTMLElement).closest('.card') as HTMLElement || event.target as HTMLElement;
-      if (!target) return;
+      const target = event.target as HTMLElement;
 
-      switch (target.id) {
+      // 1. 뒤로가기 버튼 명시적 체크
+      if (target.closest('#nav-back')) {
+        this.navigator.showDashboard();
+        return;
+      }
+
+      // 2. 카드 클릭 처리
+      const card = target.closest('.card') as HTMLElement;
+      if (!card) return;
+
+      switch (card.id) {
         case 'nav-http': this.navigator.navigate(this.views.httpView); break;
         case 'nav-socket': this.navigator.navigate(this.views.socketView); break;
         case 'nav-tcp': this.navigator.navigate(this.views.tcpView); break;
@@ -59,9 +68,6 @@ export class NavController {
         case 'nav-logger': this.navigator.navigate(this.views.loggerView); break;
         case 'nav-macro': this.navigator.navigate(this.views.macroView); break;
         case 'nav-ai': this.navigator.navigate(this.views.aiView); break;
-        case 'nav-back': 
-          this.navigator.showDashboard(); 
-          break;
       }
     });
   }

@@ -1,4 +1,5 @@
 import { SecurityViewModel } from './security.viewmodel.js';
+import securityTemplate from './security.view.html?raw';
 
 /**
  * Security View
@@ -8,46 +9,7 @@ export class SecurityView {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    container.innerHTML = `
-      <div class="view-container security-view">
-        <header class="view-header">
-          <h3 class="view-title"><i data-lucide="shield-check"></i> Security & Compression Test</h3>
-        </header>
-        
-        <section class="view-content" style="display: flex; flex-direction: column; gap: 1.5rem;">
-          <!-- AES Section -->
-          <div style="display: flex; flex-direction: column; gap: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
-            <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);"><i data-lucide="lock"></i> AES-256-GCM</h4>
-            <button id="aes-gen-btn" class="btn btn-outline" style="width: fit-content;">Generate AES Key</button>
-            <input type="text" id="aes-key" placeholder="AES Key (Hex)" />
-            <div style="display: flex; gap: 0.5rem;">
-              <input type="text" id="aes-input" value="Hello AES!" style="flex: 1;" />
-              <button id="aes-test-btn" class="btn btn-primary">Test AES</button>
-            </div>
-            <div id="aes-result" style="background: var(--input-bg); border: 1px solid var(--border); padding: 0.5rem; border-radius: 0.5rem; font-size: 0.85rem; color: var(--text-dim);"></div>
-          </div>
-
-          <!-- RSA Section -->
-          <div style="display: flex; flex-direction: column; gap: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;">
-            <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);"><i data-lucide="key-round"></i> RSA-OAEP (2048bit)</h4>
-            <button id="rsa-gen-btn" class="btn btn-outline" style="width: fit-content;">Generate RSA Keys</button>
-            <div style="display: flex; gap: 0.5rem;">
-              <input type="text" id="rsa-input" value="Hello RSA!" style="flex: 1;" />
-              <button id="rsa-test-btn" class="btn btn-primary">Test RSA</button>
-            </div>
-            <div id="rsa-result" style="background: var(--input-bg); border: 1px solid var(--border); padding: 0.5rem; border-radius: 0.5rem; font-size: 0.85rem; color: var(--text-dim);"></div>
-          </div>
-
-          <!-- Compression Section -->
-          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <h4 style="margin: 0; font-size: 0.9rem; color: var(--text-dim);"><i data-lucide="package-minus"></i> Gzip Compression</h4>
-            <textarea id="compress-input" style="height: 60px;">Repeat this text to see compression in action! Repeat this text to see compression in action!</textarea>
-            <button id="compress-test-btn" class="btn btn-primary" style="width: fit-content;">Test Compression</button>
-            <div id="compress-result" style="background: var(--input-bg); border: 1px solid var(--border); padding: 0.5rem; border-radius: 0.5rem; font-size: 0.85rem; color: var(--text-dim);"></div>
-          </div>
-        </section>
-      </div>
-    `;
+    container.innerHTML = securityTemplate;
     (window as any).lucide?.createIcons();
   }
 

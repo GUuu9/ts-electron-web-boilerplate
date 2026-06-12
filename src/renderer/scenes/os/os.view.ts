@@ -1,4 +1,5 @@
 import { OsViewModel } from './os.viewmodel.js';
+import osTemplate from './os.view.html?raw';
 
 /**
  * OsView (View)
@@ -8,24 +9,7 @@ export class OsView {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    container.innerHTML = `
-      <div class="view-container os-view">
-        <header class="view-header">
-          <h3 class="view-title"><i data-lucide="monitor"></i> OS Integration Test</h3>
-        </header>
-        <section class="view-content" style="display: flex; flex-direction: column; gap: 1rem;">
-          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <label>Title</label>
-            <input type="text" id="os-title" placeholder="Notification title" />
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <label>Body</label>
-            <textarea id="os-body" placeholder="Notification body" style="height: 100px;"></textarea>
-          </div>
-          <button id="notify-btn" class="btn btn-primary"><i data-lucide="bell"></i> Send Notification</button>
-        </section>
-      </div>
-    `;
+    container.innerHTML = osTemplate;
     (window as any).lucide?.createIcons();
   }
 

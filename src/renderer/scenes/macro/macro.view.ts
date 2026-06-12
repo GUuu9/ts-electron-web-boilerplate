@@ -1,5 +1,6 @@
 import { MacroViewModel } from './macro.viewmodel.js';
 import { MacroAction, MacroActionType } from './macro.models.js';
+import macroTemplate from './macro.view.html?raw';
 
 /**
  * Macro View
@@ -13,65 +14,7 @@ export class MacroView {
     this.container = document.getElementById(containerId);
     if (!this.container) return;
 
-    this.container.innerHTML = `
-      <div class="view-container macro-view">
-        <header class="view-header">
-          <h3 class="view-title"><i data-lucide="zap"></i> Macro Builder</h3>
-          <div class="view-actions">
-            <div class="loop-control">
-              <label>Loops</label>
-              <input type="number" id="macro-loop-count" value="1" min="0" title="0 = Infinite" />
-            </div>
-            <button id="macro-run-btn" class="btn btn-primary"><i data-lucide="play"></i> Run <small>(F5)</small></button>
-            <button id="macro-stop-btn" class="btn btn-danger"><i data-lucide="square"></i> Stop <small>(F6)</small></button>
-            <button id="macro-save-btn" class="btn btn-outline"><i data-lucide="save"></i> Save</button>
-            <button id="macro-load-btn" class="btn btn-outline"><i data-lucide="folder-open"></i> Load</button>
-          </div>
-        </header>
-
-        <section class="action-selector">
-          <div class="selector-group">
-            <span class="selector-label">Mouse</span>
-            <div class="add-btns">
-              <button class="btn-add add-action-btn" data-type="CLICK">Click</button>
-              <button class="btn-add add-action-btn" data-type="RIGHT_CLICK">Right Click</button>
-              <button class="btn-add add-action-btn" data-type="DOUBLE_CLICK">Double Click</button>
-              <button class="btn-add add-action-btn" data-type="MOVE">Move</button>
-              <button class="btn-add add-action-btn" data-type="DRAG">Drag</button>
-              <button class="btn-add add-action-btn" data-type="SCROLL">Scroll</button>
-            </div>
-          </div>
-          <div class="selector-group">
-            <span class="selector-label">Keyboard</span>
-            <div class="add-btns">
-              <button class="btn-add add-action-btn" data-type="KEY_INPUT">Type Text</button>
-              <button class="btn-add add-action-btn" data-type="KEY_PRESS">Key Press</button>
-            </div>
-          </div>
-          <div class="selector-group">
-            <span class="selector-label">Intelligence</span>
-            <div class="add-btns">
-              <button class="btn-add add-action-btn" data-type="IMAGE_SEARCH">Image Search</button>
-              <button class="btn-add add-action-btn" data-type="WAIT">Wait</button>
-            </div>
-          </div>
-        </section>
-
-        <section class="builder-content">
-          <table id="macro-action-table">
-            <thead>
-              <tr>
-                <th class="type-col" style="width: 140px;">Action Type</th>
-                <th class="params-col">Configuration</th>
-                <th class="delay-col" style="width: 120px;">Pre-Delay</th>
-                <th class="control-col" style="width: 50px;"></th>
-              </tr>
-            </thead>
-            <tbody id="macro-action-list"></tbody>
-          </table>
-        </section>
-      </div>
-    `;
+    this.container.innerHTML = macroTemplate;
     (window as any).lucide?.createIcons();
 
     // 페이지 진입 시 데이터 초기화 및 화면 표시
@@ -82,6 +25,10 @@ export class MacroView {
     if (elements.loopCountInput) {
       elements.loopCountInput.value = currentSeq.loopCount.toString();
     }
+  }
+
+  public destroy() {
+    this.viewModel.stopMacro();
   }
 
   public get elements() {
@@ -203,188 +150,103 @@ export class MacroView {
  * Macro Binder
  */
 export class MacroBinder {
+  private boundHandler: (event: Event) => void;
+
   constructor(
     private readonly view: MacroView,
     private readonly viewModel: MacroViewModel
-  ) {}
+  ) {
+    this.boundHandler = this.handleClick.bind(this);
+  }
 
   public bind() {
-    // View에 ViewModel 주입 (render 시 init 호출을 위함)
     (this.view as any).viewModel = this.viewModel;
 
-    // 1. 상태 변경 구독 (State -> View)
     this.viewModel.state.subscribe(() => {
       this.view.highlightAction(this.viewModel.state.currentActionIndex);
     });
 
-    let currentPickingIndex = -1;
+    document.addEventListener('click', this.boundHandler);
+  }
 
-    // 2. 전역 단축키 이벤트 수신 (Main -> Renderer)
-    this.viewModel.onStartShortcut(async () => {
+  public unbind() {
+    document.removeEventListener('click', this.boundHandler);
+  }
+
+  private async handleClick(event: Event) {
+    const target = event.target as HTMLElement;
+    
+    if (target.id === 'macro-run-btn' || target.closest('#macro-run-btn')) {
       const loopInput = this.view.elements.loopCountInput;
       const loopCount = loopInput ? parseInt(loopInput.value) : 1;
       const seq = { ...this.viewModel.state.currentSequence };
       seq.loopCount = loopCount;
       this.viewModel.setSequence(seq);
       await this.viewModel.runMacro();
-    });
-
-    this.viewModel.onStopShortcut(() => {
-      this.viewModel.stopMacro();
-    });
-
-    this.viewModel.onPickShortcut(async () => {
-      if (currentPickingIndex !== -1) {
-        const pos = await this.viewModel.getMousePosition();
-        if (pos) {
-          const seq = { ...this.viewModel.state.currentSequence };
-          seq.actions[currentPickingIndex].params.x = pos.x;
-          seq.actions[currentPickingIndex].params.y = pos.y;
-          this.viewModel.setSequence(seq);
-          this.view.updateActionList(seq.actions);
-          currentPickingIndex = -1;
-        }
-      }
-    });
-
-    // 3. 이벤트 바인딩
-    let draggedIndex = -1;
-
-    document.addEventListener('dragstart', (e) => {
-      const target = (e.target as HTMLElement).closest('.action-row');
-      if (target) {
-        draggedIndex = parseInt(target.getAttribute('data-index') || '-1');
-        e.dataTransfer?.setData('text/plain', draggedIndex.toString());
-      }
-    });
-
-    document.addEventListener('dragover', (e) => {
-      const target = (e.target as HTMLElement).closest('.action-row');
-      if (target) {
-        e.preventDefault();
-        target.classList.add('drag-over');
-      }
-    });
-
-    document.addEventListener('dragleave', (e) => {
-      const target = (e.target as HTMLElement).closest('.action-row');
-      if (target) {
-        target.classList.remove('drag-over');
-      }
-    });
-
-    document.addEventListener('drop', (e) => {
-      const target = (e.target as HTMLElement).closest('.action-row');
-      if (target) {
-        e.preventDefault();
-        target.classList.remove('drag-over');
-        const dropIndex = parseInt(target.getAttribute('data-index') || '-1');
-        if (draggedIndex !== -1 && dropIndex !== -1 && draggedIndex !== dropIndex) {
-          this.viewModel.reorderAction(draggedIndex, dropIndex);
-          this.view.updateActionList(this.viewModel.state.currentSequence.actions);
-        }
-      }
-    });
-
-    document.addEventListener('click', async (event) => {
-      const target = event.target as HTMLElement;
-      
-      // Button Actions
-      if (target.id === 'macro-run-btn' || target.closest('#macro-run-btn')) {
+    }
+    else if (target.id === 'macro-stop-btn' || target.closest('#macro-stop-btn')) this.viewModel.stopMacro();
+    else if (target.id === 'macro-save-btn' || target.closest('#macro-save-btn')) await this.viewModel.save();
+    else if (target.id === 'macro-load-btn' || target.closest('#macro-load-btn')) {
+      const success = await this.viewModel.load();
+      if (success) {
+        const seq = this.viewModel.state.currentSequence;
         const loopInput = this.view.elements.loopCountInput;
-        const loopCount = loopInput ? parseInt(loopInput.value) : 1;
-        const seq = { ...this.viewModel.state.currentSequence };
-        seq.loopCount = loopCount;
-        this.viewModel.setSequence(seq);
-        await this.viewModel.runMacro();
+        if (loopInput) loopInput.value = seq.loopCount.toString();
+        this.view.updateActionList(seq.actions);
       }
-      else if (target.id === 'macro-stop-btn' || target.closest('#macro-stop-btn')) this.viewModel.stopMacro();
-      else if (target.id === 'macro-save-btn' || target.closest('#macro-save-btn')) await this.viewModel.save();
-      else if (target.id === 'macro-load-btn' || target.closest('#macro-load-btn')) {
-        const success = await this.viewModel.load();
-        if (success) {
-          const seq = this.viewModel.state.currentSequence;
-          const loopInput = this.view.elements.loopCountInput;
-          if (loopInput) loopInput.value = seq.loopCount.toString();
-          this.view.updateActionList(seq.actions);
-        }
+    }
+    else if (target.classList.contains('add-action-btn')) {
+      const type = target.getAttribute('data-type') as MacroActionType;
+      const defaultParams: any = {};
+      if (['CLICK', 'RIGHT_CLICK', 'DOUBLE_CLICK', 'MOVE'].includes(type)) {
+        defaultParams.x = 0; defaultParams.y = 0;
+      } else if (type === 'DRAG') {
+        defaultParams.x = 0; defaultParams.y = 0; defaultParams.toX = 100; defaultParams.toY = 100;
+      } else if (type === 'SCROLL') {
+        defaultParams.scrollAmount = 100;
+      } else if (type === 'KEY_INPUT') {
+        defaultParams.text = '';
+      } else if (type === 'KEY_PRESS') {
+        defaultParams.key = 'enter';
+      } else if (type === 'WAIT') {
+        defaultParams.durationMs = 1000;
+      } else if (type === 'IMAGE_SEARCH') {
+        defaultParams.targetImage = '';
+        defaultParams.similarity = 0.8;
+        defaultParams.timeoutMs = 5000;
+        defaultParams.actionOnSuccess = 'CLICK';
+        defaultParams.actionOnFailure = 'CONTINUE';
       }
-      else if (target.classList.contains('add-action-btn')) {
-        const type = target.getAttribute('data-type') as MacroActionType;
-        const defaultParams: any = {};
-        if (['CLICK', 'RIGHT_CLICK', 'DOUBLE_CLICK', 'MOVE'].includes(type)) {
-          defaultParams.x = 0; defaultParams.y = 0;
-        } else if (type === 'DRAG') {
-          defaultParams.x = 0; defaultParams.y = 0; defaultParams.toX = 100; defaultParams.toY = 100;
-        } else if (type === 'SCROLL') {
-          defaultParams.scrollAmount = 100;
-        } else if (type === 'KEY_INPUT') {
-          defaultParams.text = '';
-        } else if (type === 'KEY_PRESS') {
-          defaultParams.key = 'enter';
-        } else if (type === 'WAIT') {
-          defaultParams.durationMs = 1000;
-        } else if (type === 'IMAGE_SEARCH') {
-          defaultParams.targetImage = '';
-          defaultParams.similarity = 0.8;
-          defaultParams.timeoutMs = 5000;
-          defaultParams.actionOnSuccess = 'CLICK';
-          defaultParams.actionOnFailure = 'CONTINUE';
-        }
-        
-        this.viewModel.addAction({ type, params: defaultParams, delayBeforeMs: 100 });
+      
+      this.viewModel.addAction({ type, params: defaultParams, delayBeforeMs: 100 });
+      this.view.updateActionList(this.viewModel.state.currentSequence.actions);
+    }
+    else if (target.classList.contains('remove-action-btn')) {
+      const index = parseInt(target.getAttribute('data-index') || '-1');
+      if (index !== -1) {
+        this.viewModel.removeAction(index);
         this.view.updateActionList(this.viewModel.state.currentSequence.actions);
       }
-      else if (target.classList.contains('remove-action-btn')) {
-        const index = parseInt(target.getAttribute('data-index') || '-1');
-        if (index !== -1) {
-          this.viewModel.removeAction(index);
-          this.view.updateActionList(this.viewModel.state.currentSequence.actions);
-        }
+    }
+    else if (target.classList.contains('pick-coord-btn') || target.closest('.pick-coord-btn')) {
+      const actualTarget = target.closest('.pick-coord-btn') as HTMLElement;
+      const index = parseInt(actualTarget.getAttribute('data-index') || '-1');
+      if (index !== -1) {
+        document.querySelectorAll('.pick-coord-btn').forEach(b => (b as HTMLElement).classList.remove('active'));
+        actualTarget.classList.add('active');
+        actualTarget.innerHTML = '<i data-lucide="mouse-pointer-2" style="width:14px;height:14px;"></i> <small>Press F2</small>';
       }
-      // Coordinate Picker
-      else if (target.classList.contains('pick-coord-btn') || target.closest('.pick-coord-btn')) {
-        const actualTarget = target.closest('.pick-coord-btn') as HTMLElement;
-        const index = parseInt(actualTarget.getAttribute('data-index') || '-1');
-        if (index !== -1) {
-          document.querySelectorAll('.pick-coord-btn').forEach(b => (b as HTMLElement).classList.remove('active'));
-          actualTarget.classList.add('active');
-          actualTarget.innerHTML = '<i data-lucide="mouse-pointer-2" style="width:14px;height:14px;"></i> <small>Press F2</small>';
-          currentPickingIndex = index;
-        }
-      }
-      // Image Browse
-      else if (target.classList.contains('browse-image-btn')) {
-        const index = parseInt(target.getAttribute('data-index') || '-1');
-        if (index !== -1) {
-            const filePath = await this.viewModel.openImageDialog();
-            if (filePath) {
-                const actions = this.viewModel.getSequence().actions;
-                actions[index].params.targetImage = filePath;
-                this.view.updateActionList(actions);
-            }
-        }
-      }
-    });
-
-    // Parameter and Delay Change Handlers
-    document.addEventListener('change', (event) => {
-      const target = event.target as HTMLElement;
+    }
+    else if (target.classList.contains('browse-image-btn')) {
       const index = parseInt(target.getAttribute('data-index') || '-1');
-      if (index === -1) return;
-
-      const actions = this.viewModel.getSequence().actions;
-      const action = actions[index];
-
-      if (target.classList.contains('param-input')) {
-        const key = target.getAttribute('data-key') as keyof MacroAction['params'];
-        const val = (target as HTMLInputElement).value;
-        (action.params as any)[key] = target.getAttribute('type') === 'number' ? parseFloat(val) : val;
-      } else if (target.classList.contains('delay-input')) {
-        action.delayBeforeMs = parseInt((target as HTMLInputElement).value);
-      } else if (target.classList.contains('desc-input')) {
-        action.description = (target as HTMLInputElement).value;
+      if (index !== -1) {
+          const filePath = await this.viewModel.openImageDialog();
+          if (filePath) {
+              const actions = this.viewModel.getSequence().actions;
+              actions[index].params.targetImage = filePath;
+              this.view.updateActionList(actions);
+          }
       }
-    });
+    }
   }
 }

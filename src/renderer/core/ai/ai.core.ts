@@ -10,7 +10,7 @@ export class AICore {
 
   constructor() {
     // this.registerTree('example', createExampleTree());
-    // this.registerTree('shooter', createShooterTree());
+    this.registerTree('shooter', createShooterTree());
   }
 
   // 행동 트리를 등록합니다.
