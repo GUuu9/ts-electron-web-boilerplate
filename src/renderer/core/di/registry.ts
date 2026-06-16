@@ -54,6 +54,7 @@ import { FileSceneService } from '../../scenes/file/fileTest.service.js';
 import { LoggerSceneService } from '../../scenes/logger/loggerTest.service.js';
 import { AISceneService } from '../../scenes/ai/aiTest.service.js';
 import { MacroSceneService } from '../../scenes/macro/macroTest.service.js';
+import { VisionSceneService } from '../../scenes/vision/vision.service.js';
 
 // ViewModels
 import { HttpViewModel } from '../../scenes/network/http/http.viewmodel.js';
@@ -70,6 +71,7 @@ import { FileViewModel } from '../../scenes/file/file.viewmodel.js';
 import { LoggerViewModel } from '../../scenes/logger/logger.viewmodel.js';
 import { AIViewModel } from '../../scenes/ai/ai.viewmodel.js';
 import { MacroViewModel } from '../../scenes/macro/macro.viewmodel.js';
+import { VisionViewModel } from '../../scenes/vision/vision.viewmodel.js';
 
 // Views & Binders
 import { HttpView, HttpBinder } from '../../scenes/network/http/http.view.js';
@@ -84,8 +86,9 @@ import { SerialView, SerialBinder } from '../../scenes/serial/serial.view.js';
 import { MediaView, MediaBinder } from '../../scenes/media/media.view.js';
 import { FileView, FileBinder } from '../../scenes/file/file.view.js';
 import { LoggerView, LoggerBinder } from '../../scenes/logger/logger.view.js';
-import { AIView, AIBinder } from '../../scenes/ai/ai.view.js';
+import { AIView } from '../../scenes/ai/ai.view.js';
 import { MacroView, MacroBinder } from '../../scenes/macro/macro.view.js';
+import { VisionView, VisionBinder } from '../../scenes/vision/vision.view.js';
 
 // Core
 import { AICore } from '../ai/ai.core.js';
@@ -137,11 +140,12 @@ export class RendererRegistry {
     const mediaService = new MediaService(new MediaRepository());
     const deviceService = new DeviceService(new DeviceRepository());
     const fileService = new FileService(new FileRepository());
+    const visionService = new VisionService(new VisionRepository());
 
     return { 
       loggerService, httpService, socketService, tcpService, udpService, 
       osService, systemService, persistenceService, securityService, 
-      serialService, mediaService, deviceService, fileService 
+      serialService, mediaService, deviceService, fileService, visionService
     };
   }
 
@@ -159,11 +163,12 @@ export class RendererRegistry {
     container.register('FileSceneService', new FileSceneService(ds.fileService, ds.loggerService));
     container.register('LoggerSceneService', new LoggerSceneService(ds.loggerService));
     container.register('AISceneService', new AISceneService(container.get('AICore'), ds.loggerService));
+    container.register('VisionSceneService', new VisionSceneService(ds.visionService, ds.fileService, ds.loggerService));
     
     // Macro Scene Service 등록 (Automation, Vision, File, Logger 의존)
     container.register('MacroSceneService', new MacroSceneService(
         new AutomationService(new AutomationRepository()),
-        new VisionService(new VisionRepository()),
+        ds.visionService,
         ds.fileService,
         ds.loggerService
     ));
@@ -184,6 +189,7 @@ export class RendererRegistry {
     container.register('LoggerViewModel', new LoggerViewModel(container.get('LoggerSceneService')));
     container.register('AIViewModel', new AIViewModel(container.get('AICore'), container.get('AISceneService')));
     container.register('MacroViewModel', new MacroViewModel(container.get('MacroSceneService')));
+    container.register('VisionViewModel', new VisionViewModel(container.get('VisionSceneService')));
   }
 
   private static registerViewsAndBinders() {
@@ -202,6 +208,7 @@ export class RendererRegistry {
     const loggerView = new LoggerView();
     const aiView = new AIView(container.get('AIViewModel'));
     const macroView = new MacroView();
+    const visionView = new VisionView();
 
     new HttpBinder(httpView, container.get('HttpViewModel')).bind();
     new SocketBinder(socketView, container.get('SocketViewModel')).bind();
@@ -217,8 +224,9 @@ export class RendererRegistry {
     new LoggerBinder(loggerView, container.get('LoggerViewModel')).bind();
     
     new MacroBinder(macroView, container.get('MacroViewModel')).bind();
+    new VisionBinder(visionView, container.get('VisionViewModel')).bind();
     
-    container.register('Views', { httpView, socketView, tcpView, udpView, osView, systemView, persistenceView, securityView, serialView, mediaView, fileView, loggerView, aiView, macroView });
+    container.register('Views', { httpView, socketView, tcpView, udpView, osView, systemView, persistenceView, securityView, serialView, mediaView, fileView, loggerView, aiView, macroView, visionView });
   }
 
   private static registerNavigation() {

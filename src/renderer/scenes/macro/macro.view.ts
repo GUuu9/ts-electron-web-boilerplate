@@ -118,6 +118,9 @@ export class MacroView {
                 <span class="image-path">${a.params.targetImage || 'No image selected'}</span>
               </div>
               <button class="btn btn-outline browse-image-btn" data-index="${i}" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;">Browse</button>
+              <button class="btn btn-outline capture-image-btn" data-index="${i}" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" title="Capture region">
+                <i data-lucide="camera" style="width:12px;height:12px;"></i> Capture
+              </button>
               <div class="param-item"><label>Sim</label><input type="number" class="param-input" data-key="similarity" data-index="${i}" value="${a.params.similarity || 0.8}" step="0.1" min="0" max="1" style="width:50px;" /></div>
             </div>
             <div class="param-group">
@@ -246,6 +249,16 @@ export class MacroBinder {
               actions[index].params.targetImage = filePath;
               this.view.updateActionList(actions);
           }
+      }
+    }
+    else if (target.classList.contains('capture-image-btn') || target.closest('.capture-image-btn')) {
+      const actualTarget = target.closest('.capture-image-btn') as HTMLElement;
+      const index = parseInt(actualTarget.getAttribute('data-index') || '-1');
+      if (index !== -1) {
+        const filePath = await this.viewModel.captureImage(index);
+        if (filePath) {
+          this.view.updateActionList(this.viewModel.getSequence().actions);
+        }
       }
     }
   }

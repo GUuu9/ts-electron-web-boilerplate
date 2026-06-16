@@ -138,6 +138,22 @@ export class MacroSceneService {
     return await this.file.openDialog([{ name: 'Images', extensions: ['jpg', 'png', 'gif', 'bmp'] }]);
   }
 
+  /**
+   * 화면 영역을 캡처하여 파일 경로를 반환합니다.
+   */
+  public async captureImage(): Promise<string | null> {
+    try {
+      const filePath = await this.vision.captureRegion();
+      if (filePath) {
+        await this.logger.log('INFO', `화면 영역 캡처 성공: ${filePath}`);
+      }
+      return filePath;
+    } catch (e) {
+      await this.logger.log('ERROR', `화면 영역 캡처 실패: ${e}`);
+      return null;
+    }
+  }
+
   public async saveMacro(sequence: MacroSequence): Promise<void> {
     try {
       // 매크로 전용 JSON 필터 적용

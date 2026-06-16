@@ -11,4 +11,14 @@ export class VisionRepository {
     if (!(window as any).electronAPI?.vision) return { found: false, confidence: 0 };
     return await (window as any).electronAPI.vision.findImage(templatePath, similarity);
   }
+
+  public async processImageFile(filePath: string): Promise<string> {
+    if (!(window as any).electronAPI?.vision) return '';
+    return await (window as any).electronAPI.vision.processImageFile(filePath);
+  }
+
+  public async captureRegion(): Promise<string | null> {
+    if (!(window as any).electronAPI?.vision) return null;
+    return await (window as any).electronAPI.vision.captureRegion();
+  }
 }

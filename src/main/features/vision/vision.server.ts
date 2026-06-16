@@ -44,6 +44,55 @@ export class VisionServer {
   }
 
   /**
+   * 주어진 이미지 파일을 Python으로 처리하여 결과를 Base64로 반환합니다.
+   */
+  public async processImageFile(filePath: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const python = spawn(this.getPythonPath(), [this.getScriptPath(), filePath]);
+      let data = '';
+      python.stdout.on('data', (d) => data += d);
+      python.on('close', () => {
+        try {
+          const result = JSON.parse(data);
+          resolve(result.image);
+        } catch (e) {
+          reject(e);
+        } finally {
+          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        }
+      });
+    });
+  }
+
+  /**
+   * 화면의 특정 영역을 인터랙티브하게 캡처합니다.
+   * macOS의 screencapture -i 기능을 사용합니다.
+   */
+  public async captureRegion(): Promise<string | null> {
+    const timestamp = Date.now();
+    const tmpPath = path.resolve(this.tempDir, `capture_${timestamp}.png`);
+
+    try {
+      if (process.platform === 'darwin') {
+        // -i: 상호작용 모드 (영역 선택)
+        // -r: 화면 캡처 결과물에 그림자 제외 (선택 사항)
+        await execAsync(`screencapture -i "${tmpPath}"`);
+        
+        // 사용자가 취소했을 경우 파일이 생성되지 않음
+        if (fs.existsSync(tmpPath)) {
+          return tmpPath;
+        }
+      } else {
+        console.warn('[Vision] captureRegion is currently only supported on macOS');
+      }
+    } catch (e) {
+      console.error('[Vision] captureRegion failed:', e);
+    }
+    
+    return null;
+  }
+
+  /**
    * 화면 캡처 후 Python으로 엣지 검출을 수행합니다.
    */
   public async processScreen(): Promise<string> {

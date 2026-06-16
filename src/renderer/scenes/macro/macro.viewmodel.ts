@@ -83,6 +83,22 @@ export class MacroViewModel {
     return await this.service.openImageDialog();
   }
 
+  /**
+   * 화면 영역을 캡처하여 특정 액션의 이미지 경로로 설정합니다.
+   */
+  public async captureImage(index: number): Promise<string | null> {
+    const filePath = await this.service.captureImage();
+    if (filePath) {
+      const actions = this.getSequence().actions;
+      if (actions[index]) {
+        actions[index].params.targetImage = filePath;
+        // 시퀀스 상태 업데이트를 위해 다시 설정
+        this.setSequence({ ...this.state.currentSequence, actions });
+      }
+    }
+    return filePath;
+  }
+
   public async save() {
     await this.service.saveMacro(this.state.currentSequence);
   }

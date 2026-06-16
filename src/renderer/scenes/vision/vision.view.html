@@ -1,0 +1,96 @@
+<div class="view-container">
+  <div class="view-header">
+    <h3 class="view-title"><i data-lucide="eye"></i> Vision AI Sandbox & Debugger</h3>
+  </div>
+
+  <div class="scene-content">
+    <!-- Top Control Bar -->
+    <div class="view-content vision-controls" style="margin-bottom: 20px;">
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <label>캡처 및 분석</label>
+        <div style="display: flex; gap: 10px;">
+          <button id="capture-button" class="btn btn-primary">
+            <i data-lucide="camera"></i> 전체 화면 캡처
+          </button>
+          <button id="partial-capture-button" class="btn btn-outline">
+            <i data-lucide="crop"></i> 부분 캡처
+          </button>
+          <div class="status-badge" id="vision-status" style="margin-top: 5px; font-weight: bold; align-self: center;">상태: 대기 중</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2col">
+      <!-- Left Column: Processing Sandbox -->
+      <div class="view-content">
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <label>분석 결과</label>
+          <div class="vision-display">
+            <button id="save-image-button" class="btn btn-outline" style="margin-bottom: 10px;">
+              <i data-lucide="save"></i> 이미지 저장
+            </button>
+            <div id="image-container" class="image-preview" style="min-height: 250px; border: 1px dashed #ccc; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #f9f9f9;">
+              <img id="processed-image" src="" alt="분석 결과 이미지" style="max-width: 100%; height: auto; display: none;" />
+              <p id="placeholder-text">이미지가 없습니다.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Template Matching Test -->
+      <div class="view-content">
+        <div class="vision-matching">
+          <label>Template Matching Test</label>
+          <p>특정 이미지가 현재 화면에 있는지 테스트합니다.</p>
+          
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label>템플릿 이미지 경로</label>
+            <div style="display: flex; gap: 5px;">
+              <input type="text" id="template-path" class="input" placeholder="이미지를 선택하세요..." readonly style="flex: 1;" />
+              <button id="browse-template" class="btn btn-outline" title="이미지 선택">
+                <i data-lucide="folder-open"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label>유사도 임계값 (Similarity: <span id="similarity-value">0.8</span>)</label>
+            <input type="range" id="similarity-slider" min="0" max="1" step="0.05" value="0.8" style="width: 100%;" />
+            <small style="color: #666;">높을수록 더 정확하게 일치해야 합니다.</small>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label>
+              <input type="checkbox" id="show-edge-detection" /> 엣지 검출 결과 보기
+            </label>
+          </div>
+
+          <button id="test-find-image" class="btn btn-success" style="width: 100%;">
+            <i data-lucide="play-circle"></i> 이미지 찾기 테스트
+          </button>
+
+          <div id="match-result-container" class="card result-card" style="margin-top: 20px; display: none;">
+            <h4><i data-lucide="info"></i> 매칭 결과</h4>
+            <div class="result-details">
+              <p><strong>발견 여부:</strong> <span id="match-found">-</span></p>
+              <p><strong>정확도 (Confidence):</strong> <span id="match-confidence">-</span></p>
+              <p><strong>좌표 (X, Y):</strong> <span id="match-coords">-</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .result-details p {
+    margin: 5px 0;
+  }
+</style>

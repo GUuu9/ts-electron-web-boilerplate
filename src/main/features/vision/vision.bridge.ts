@@ -7,4 +7,6 @@ export const visionBridge = {
   processScreen: () => ipcRenderer.invoke('vision:processScreen'),
   findImage: (templatePath: string, similarity: number = 0.8) => 
     ipcRenderer.invoke('vision:findImage', templatePath, similarity),
+  processImageFile: (filePath: string) => ipcRenderer.invoke('vision:processImageFile', filePath),
+  captureRegion: () => ipcRenderer.invoke('vision:captureRegion'),
 };

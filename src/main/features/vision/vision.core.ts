@@ -24,5 +24,13 @@ export class VisionCore implements BackendModule {
     ipcMain.handle('vision:findImage', async (_, templatePath: string, similarity: number) => {
       return await this.server.findImage(templatePath, similarity);
     });
+
+    ipcMain.handle('vision:processImageFile', async (_, filePath: string) => {
+      return await this.server.processImageFile(filePath);
+    });
+
+    ipcMain.handle('vision:captureRegion', async () => {
+      return await this.server.captureRegion();
+    });
   }
 }

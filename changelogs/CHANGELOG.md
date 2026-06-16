@@ -13,6 +13,7 @@
 - [**COMMIT_00006**](./commit_00006.md) : TCP Server/Client 확장 및 로그 기능 추가.
 - [**COMMIT_00007**](./commit_00007.md) : UDP 기능 확장 및 로그 기능 추가.
 - [**COMMIT_00008**](./commit_00008.md) : 매크로 기능 고도화 및 네트워크 상태 관리 시스템 개선.
+- [**COMMIT_00009**](./commit_00009.md) : Vision AI Sandbox 기능 고도화 및 UI/UX 개선.
 
 ---
 
