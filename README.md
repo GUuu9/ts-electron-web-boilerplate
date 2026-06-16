@@ -38,10 +38,30 @@ src/
 └── shared/           # 공용 계층: 플랫폼 독립적 모델/로직
     └── [service-name]/ # 서비스명 기반 구조 (models, client 등)
 ```
+---
+
+## 🚀 주요 기능 (Features)
+
+각 기능은 명확한 도메인(Backend 및 Frontend 공통)으로 분리되어 있습니다.
+
+| 도메인 | 설명 |
+| :--- | :--- |
+| **Automation** | 매크로 빌더, 작업 순서 제어 및 자동화 엔진 관리 |
+| **File** | 파일 입출력, 다이얼로그 관리 및 데이터 접근 제어 |
+| **Logger** | 애플리케이션 상태 및 동작 로그 기록 및 모니터링 |
+| **Media** | 오디오/비디오 처리 및 멀티미디어 제어 |
+| **Network** | TCP/UDP 소켓 통신 및 HTTP 통신 기능 |
+| **OS** | 시스템 알림, 단축키 처리, 트레이 아이콘 관리 |
+| **Persistence** | 애플리케이션 데이터 지속성(저장/불러오기) 관리 |
+| **Security** | 암호화/복호화 (AES-GCM, RSA-OAEP) 및 보안 데이터 처리 |
+| **Serial** | 시리얼 포트 통신 및 외부 장치 연동 |
+| **System** | 전반적인 시스템 상태 제어 및 하드웨어 연동 |
+| **Vision** | 화면 캡처, 이미지 프로세싱(엣지 검출) 및 템플릿 매칭 |
 
 ---
 
 ## 🏗 아키텍처 역할 정의 (Architecture Role Definitions)
+
 
 ### 1. UI & Presentation Layer (Renderer/Frontend)
 
