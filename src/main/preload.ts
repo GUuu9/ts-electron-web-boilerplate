@@ -12,6 +12,7 @@ import { fileBridge } from './features/file/file.bridge.js';
 import { loggerBridge } from './features/logger/logger.bridge.js';
 import { automationBridge } from './features/automation/automation.bridge.js';
 import { visionBridge } from './features/vision/vision.bridge.js';
+import { llmBridge } from './features/llm/llm.bridge.js';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   platform: process.platform,
@@ -27,5 +28,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   file: fileBridge,
   logger: loggerBridge,
   automation: automationBridge,
-  vision: visionBridge
+  vision: visionBridge,
+  llm: llmBridge
 });

@@ -11,6 +11,7 @@ import { FileCoreModule } from '../../features/file/file.core.js';
 import { LoggerCoreModule } from '../../features/logger/logger.core.js';
 import { AutomationCore } from '../../features/automation/automation.core.js';
 import { VisionCore } from '../../features/vision/vision.core.js';
+import { LLMCore } from '../../features/llm/llm.core.js';
 import { container } from './container.main.js';
 import { BackendModule } from '../backend-module.js';
 
@@ -34,6 +35,7 @@ export class MainRegistry {
       new LoggerCoreModule(),
       new AutomationCore(),
       new VisionCore(),
+      new LLMCore(),
     ];
 
     // 컨테이너에 등록 및 초기화

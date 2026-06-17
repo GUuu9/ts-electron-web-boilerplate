@@ -14,6 +14,7 @@ import { LoggerView } from '../../scenes/logger/logger.view.js';
 import { MacroView } from '../../scenes/macro/macro.view.js';
 import { AIView } from '../../scenes/ai/ai.view.js';
 import { VisionView } from '../../scenes/vision/vision.view.js';
+import { LLMView } from '../../scenes/llm/llm.view.js';
 
 /**
  * NavController
@@ -38,6 +39,7 @@ export class NavController {
       macroView: MacroView;
       aiView: AIView;
       visionView: VisionView;
+      llmView: LLMView;
     }
   ) {}
 
@@ -71,6 +73,7 @@ export class NavController {
         case 'nav-macro': this.navigator.navigate(this.views.macroView); break;
         case 'nav-ai': this.navigator.navigate(this.views.aiView); break;
         case 'nav-vision': this.navigator.navigate(this.views.visionView); break;
+        case 'nav-llm': this.navigator.navigate(this.views.llmView); break;
       }
     });
   }

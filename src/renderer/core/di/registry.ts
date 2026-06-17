@@ -21,6 +21,7 @@ import { FileRepository } from '../../data/ipc/file/file.repository.js';
 import { LoggerRepository } from '../../data/ipc/logger/logger.repository.js';
 import { AutomationRepository } from '../../data/ipc/automation/automation.repository.js';
 import { VisionRepository } from '../../data/ipc/vision/vision.repository.js';
+import { LLMRepository } from '../../data/ipc/llm/llm.repository.js';
 
 // Domain Services
 import { HttpService } from '../../domains/network/http/services/http.service.js';
@@ -38,6 +39,7 @@ import { FileService } from '../../domains/file/services/file.service.js';
 import { LoggerService } from '../../domains/logger/services/logger.service.js';
 import { AutomationService } from '../../domains/automation/services/automation.service.js';
 import { VisionService } from '../../domains/vision/services/vision.service.js';
+import { LLMService } from '../../domains/llm/services/llm.service.js';
 
 // Scene Services
 import { HttpSceneService } from '../../scenes/network/http/httpTest.service.js';
@@ -55,6 +57,7 @@ import { LoggerSceneService } from '../../scenes/logger/loggerTest.service.js';
 import { AISceneService } from '../../scenes/ai/aiTest.service.js';
 import { MacroSceneService } from '../../scenes/macro/macroTest.service.js';
 import { VisionSceneService } from '../../scenes/vision/vision.service.js';
+import { LLMSceneService } from '../../scenes/llm/llmTest.service.js';
 
 // ViewModels
 import { HttpViewModel } from '../../scenes/network/http/http.viewmodel.js';
@@ -72,6 +75,7 @@ import { LoggerViewModel } from '../../scenes/logger/logger.viewmodel.js';
 import { AIViewModel } from '../../scenes/ai/ai.viewmodel.js';
 import { MacroViewModel } from '../../scenes/macro/macro.viewmodel.js';
 import { VisionViewModel } from '../../scenes/vision/vision.viewmodel.js';
+import { LLMViewModel } from '../../scenes/llm/llm.viewmodel.js';
 
 // Views & Binders
 import { HttpView, HttpBinder } from '../../scenes/network/http/http.view.js';
@@ -89,6 +93,7 @@ import { LoggerView, LoggerBinder } from '../../scenes/logger/logger.view.js';
 import { AIView } from '../../scenes/ai/ai.view.js';
 import { MacroView, MacroBinder } from '../../scenes/macro/macro.view.js';
 import { VisionView, VisionBinder } from '../../scenes/vision/vision.view.js';
+import { LLMView, LLMBinder } from '../../scenes/llm/llm.view.js';
 
 // Core
 import { AICore } from '../ai/ai.core.js';
@@ -141,11 +146,13 @@ export class RendererRegistry {
     const deviceService = new DeviceService(new DeviceRepository());
     const fileService = new FileService(new FileRepository());
     const visionService = new VisionService(new VisionRepository());
+    const llmService = new LLMService(new LLMRepository());
 
     return { 
       loggerService, httpService, socketService, tcpService, udpService, 
       osService, systemService, persistenceService, securityService, 
-      serialService, mediaService, deviceService, fileService, visionService
+      serialService, mediaService, deviceService, fileService, visionService,
+      llmService
     };
   }
 
@@ -164,6 +171,7 @@ export class RendererRegistry {
     container.register('LoggerSceneService', new LoggerSceneService(ds.loggerService));
     container.register('AISceneService', new AISceneService(container.get('AICore'), ds.loggerService));
     container.register('VisionSceneService', new VisionSceneService(ds.visionService, ds.fileService, ds.loggerService));
+    container.register('LLMSceneService', new LLMSceneService(ds.llmService, ds.loggerService));
     
     // Macro Scene Service 등록 (Automation, Vision, File, Logger 의존)
     container.register('MacroSceneService', new MacroSceneService(
@@ -190,6 +198,7 @@ export class RendererRegistry {
     container.register('AIViewModel', new AIViewModel(container.get('AICore'), container.get('AISceneService')));
     container.register('MacroViewModel', new MacroViewModel(container.get('MacroSceneService')));
     container.register('VisionViewModel', new VisionViewModel(container.get('VisionSceneService')));
+    container.register('LLMViewModel', new LLMViewModel(container.get('LLMSceneService')));
   }
 
   private static registerViewsAndBinders() {
@@ -209,6 +218,7 @@ export class RendererRegistry {
     const aiView = new AIView(container.get('AIViewModel'));
     const macroView = new MacroView();
     const visionView = new VisionView();
+    const llmView = new LLMView(container.get('LLMViewModel'));
 
     new HttpBinder(httpView, container.get('HttpViewModel')).bind();
     new SocketBinder(socketView, container.get('SocketViewModel')).bind();
@@ -225,8 +235,9 @@ export class RendererRegistry {
     
     new MacroBinder(macroView, container.get('MacroViewModel')).bind();
     new VisionBinder(visionView, container.get('VisionViewModel')).bind();
+    new LLMBinder(llmView, container.get('LLMViewModel')).bind();
     
-    container.register('Views', { httpView, socketView, tcpView, udpView, osView, systemView, persistenceView, securityView, serialView, mediaView, fileView, loggerView, aiView, macroView, visionView });
+    container.register('Views', { httpView, socketView, tcpView, udpView, osView, systemView, persistenceView, securityView, serialView, mediaView, fileView, loggerView, aiView, macroView, visionView, llmView });
   }
 
   private static registerNavigation() {
