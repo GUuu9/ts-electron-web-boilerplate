@@ -7,4 +7,5 @@ import type { BrowserWindow } from 'electron';
 export interface BackendModule {
   setupHandlers(mainWindow: BrowserWindow | null): void;
   init?(): void;
+  shutdown?(): void;
 }

@@ -41,6 +41,24 @@ app.whenReady().then(() => {
   }
 });
 
+app.on('will-quit', async (event) => {
+  event.preventDefault(); // 종료 프로세스 유지
+  await MainRegistry.shutdownAll();
+  app.exit(0); // 강제 종료
+});
+
+// 터미널 Ctrl+C 처리
+process.on('SIGINT', async () => {
+  console.log('[System] SIGINT received, shutting down gracefully...');
+  try {
+    await MainRegistry.shutdownAll();
+  } catch (err) {
+    console.error('[System] Error during shutdown:', err);
+  } finally {
+    process.exit(0);
+  }
+});
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });

@@ -164,14 +164,28 @@ export class LLMServerManager {
 
   public async stop() {
     if (this.serverProcess) {
+      console.log('[LLM] Sending SIGTERM to llama-server...');
       this.serverProcess.kill('SIGTERM');
+
+      // 3초간 종료 대기
+      for (let i = 0; i < 15; i++) {
+        try {
+          // 프로세스 존재 여부 확인 (0을 보내면 신호를 보내지 않고 존재 여부만 확인)
+          process.kill(this.serverProcess.pid, 0);
+          await new Promise(resolve => setTimeout(resolve, 200));
+        } catch (e) {
+          // 프로세스가 종료됨
+          console.log('[LLM] llama-server exited gracefully.');
+          this.serverProcess = null;
+          this.currentModel = null;
+          return;
+        }
+      }
+
+      // 3초 후에도 살아있으면 SIGKILL
+      console.log('[LLM] llama-server did not exit, sending SIGKILL...');
+      this.serverProcess.kill('SIGKILL');
       this.serverProcess = null;
-    }
-    // 포트 해제 대기 (최대 3초)
-    for (let i = 0; i < 15; i++) {
-      const isRunning = await this.checkPort(8080);
-      if (!isRunning) break;
-      await new Promise(resolve => setTimeout(resolve, 200));
     }
     this.currentModel = null;
   }

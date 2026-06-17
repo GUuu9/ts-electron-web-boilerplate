@@ -20,8 +20,10 @@ import { BackendModule } from '../backend-module.js';
  * 모든 백엔드 피처의 생성 및 조립을 담당합니다.
  */
 export class MainRegistry {
+  private static modules: BackendModule[] = [];
+
   public static initBackend(mainWindow: any): void {
-    const modules: BackendModule[] = [
+    this.modules = [
       new SocketCore(),
       new TcpCoreModule(),
       new UdpCoreModule(),
@@ -39,10 +41,22 @@ export class MainRegistry {
     ];
 
     // 컨테이너에 등록 및 초기화
-    modules.forEach(module => {
+    this.modules.forEach(module => {
       container.register(module.constructor.name, module);
       if (module.init) module.init();
       module.setupHandlers(mainWindow);
     });
+  }
+
+  public static async shutdownAll(): Promise<void> {
+    for (const module of this.modules) {
+      if (module.shutdown) {
+        try {
+          await module.shutdown();
+        } catch (error) {
+          console.error(`[System] Error shutting down module ${module.constructor.name}:`, error);
+        }
+      }
+    }
   }
 }

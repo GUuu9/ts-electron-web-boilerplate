@@ -26,6 +26,11 @@ export class LLMCore implements BackendModule {
     }
   }
 
+  public async shutdown() {
+    console.log('[LLM] LLM Feature 종료 중...');
+    await this.manager.stop();
+  }
+
   setupHandlers(mainWindow: BrowserWindow | null): void {
     ipcMain.handle('llm:getModels', async () => {
       return await this.server.getModels();
