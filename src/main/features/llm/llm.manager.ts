@@ -1,4 +1,4 @@
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
 import net from 'net';
 import path from 'path';
 import fs from 'fs';
@@ -29,6 +29,8 @@ export class LLMServerManager {
    * 성공 시 true, 실패 시 false를 반환합니다. (throw 대신 boolean 반환으로 안전 처리)
    */
   public async start(modelName?: string): Promise<boolean> {
+    console.log(`[LLM DEBUG] start() called. modelName: ${modelName}, currentModel: ${this.currentModel}`);
+    
     // Mutex: 이미 구동 중이면 완료될 때까지 대기
     if (this.isStarting) {
       console.log('[LLM] Another start() is already in progress, waiting...');
@@ -38,20 +40,28 @@ export class LLMServerManager {
       }
     }
 
+    // 추가: 구동 전 8080 포트 점유 프로세스 강제 종료
+    await this.forceKillPort(8080);
+
     const isRunning = await this.checkPort(8080);
+    console.log(`[LLM DEBUG] Port 8080 isRunning: ${isRunning}`);
     if (isRunning && (!modelName || modelName === this.currentModel)) {
       console.log('[LLM] llama-server is already running with the requested model.');
       return true;
     }
 
     this.isStarting = true;
+    console.log(`[LLM DEBUG] Setting isStarting = true`);
 
     try {
-      if (isRunning) {
-        console.log('[LLM] Stopping existing server for model change...');
-        await this.stop();
-        // 포트 해제 후 추가 대기
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+      // 포트 점유 프로세스 강제 종료
+      await this.forceKillPort(8080);
+      
+      // 포트가 정리되었는지 최종 확인
+      const isStillRunning = await this.checkPort(8080);
+      if (isStillRunning) {
+        console.log('[LLM] Port 8080 still in use after forceKill, aborting.');
+        return false;
       }
 
       const binaryPath = this.getBundledBinaryPath();
@@ -60,25 +70,26 @@ export class LLMServerManager {
       if (modelName) {
         modelPath = path.join(this.modelsDir, modelName);
       } else {
-        // models/ 폴더 내 첫 번째 GGUF 파일 자동 선택
+        // 자동 선택 로직 변경: 모델 이름이 없을 경우 강제로 첫 번째 것을 선택하지 않음
+        // 구동을 원하면 명시적으로 호출하거나, 시스템이 시작할 때만 자동 선택
         const files = fs.readdirSync(this.modelsDir);
         const ggufFiles = files.filter(f => f.endsWith('.gguf'));
         if (ggufFiles.length > 0) {
-          modelPath = path.join(this.modelsDir, ggufFiles[0]);
-          this.currentModel = ggufFiles[0];
-        } else {
-          modelPath = process.env.LLM_MODEL_PATH || '';
-          if (modelPath) this.currentModel = path.basename(modelPath);
+          // 명시적 선택이 아닐 때만 자동 선택
+          if (!modelName) {
+            modelPath = path.join(this.modelsDir, ggufFiles[0]);
+            this.currentModel = ggufFiles[0];
+          }
         }
       }
 
       if (!binaryPath) {
-        console.error('[LLM] llama-server 바이너리를 찾을 수 없습니다. bin/[platform]/ 경로를 확인하세요.');
+        console.error('[LLM] llama-server 바이너리를 찾을 수 없습니다.');
         return false;
       }
 
       if (!modelPath || !fs.existsSync(modelPath)) {
-        console.error('[LLM] 구동할 모델 파일이 없습니다. models/ 디렉토리에 .gguf 파일을 추가하세요.');
+        console.error(`[LLM] 구동할 모델 파일을 찾을 수 없습니다: ${modelPath}`);
         this.currentModel = null;
         return false;
       }
@@ -114,9 +125,9 @@ export class LLMServerManager {
 
       this.serverProcess.unref();
 
-      // 포트 바인딩 대기 (최대 30초)
+      // 포트 바인딩 대기 (최대 60초로 증가)
       console.log('[LLM] Waiting for llama-server to listen on port 8080...');
-      for (let i = 0; i < 150; i++) {
+      for (let i = 0; i < 300; i++) {
         await new Promise((resolve) => setTimeout(resolve, 200));
         const active = await this.checkPort(8080);
         if (active) {
@@ -125,11 +136,11 @@ export class LLMServerManager {
         }
       }
 
-      console.error('[LLM] Timeout: llama-server did not bind to port 8080 within 30 seconds.');
+      console.error('[LLM] Timeout: llama-server did not bind to port 8080 within 60 seconds.');
       return false;
 
+
     } finally {
-      // 성공/실패 모두 Mutex 해제
       this.isStarting = false;
     }
   }
@@ -152,13 +163,25 @@ export class LLMServerManager {
 
   private checkPort(port: number): Promise<boolean> {
     return new Promise(resolve => {
-      const server = net.createServer();
-      server.once('error', () => resolve(true));   // 포트 점유 중 → true
-      server.once('listening', () => {
-        server.close();
-        resolve(false);                             // 포트 비어있음 → false
+      // 서버가 이미 리스닝 중이라면, net.connect가 성공해야 합니다.
+      const socket = net.connect(port, '127.0.0.1');
+      
+      socket.once('connect', () => {
+        socket.end();
+        console.log(`[LLM DEBUG] checkPort: Successfully connected to port ${port}`);
+        resolve(true); // 포트 점유 중이자 서버가 응답함 → true
       });
-      server.listen(port);
+      
+      socket.once('error', (err) => {
+        console.log(`[LLM DEBUG] checkPort: Failed to connect to port ${port}: ${err.message}`);
+        resolve(false); // 연결 실패 → 포트 비어있거나 서버 응답 없음 → false
+      });
+      
+      socket.setTimeout(500); // 500ms 타임아웃
+      socket.once('timeout', () => {
+        socket.destroy();
+        resolve(false);
+      });
     });
   }
 
@@ -188,5 +211,27 @@ export class LLMServerManager {
       this.serverProcess = null;
     }
     this.currentModel = null;
+  }
+
+  // 포트 점유 프로세스 강제 종료 메서드 추가
+  private async forceKillPort(port: number): Promise<void> {
+    if (process.platform === 'win32') {
+      try {
+        execSync(`for /f "tokens=5" %a in ('netstat -aon ^| findstr :${port}') do taskkill /f /pid %a`);
+      } catch (e) {
+        console.log('[LLM] No process found on port or failed to kill:', e);
+      }
+    } else {
+      try {
+        const pid = execSync(`lsof -t -i:${port}`).toString().trim();
+        if (pid) {
+          console.log(`[LLM] Killing orphaned process on port ${port}: ${pid}`);
+          execSync(`kill -9 ${pid}`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      } catch (e) {
+        // 포트에 프로세스가 없으면 lsof가 에러를 낼 수 있음
+      }
+    }
   }
 }

@@ -41,7 +41,7 @@ export class LLMBinder {
     document.addEventListener('input', this.boundInputHandler);
     document.addEventListener('change', this.boundChangeHandler);
 
-    // 상태 구독 - 상태 변경 시 UI 갱신
+    // 상태 구독
     this.viewModel.state.subscribe(() => {
       try {
         this.updateUI();
@@ -50,10 +50,7 @@ export class LLMBinder {
       }
     });
 
-    // textarea 자동 높이 조절
     this.setupAutoResize();
-
-    // 초기 UI 반영
     this.updateUI();
   }
 
@@ -69,62 +66,58 @@ export class LLMBinder {
    */
   private handleClick(event: MouseEvent) {
     const target = event.target as HTMLElement;
+    const btn = target.closest('button');
 
-    // 사이드바 토글 버튼
-    if (target.id === 'sidebar-toggle-btn' || target.closest('#sidebar-toggle-btn')) {
-      this.toggleSidebar();
-      return;
+    if (!btn) return;
+
+    // 각 버튼별 ID 기반 동작
+    switch (btn.id) {
+      case 'sidebar-toggle-btn':
+      case 'close-sidebar-btn':
+        this.toggleSidebar();
+        break;
+      case 'send-btn':
+        this.handleSendMessage();
+        break;
+      case 'refresh-chat-models-btn':
+        this.viewModel.refreshModels();
+        break;
+      case 'pull-model-btn':
+        const input = document.getElementById('pull-model-input') as HTMLInputElement;
+        if (input && input.value.trim()) {
+          this.viewModel.pullModel(input.value.trim());
+          input.value = '';
+        }
+        break;
+      case 'clear-chat-btn':
+        this.viewModel.clearChat();
+        break;
+      case 'scroll-top-btn':
+        const chatHistoryTop = document.getElementById('chat-history');
+        if (chatHistoryTop) chatHistoryTop.scrollTop = 0;
+        break;
+      case 'scroll-bottom-btn':
+        const chatHistoryBottom = document.getElementById('chat-history');
+        if (chatHistoryBottom) chatHistoryBottom.scrollTop = chatHistoryBottom.scrollHeight;
+        break;
     }
 
-    // 전송 버튼
-    if (target.id === 'send-btn' || target.closest('#send-btn')) {
-      this.handleSendMessage();
-      return;
-    }
-
-    // 모델 새로고침 버튼
-    if (target.id === 'refresh-chat-models-btn' || target.closest('#refresh-chat-models-btn')) {
-      this.viewModel.refreshModels();
-      return;
-    }
-
-    // 모델 다운로드 버튼
-    if (target.id === 'pull-model-btn' || target.closest('#pull-model-btn')) {
-      const input = document.getElementById('pull-model-input') as HTMLInputElement;
-      if (input && input.value.trim()) {
-        this.viewModel.pullModel(input.value.trim());
-        input.value = '';
-      }
-      return;
-    }
-
-    // 모델 삭제 버튼
-    if (target.classList.contains('remove-model-item-btn') || target.closest('.remove-model-item-btn')) {
-      const btn = target.closest('.remove-model-item-btn') as HTMLElement || target;
+    // 모델 삭제 버튼은 클래스로 구분
+    if (btn.classList.contains('remove-model-item-btn')) {
       const modelName = btn.dataset.model;
-      if (modelName) {
-        this.viewModel.removeModelSpecific(modelName);
-      }
-      return;
-    }
-
-    // 대화 초기화 버튼
-    if (target.id === 'clear-chat-btn' || target.closest('#clear-chat-btn')) {
-      this.viewModel.clearChat();
-      return;
+      if (modelName) this.viewModel.removeModelSpecific(modelName);
     }
   }
 
+
   /**
-   * 사이드바 토글 - 웴기/닫기
+   * 사이드바 토글 - 열기/닫기
    */
   private toggleSidebar() {
     const sidebar = document.getElementById('llm-sidebar');
-    const toggleBtn = document.getElementById('sidebar-toggle-btn');
     if (!sidebar) return;
 
-    const isOpen = sidebar.classList.toggle('sidebar-open');
-    toggleBtn?.classList.toggle('active', isOpen);
+    sidebar.classList.toggle('sidebar-open');
   }
 
   /**
@@ -196,12 +189,11 @@ export class LLMBinder {
   private updateUI() {
     const state = this.viewModel.state;
 
-    // 1. 로딩 인디케이터 (타이핑 인디케이터)
+    // 1. 로딩 인디케이터
     const typingIndicator = document.getElementById('typing-indicator');
     const loaderMsg = document.getElementById('loader-message');
     const sendBtn = document.getElementById('send-btn') as HTMLButtonElement;
 
-    // 다운로드 중인 경우 오버레이 표시, 채팅 로딩인 경우 타이핑 인디케이터 표시
     const isDownloading = state.isLoading && state.loadingMessage.includes('%');
     const isGenerating = state.isLoading && !isDownloading;
 
@@ -216,10 +208,15 @@ export class LLMBinder {
 
     if (sendBtn) sendBtn.disabled = state.isLoading;
 
-    // 2. 모델 셀렉트 업데이트
+    // 2. 모델 셀렉트 업데이트 및 활성 모델 표시
     const modelSelect = document.getElementById('model-select-chat') as HTMLSelectElement;
+    const activeModelDisplay = document.getElementById('active-model-name');
+    
+    if (activeModelDisplay) {
+      activeModelDisplay.textContent = state.selectedModel || '모델을 선택하세요...';
+    }
+
     if (modelSelect) {
-      // 모델 수가 달라졌을 때만 옵션 재생성
       if (modelSelect.options.length - 1 !== state.models.length) {
         modelSelect.innerHTML = '<option value="">모델을 선택하세요...</option>';
         state.models.forEach(model => {
@@ -250,7 +247,7 @@ export class LLMBinder {
   }
 
   /**
-   * 채팅 히스토리 렌더링 - GPT 스타일 말풍선
+   * 채팅 히스토리 렌더링
    */
   private renderChatHistory(container: HTMLElement) {
     const messages = this.viewModel.state.messages;
@@ -260,7 +257,7 @@ export class LLMBinder {
         <div class="chat-welcome">
           <div class="welcome-icon"><i data-lucide="bot"></i></div>
           <h2>Local AI에 오신 것을 환영합니다</h2>
-          <p>좌측에서 모델을 선택한 뒤 대화를 시작하세요.</p>
+          <p>채팅을 시작하려면 메시지를 입력하세요.</p>
         </div>`;
       (window as any).lucide?.createIcons();
       return;
@@ -271,22 +268,22 @@ export class LLMBinder {
       const row = document.createElement('div');
       row.className = `chat-row ${msg.role}`;
 
-      if (msg.role === 'user') {
-        row.innerHTML = `
-          <div class="chat-avatar user-av"><i data-lucide="user"></i></div>
-          <div class="chat-bubble">${this.escapeHtml(msg.content)}</div>`;
-      } else if (msg.role === 'assistant') {
-        row.innerHTML = `
-          <div class="chat-avatar ai"><i data-lucide="bot"></i></div>
-          <div class="chat-bubble">${this.escapeHtml(msg.content)}</div>`;
-      }
+      // 항상 아이콘 -> 버블 순서로 HTML을 구성하고 CSS로 정렬 제어
+      row.innerHTML = `
+        <div class="chat-avatar ${msg.role === 'user' ? 'user-av' : 'ai'}">
+          <i data-lucide="${msg.role === 'user' ? 'user' : 'bot'}"></i>
+        </div>
+        <div class="chat-bubble">${this.escapeHtml(msg.content)}</div>`;
 
       container.appendChild(row);
     });
 
     (window as any).lucide?.createIcons();
-    // 최신 메시지로 자동 스크롤
-    container.scrollTop = container.scrollHeight;
+    
+    // DOM이 렌더링된 후 스크롤을 맨 아래로 이동
+    requestAnimationFrame(() => {
+      container.scrollTop = container.scrollHeight;
+    });
   }
 
   /**
@@ -309,10 +306,10 @@ export class LLMBinder {
 
       item.innerHTML = `
         <div class="model-info">
-          <span class="model-name">${isActive ? '▶ ' : ''}${this.escapeHtml(model.name)}</span>
+          <span class="model-name" data-full-name="${this.escapeHtml(model.name)}">${isActive ? '▶ ' : ''}${this.escapeHtml(model.name)}</span>
           <span class="model-details">${sizeGB} GB | ${model.details?.quantization_level || 'GGUF'}</span>
         </div>
-        <button class="remove-model-item-btn" data-model="${this.escapeHtml(model.name)}" title="삭제">
+        <button class="remove-model-item-btn" data-model="${this.escapeHtml(model.name)}" title="Delete model">
           <i data-lucide="trash-2"></i>
         </button>`;
       container.appendChild(item);
@@ -321,9 +318,6 @@ export class LLMBinder {
     (window as any).lucide?.createIcons();
   }
 
-  /**
-   * XSS 방지를 위한 HTML 이스케이프
-   */
   private escapeHtml(text: string): string {
     return text
       .replace(/&/g, '&amp;')
