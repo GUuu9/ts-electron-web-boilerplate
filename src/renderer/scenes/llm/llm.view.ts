@@ -93,12 +93,10 @@ export class LLMBinder {
         this.viewModel.clearChat();
         break;
       case 'scroll-top-btn':
-        const chatHistoryTop = document.getElementById('chat-history');
-        if (chatHistoryTop) chatHistoryTop.scrollTop = 0;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         break;
       case 'scroll-bottom-btn':
-        const chatHistoryBottom = document.getElementById('chat-history');
-        if (chatHistoryBottom) chatHistoryBottom.scrollTop = chatHistoryBottom.scrollHeight;
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         break;
     }
 
