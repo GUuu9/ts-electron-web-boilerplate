@@ -16,6 +16,7 @@
 - [**COMMIT_00009**](./commit_00009.md) : Vision AI Sandbox 기능 고도화 및 UI/UX 개선.
 - [**COMMIT_00010**](./commit_00010.md) : 로컬 LLM 추론 시스템 통합 및 모델 관리 기능 추가.
 - [**COMMIT_00011**](./commit_00011.md) : LLM View UI/UX 전면 개선.
+- [**COMMIT_00012**](./commit_00012.md) : LLM 에이전트 시스템, 스트리밍, 세션 관리 및 시스템 안정화.
 
 ---
 

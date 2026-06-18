@@ -59,6 +59,7 @@ export class LLMBinder {
     document.removeEventListener('keydown', this.boundKeyDownHandler);
     document.removeEventListener('input', this.boundInputHandler);
     document.removeEventListener('change', this.boundChangeHandler);
+    this.viewModel.destroy();
   }
 
   /**
@@ -68,6 +69,14 @@ export class LLMBinder {
     const target = event.target as HTMLElement;
     const btn = target.closest('button');
 
+    // 세션 항목 클릭 처리 (버튼이 아님)
+    const sessionItem = target.closest('.session-item') as HTMLElement;
+    if (sessionItem && !btn) {
+      const sessionId = sessionItem.dataset.id;
+      if (sessionId) this.viewModel.loadSession(sessionId);
+      return;
+    }
+
     if (!btn) return;
 
     // 각 버튼별 ID 기반 동작
@@ -76,8 +85,24 @@ export class LLMBinder {
       case 'close-sidebar-btn':
         this.toggleSidebar();
         break;
+      case 'new-chat-btn':
+        this.viewModel.createNewChat();
+        break;
       case 'send-btn':
         this.handleSendMessage();
+        break;
+      case 'abort-btn':
+        this.viewModel.abortGenerate();
+        break;
+      case 'reset-context-btn':
+        this.viewModel.resetContext();
+        break;
+      case 'add-path-btn':
+        const pathInput = document.getElementById('allowed-path-input') as HTMLInputElement;
+        if (pathInput && pathInput.value.trim()) {
+          this.viewModel.addAllowedPath(pathInput.value.trim());
+          pathInput.value = '';
+        }
         break;
       case 'refresh-chat-models-btn':
         this.viewModel.refreshModels();
@@ -100,7 +125,16 @@ export class LLMBinder {
         break;
     }
 
-    // 모델 삭제 버튼은 클래스로 구분
+    // 세션 삭제 버튼
+    if (btn.classList.contains('delete-session-btn')) {
+      const id = btn.dataset.id;
+      if (id) {
+        event.stopPropagation();
+        this.viewModel.deleteSession(id);
+      }
+    }
+
+    // 모델 삭제 버튼
     if (btn.classList.contains('remove-model-item-btn')) {
       const modelName = btn.dataset.model;
       if (modelName) this.viewModel.removeModelSpecific(modelName);
@@ -139,6 +173,9 @@ export class LLMBinder {
     }
     if (target.id === 'prompt-input') {
       this.autoResizeTextarea(target as HTMLTextAreaElement);
+    }
+    if (target.id === 'context-length-input') {
+      this.viewModel.setContextLength(parseInt((target as HTMLInputElement).value, 10));
     }
   }
 
@@ -187,13 +224,41 @@ export class LLMBinder {
   private updateUI() {
     const state = this.viewModel.state;
 
-    // 1. 로딩 인디케이터
+    // 1. 로딩 인디케이터 및 버튼 상태
     const typingIndicator = document.getElementById('typing-indicator');
     const loaderMsg = document.getElementById('loader-message');
     const sendBtn = document.getElementById('send-btn') as HTMLButtonElement;
+    const abortBtn = document.getElementById('abort-btn') as HTMLButtonElement;
+    const agentStatusEl = document.getElementById('agent-status-bar');
+    const statusBadge = document.getElementById('server-status-badge');
+    const promptInput = document.getElementById('prompt-input') as HTMLTextAreaElement;
+    const ctxInput = document.getElementById('context-length-input') as HTMLInputElement;
 
-    const isDownloading = state.isLoading && state.loadingMessage.includes('%');
-    const isGenerating = state.isLoading && !isDownloading;
+    const isDownloading = state.isLoading && (state.loadingMessage.includes('다운로드') || state.loadingMessage.includes('%'));
+    const isGenerating = (state.isLoading || state.isStreaming) && !isDownloading;
+
+    // 서버 상태 배지 업데이트
+    if (statusBadge) {
+      statusBadge.className = `status-indicator ${state.serverStatus}`;
+    }
+
+    // 입력창 placeholder 및 상태 제어
+    if (promptInput) {
+      if (state.serverStatus === 'starting') {
+        promptInput.placeholder = 'AI 모델 구동 준비 중... 잠시만 기다려 주세요.';
+        promptInput.disabled = true;
+      } else if (state.serverStatus === 'ready') {
+        promptInput.placeholder = '무엇이든 물어보세요...';
+        promptInput.disabled = false;
+      } else {
+        promptInput.placeholder = '모델을 선택하여 구동해 주세요.';
+        promptInput.disabled = true;
+      }
+    }
+
+    if (ctxInput && document.activeElement !== ctxInput) {
+      ctxInput.value = state.n_ctx.toString();
+    }
 
     const downloadOverlay = document.getElementById('llm-loader');
     const downloadMsg = document.getElementById('download-loader-message');
@@ -202,9 +267,17 @@ export class LLMBinder {
     if (downloadMsg && isDownloading) downloadMsg.textContent = state.loadingMessage;
 
     if (typingIndicator) typingIndicator.classList.toggle('hidden', !isGenerating);
-    if (loaderMsg && isGenerating) loaderMsg.textContent = state.loadingMessage;
+    if (loaderMsg && isGenerating) {
+      loaderMsg.textContent = state.loadingMessage;
+    }
 
-    if (sendBtn) sendBtn.disabled = state.isLoading;
+    if (sendBtn) sendBtn.disabled = state.isLoading || state.isStreaming || state.serverStatus !== 'ready';
+    if (abortBtn) abortBtn.classList.toggle('hidden', !(state.isLoading || state.isStreaming));
+
+    if (agentStatusEl) {
+      agentStatusEl.textContent = state.agentStatus;
+      agentStatusEl.classList.toggle('hidden', !state.agentStatus);
+    }
 
     // 2. 모델 셀렉트 업데이트 및 활성 모델 표시
     const modelSelect = document.getElementById('model-select-chat') as HTMLSelectElement;
@@ -242,20 +315,29 @@ export class LLMBinder {
     // 5. 설치된 모델 목록 렌더링
     const modelListContainer = document.getElementById('installed-models-list');
     if (modelListContainer) this.renderModelList(modelListContainer);
+
+    // 6. 세션 목록 렌더링
+    const sessionListContainer = document.getElementById('chat-sessions-list');
+    if (sessionListContainer) this.renderSessionList(sessionListContainer);
   }
 
   /**
    * 채팅 히스토리 렌더링
    */
   private renderChatHistory(container: HTMLElement) {
-    const messages = this.viewModel.state.messages;
+    const messages = [...this.viewModel.state.messages];
+    
+    // 스트리밍 중인 메시지가 있으면 임시로 추가하여 렌더링
+    if (this.viewModel.state.isStreaming && this.viewModel.state.currentStreamingMessage) {
+      messages.push({ role: 'assistant', content: this.viewModel.state.currentStreamingMessage });
+    }
 
     if (messages.length === 0) {
       container.innerHTML = `
         <div class="chat-welcome">
           <div class="welcome-icon"><i data-lucide="bot"></i></div>
           <h2>Local AI에 오신 것을 환영합니다</h2>
-          <p>채팅을 시작하려면 메시지를 입력하세요.</p>
+          <p>채팅을 시작하려면 메시지를 입력하거나 새 대화를 만드세요.</p>
         </div>`;
       (window as any).lucide?.createIcons();
       return;
@@ -266,10 +348,12 @@ export class LLMBinder {
       const row = document.createElement('div');
       row.className = `chat-row ${msg.role}`;
 
-      // 항상 아이콘 -> 버블 순서로 HTML을 구성하고 CSS로 정렬 제어
+      const avatarClass = msg.role === 'user' ? 'user-av' : (msg.role === 'system' ? 'system-av' : 'ai');
+      const icon = msg.role === 'user' ? 'user' : (msg.role === 'system' ? 'settings' : 'bot');
+
       row.innerHTML = `
-        <div class="chat-avatar ${msg.role === 'user' ? 'user-av' : 'ai'}">
-          <i data-lucide="${msg.role === 'user' ? 'user' : 'bot'}"></i>
+        <div class="chat-avatar ${avatarClass}">
+          <i data-lucide="${icon}"></i>
         </div>
         <div class="chat-bubble">${this.escapeHtml(msg.content)}</div>`;
 
@@ -309,6 +393,38 @@ export class LLMBinder {
         </div>
         <button class="remove-model-item-btn" data-model="${this.escapeHtml(model.name)}" title="Delete model">
           <i data-lucide="trash-2"></i>
+        </button>`;
+      container.appendChild(item);
+    });
+
+    (window as any).lucide?.createIcons();
+  }
+
+  /**
+   * 세션 목록 렌더링
+   */
+  private renderSessionList(container: HTMLElement) {
+    const sessions = this.viewModel.state.sessions;
+    const currentId = this.viewModel.state.currentSessionId;
+
+    if (sessions.length === 0) {
+      container.innerHTML = '<div class="empty-list">최근 대화가 없습니다.</div>';
+      return;
+    }
+
+    container.innerHTML = '';
+    sessions.forEach(session => {
+      const item = document.createElement('div');
+      item.className = `session-item ${session.id === currentId ? 'active' : ''}`;
+      item.dataset.id = session.id;
+
+      item.innerHTML = `
+        <div class="session-info">
+          <span class="session-title">${this.escapeHtml(session.title)}</span>
+          <span class="session-meta">${session.model}</span>
+        </div>
+        <button class="delete-session-btn" data-id="${session.id}" title="Delete chat">
+          <i data-lucide="x"></i>
         </button>`;
       container.appendChild(item);
     });

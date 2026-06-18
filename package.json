@@ -54,7 +54,8 @@
       "dist-electron/**/*",
       "dist/**/*",
       "venv/**/*",
-      "scripts/**/*"
+      "scripts/**/*",
+      "bin/**/*"
     ],
     "mac": {
       "target": [

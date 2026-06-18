@@ -6,30 +6,67 @@ import { LLMSceneService } from './llmTest.service.js';
  */
 export class LLMViewModel {
   public readonly state = new LLMState();
-  private unsubscribeProgress: (() => void) | null = null;
+  private unsubs: (() => void)[] = [];
 
   constructor(private readonly llmSceneService: LLMSceneService) {
     this.initialize();
+    this.setupListeners();
   }
 
   private async initialize() {
+    // 모델 목록 가져오기
     const models = await this.llmSceneService.fetchModels();
     this.state.models = models;
     
-    // 백엔드에서 활성화된 모델 가져와 설정
+    // 활성 모델 설정
     const activeModel = await this.llmSceneService.getActiveModel();
     if (activeModel) {
       this.state.selectedModel = activeModel;
     } else if (models.length > 0) {
       this.state.selectedModel = models[0].name;
     }
+
+    // 세션 목록 가져오기
+    await this.refreshSessions();
+  }
+
+  private setupListeners() {
+    // 서버 구동 상태 리스너: 로딩 바 자동 제어 및 상태 배지 업데이트
+    this.unsubs.push(this.llmSceneService.subscribeServerStatus((status, modelName) => {
+      this.state.serverStatus = status;
+      
+      if (status === 'starting') {
+        this.state.isLoading = true;
+        this.state.loadingMessage = `로컬 AI 모델 '${modelName}' 구동 준비 중...`;
+      } else if (status === 'ready') {
+        this.state.isLoading = false;
+        this.state.loadingMessage = '';
+        if (modelName) this.state.selectedModel = modelName;
+      } else if (status === 'stopped') {
+        this.state.isLoading = false;
+        this.state.loadingMessage = '';
+      }
+    }));
+
+    // 에이전트 작업 상태 리스너
+    this.unsubs.push(this.llmSceneService.subscribeAgentStatus((status) => {
+      this.state.agentStatus = status;
+    }));
+
+    // 스트리밍 데이터 리스너
+    this.unsubs.push(this.llmSceneService.subscribeGenerateChunk((chunk) => {
+      if (this.state.isStreaming) {
+        this.state.appendStreamingChunk(chunk);
+      }
+    }));
   }
 
   public destroy() {
-    if (this.unsubscribeProgress) {
-      this.unsubscribeProgress();
-    }
+    this.unsubs.forEach(unsub => unsub());
+    this.unsubs = [];
   }
+
+  // --- 모델 관리 ---
 
   public async setSelectedModel(modelName: string) {
     if (this.state.selectedModel === modelName) return;
@@ -38,17 +75,115 @@ export class LLMViewModel {
     this.state.loadingMessage = `로컬 AI 모델 '${modelName}' 구동 준비 중...`;
     
     try {
-      const success = await this.llmSceneService.selectModel(modelName);
+      // 선택된 컨텍스트 길이 적용
+      const success = await this.llmSceneService.selectModel(modelName, this.state.n_ctx);
       if (success) {
         this.state.selectedModel = modelName;
       } else {
-        alert(`모델 '${modelName}' 구동에 실패했습니다.\n\n가능한 원인:\n• 모델 로딩 시간 초과 (30초 이내 포트 바인딩 실패)\n• bin/ 폴더에 llama-server 바이너리 미설치\n• 터미널 로그를 확인해 주세요.`);
+        alert(`모델 '${modelName}' 구동에 실패했습니다.`);
+      }
+    } finally {
+      // ServerStatus 리스너에서 처리
+    }
+  }
+
+  public setContextLength(value: number) {
+    this.state.n_ctx = value;
+  }
+
+  // --- 세션 관리 ---
+
+  public async refreshSessions() {
+    const sessions = await this.llmSceneService.fetchSessions();
+    this.state.sessions = sessions;
+  }
+
+  public async createNewChat() {
+    if (!this.state.selectedModel) {
+      alert('먼저 모델을 선택해주세요.');
+      return;
+    }
+    this.state.isLoading = true;
+    try {
+      const session = await this.llmSceneService.createSession(this.state.selectedModel, this.state.systemPrompt);
+      this.state.currentSessionId = session.id;
+      this.state.messages = [];
+      await this.refreshSessions();
+    } finally {
+      this.state.isLoading = false;
+    }
+  }
+
+  public async loadSession(id: string) {
+    if (this.state.currentSessionId === id) return;
+    
+    this.state.isLoading = true;
+    try {
+      const session = await this.llmSceneService.loadSession(id);
+      if (session) {
+        this.state.currentSessionId = session.id;
+        this.state.messages = session.messages;
+        this.state.selectedModel = session.model;
+        this.state.systemPrompt = session.systemPrompt || this.state.systemPrompt;
+        // 모델이 다르면 자동 전환 시도 (선택 사항)
       }
     } finally {
       this.state.isLoading = false;
-      this.state.loadingMessage = 'AI가 생각 중입니다...';
     }
   }
+
+  public async deleteSession(id: string) {
+    if (!confirm('이 대화 내용을 삭제하시겠습니까?')) return;
+    
+    await this.llmSceneService.deleteSession(id);
+    if (this.state.currentSessionId === id) {
+      this.state.currentSessionId = null;
+      this.state.messages = [];
+    }
+    await this.refreshSessions();
+  }
+
+  // --- 메시지 전송 ---
+
+  public async sendMessage(content: string) {
+    if (!content.trim() || this.state.isLoading) return;
+    if (!this.state.selectedModel) {
+      alert('모델을 선택해주세요.');
+      return;
+    }
+
+    // 세션이 없으면 자동 생성
+    if (!this.state.currentSessionId) {
+      await this.createNewChat();
+    }
+
+    // UI 즉시 업데이트 (사용자 메시지)
+    this.state.addMessage({ role: 'user', content });
+    
+    this.state.isLoading = true;
+    this.state.isStreaming = true;
+    this.state.currentStreamingMessage = '';
+    this.state.agentStatus = 'AI가 생각 중입니다...';
+
+    try {
+      await this.llmSceneService.getResponse(
+        this.state.selectedModel,
+        content,
+        this.state.systemPrompt
+      );
+      
+      // 답변 완료 후 세션 목록 갱신 (제목 등 업데이트 대비)
+      await this.refreshSessions();
+    } catch (error: any) {
+      console.error('[LLM VM] Message error:', error);
+    } finally {
+      this.state.finalizeStreamingMessage();
+      this.state.isLoading = false;
+      this.state.agentStatus = '';
+    }
+  }
+
+  // --- 기타 기능 ---
 
   public setSystemPrompt(prompt: string) {
     this.state.systemPrompt = prompt;
@@ -58,44 +193,32 @@ export class LLMViewModel {
     this.state.clearMessages();
   }
 
-  public async sendMessage(content: string) {
-    if (!content.trim() || this.state.isLoading) return;
-    if (!this.state.selectedModel) {
-      alert('모델을 선택해주세요.');
-      return;
+  public async resetContext() {
+    await this.llmSceneService.resetContext();
+    this.state.agentStatus = '대화 문맥이 초기화되었습니다.';
+    setTimeout(() => { if (this.state.agentStatus.includes('초기화')) this.state.agentStatus = ''; }, 3000);
+  }
+
+  public async addAllowedPath(path: string) {
+    if (!path.trim()) return;
+    await this.llmSceneService.addAllowedPath(path);
+    this.state.agentStatus = `경로 허용됨: ${path}`;
+    setTimeout(() => { this.state.agentStatus = ''; }, 3000);
+  }
+
+  public async abortGenerate() {
+    await this.llmSceneService.abort();
+    if (this.state.isStreaming) {
+      this.state.finalizeStreamingMessage();
     }
-
-    // 사용자 메시지 추가
-    const userMsg: ChatMessage = { role: 'user', content };
-    this.state.addMessage(userMsg);
-    this.state.isLoading = true;
-    this.state.loadingMessage = 'AI가 생각 중입니다...';
-
-    try {
-      // LLM 응답 요청
-      const responseText = await this.llmSceneService.getResponse(
-        this.state.selectedModel,
-        content,
-        this.state.systemPrompt
-      );
-
-      // AI 메시지 추가
-      const aiMsg: ChatMessage = { role: 'assistant', content: responseText };
-      this.state.addMessage(aiMsg);
-    } finally {
-      this.state.isLoading = false;
-    }
+    this.state.isLoading = false;
+    this.state.agentStatus = '사용자에 의해 중단됨';
+    setTimeout(() => { if (this.state.agentStatus === '사용자에 의해 중단됨') this.state.agentStatus = ''; }, 3000);
   }
 
   public async refreshModels() {
     const models = await this.llmSceneService.fetchModels();
     this.state.models = models;
-    const activeModel = await this.llmSceneService.getActiveModel();
-    if (activeModel) {
-      this.state.selectedModel = activeModel;
-    } else if (!this.state.selectedModel && models.length > 0) {
-      this.state.selectedModel = models[0].name;
-    }
   }
 
   public async pullModel(modelName: string) {
@@ -104,8 +227,7 @@ export class LLMViewModel {
     this.state.isLoading = true;
     this.state.loadingMessage = `모델 '${modelName}' 다운로드 준비 중...`;
 
-    // 진행 상황 구독
-    this.unsubscribeProgress = this.llmSceneService.subscribePullProgress((message) => {
+    const unsub = this.llmSceneService.subscribePullProgress((message) => {
       this.state.loadingMessage = `[다운로드 중] ${message}`;
     });
 
@@ -116,24 +238,14 @@ export class LLMViewModel {
     } catch (error: any) {
       alert(`다운로드 실패: ${error.message}`);
     } finally {
-      if (this.unsubscribeProgress) {
-        this.unsubscribeProgress();
-        this.unsubscribeProgress = null;
-      }
+      unsub();
       this.state.isLoading = false;
-      this.state.loadingMessage = 'AI가 생각 중입니다...'; // 기본값 복구
+      this.state.loadingMessage = '';
     }
-  }
-
-  public async removeModel() {
-    const modelName = this.state.selectedModel;
-    if (!modelName) return;
-    await this.removeModelSpecific(modelName);
   }
 
   public async removeModelSpecific(modelName: string) {
     if (!modelName || this.state.isLoading) return;
-
     if (!confirm(`정말로 모델 '${modelName}'을(를) 삭제하시겠습니까?`)) return;
 
     this.state.isLoading = true;
@@ -150,7 +262,7 @@ export class LLMViewModel {
       alert(`삭제 실패: ${error.message}`);
     } finally {
       this.state.isLoading = false;
-      this.state.loadingMessage = 'AI가 생각 중입니다...';
+      this.state.loadingMessage = '';
     }
   }
 }

@@ -1,5 +1,5 @@
 <div class="view-container llm-view">
-  <!-- Open WebUI Style Sidebar: Conversational & Navigation focus -->
+  <!-- Sidebar -->
   <aside id="llm-sidebar" class="llm-sidebar">
     <div class="sidebar-content">
       <div class="sidebar-header">
@@ -9,8 +9,22 @@
         </button>
       </div>
 
+      <!-- 1. Session Management -->
       <section class="sidebar-group">
-        <label class="sidebar-label">Model Library</label>
+        <label class="sidebar-label">Conversations</label>
+        <button id="new-chat-btn" class="btn btn-primary w-full">
+          <i data-lucide="plus"></i> New Chat
+        </button>
+        <div id="chat-sessions-list" class="sidebar-session-list">
+          <!-- Sessions will be rendered here -->
+        </div>
+      </section>
+
+      <div class="sidebar-divider"></div>
+
+      <!-- 2. Model Settings -->
+      <section class="sidebar-group">
+        <label class="sidebar-label">Model Settings</label>
         <div class="sidebar-card">
           <label>Active Model</label>
           <div class="sidebar-input-row">
@@ -22,36 +36,62 @@
             </button>
           </div>
         </div>
-        <!-- 모델 다운로드 섹션 복구 -->
+        
         <div class="sidebar-card">
-          <label>Download Models</label>
+          <label>Context Length (n_ctx)</label>
           <div class="sidebar-input-row">
-            <input type="text" id="pull-model-input" class="sidebar-select" placeholder="URL or keyword...">
-            <button id="pull-model-btn" class="btn btn-primary" title="Download">
-              <i data-lucide="download"></i>
-            </button>
+            <input type="number" id="context-length-input" class="sidebar-select" value="2048" step="1024" min="512" max="32768">
           </div>
         </div>
       </section>
 
+      <div class="sidebar-divider"></div>
+
+      <!-- 3. Agent Controls -->
       <section class="sidebar-group">
-        <label class="sidebar-label">Installed</label>
+        <label class="sidebar-label">Agent Controls</label>
+        <div class="sidebar-card">
+          <label>Add Allowed Folder</label>
+          <div class="sidebar-input-row">
+            <input type="text" id="allowed-path-input" class="sidebar-select" placeholder="Absolute path...">
+            <button id="add-path-btn" class="btn btn-primary" title="Allow">
+              <i data-lucide="plus"></i>
+            </button>
+          </div>
+        </div>
+        <textarea id="system-prompt" class="sidebar-textarea" rows="3" placeholder="System Prompt..."></textarea>
+      </section>
+
+      <div class="sidebar-divider"></div>
+
+      <!-- 4. Library & Utils -->
+      <section class="sidebar-group">
+        <label class="sidebar-label">Model Library</label>
+        <div class="sidebar-input-row">
+          <input type="text" id="pull-model-input" class="sidebar-select" placeholder="URL or keyword...">
+          <button id="pull-model-btn" class="btn btn-primary" title="Download">
+            <i data-lucide="download"></i>
+          </button>
+        </div>
         <div id="installed-models-list" class="sidebar-model-list"></div>
       </section>
-      
+
       <div class="sidebar-divider"></div>
 
       <section class="sidebar-group">
-        <label class="sidebar-label">Settings</label>
-        <textarea id="system-prompt" class="sidebar-textarea" rows="3" placeholder="System Prompt..."></textarea>
-        <button id="clear-chat-btn" class="btn btn-outline btn-danger">
-          <i data-lucide="trash-2"></i> Clear History
-        </button>
+        <div class="sidebar-actions-vertical">
+          <button id="reset-context-btn" class="btn btn-outline btn-warning">
+            <i data-lucide="refresh-ccw"></i> Reset Context
+          </button>
+          <button id="clear-chat-btn" class="btn btn-outline btn-danger">
+            <i data-lucide="trash-2"></i> Clear History
+          </button>
+        </div>
       </section>
     </div>
   </aside>
 
-  <!-- Open WebUI Style Main Area -->
+  <!-- Main Area -->
   <main class="llm-main-area">
     <header class="llm-header">
       <button id="sidebar-toggle-btn" class="btn-icon">
@@ -59,15 +99,20 @@
       </button>
       <div class="active-model-display">
         <span id="active-model-name">Select a model</span>
+        <span id="server-status-badge" class="status-indicator"></span>
       </div>
     </header>
 
     <div id="chat-history" class="gpt-chat-history">
       <div class="chat-welcome">
+        <div class="welcome-icon"><i data-lucide="bot"></i></div>
         <h2>Local AI</h2>
         <p>모델을 설정한 뒤 대화를 시작하세요.</p>
       </div>
     </div>
+
+    <!-- 에이전트 상태 바 -->
+    <div id="agent-status-bar" class="agent-status-bar hidden"></div>
 
     <!-- 타이핑 인디케이터 -->
     <div id="typing-indicator" class="typing-indicator hidden">
@@ -80,9 +125,14 @@
         <div class="gpt-textarea-container">
           <textarea id="prompt-input" class="gpt-textarea" placeholder="Ask anything..." rows="1"></textarea>
         </div>
-        <button id="send-btn" class="btn btn-primary">
-          <i data-lucide="send"></i>
-        </button>
+        <div class="gpt-input-actions">
+          <button id="abort-btn" class="btn-icon btn-danger hidden" title="Stop Generation">
+            <i data-lucide="square"></i>
+          </button>
+          <button id="send-btn" class="btn btn-primary">
+            <i data-lucide="send"></i>
+          </button>
+        </div>
       </div>
     </footer>
   </main>

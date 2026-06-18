@@ -1,6 +1,6 @@
 import { LLMService } from '../../domains/llm/services/llm.service.js';
 import { LoggerService } from '../../domains/logger/services/logger.service.js';
-import { LLMModel } from '../../../shared/llm/models.js';
+import { LLMModel, LLMSession, LLMSessionMetadata } from '../../../shared/llm/models.js';
 
 /**
  * LLMSceneService
@@ -36,6 +36,18 @@ export class LLMSceneService {
     }
   }
 
+  public async abort(): Promise<void> {
+    await this.llmService.abort();
+  }
+
+  public async resetContext(): Promise<void> {
+    await this.llmService.resetContext();
+  }
+
+  public async addAllowedPath(path: string): Promise<void> {
+    await this.llmService.addAllowedPath(path);
+  }
+
   public async pullModel(modelName: string): Promise<void> {
     try {
       await this.logger.log('INFO', `[LLMScene] 모델 다운로드 시작: ${modelName}`);
@@ -58,10 +70,10 @@ export class LLMSceneService {
     }
   }
 
-  public async selectModel(modelName: string): Promise<boolean> {
+  public async selectModel(modelName: string, n_ctx?: number): Promise<boolean> {
     try {
-      await this.logger.log('INFO', `[LLMScene] 모델 변경 요청: ${modelName}`);
-      const success = await this.llmService.selectModel(modelName);
+      await this.logger.log('INFO', `[LLMScene] 모델 변경 요청: ${modelName} (ctx: ${n_ctx})`);
+      const success = await this.llmService.selectModel(modelName, n_ctx);
       if (success) {
         await this.logger.log('INFO', `[LLMScene] 모델 변경 완료: ${modelName}`);
       } else {
@@ -83,7 +95,43 @@ export class LLMSceneService {
     }
   }
 
+  // --- 세션 관련 ---
+
+  public async fetchSessions(): Promise<LLMSessionMetadata[]> {
+    return await this.llmService.getSessions();
+  }
+
+  public async createSession(model: string, systemPrompt?: string): Promise<LLMSession> {
+    return await this.llmService.createSession(model, systemPrompt);
+  }
+
+  public async loadSession(id: string): Promise<LLMSession | null> {
+    return await this.llmService.loadSession(id);
+  }
+
+  public async saveSession(session: LLMSession): Promise<void> {
+    await this.llmService.saveSession(session);
+  }
+
+  public async deleteSession(id: string): Promise<void> {
+    await this.llmService.deleteSession(id);
+  }
+
+  // --- 리스너 ---
+
   public subscribePullProgress(callback: (message: string) => void): () => void {
     return this.llmService.onPullProgress(callback);
+  }
+
+  public subscribeAgentStatus(callback: (status: string) => void): () => void {
+    return this.llmService.onAgentStatus(callback);
+  }
+
+  public subscribeServerStatus(callback: (status: 'starting' | 'ready' | 'stopped', modelName?: string) => void): () => void {
+    return this.llmService.onServerStatus(callback);
+  }
+
+  public subscribeGenerateChunk(callback: (chunk: string) => void): () => void {
+    return this.llmService.onGenerateChunk(callback);
   }
 }

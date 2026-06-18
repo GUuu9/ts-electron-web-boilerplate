@@ -27,6 +27,20 @@ export class FileServer {
   }
 
   /**
+   * 디렉토리 내 파일 목록을 가져옵니다.
+   */
+  public async listFiles(dirPath: string): Promise<string[]> {
+    return await fs.readdir(dirPath);
+  }
+
+  /**
+   * 파일을 삭제합니다.
+   */
+  public async deleteFile(filePath: string): Promise<void> {
+    await fs.unlink(filePath);
+  }
+
+  /**
    * 파일 열기 다이얼로그를 표시합니다.
    * @param filters 파일 필터 설정
    * @returns 선택된 파일 경로 또는 null

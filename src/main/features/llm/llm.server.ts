@@ -2,24 +2,81 @@ import axios, { AxiosInstance } from 'axios';
 import fs from 'fs';
 import path from 'path';
 import { 
-  LLMGenerateResponse
+  LLMGenerateResponse, LLMSession
 } from '../../../shared/llm/models.js';
+import { AGENT_SYSTEM_PROMPT } from '../../../shared/llm/prompts.js';
+import { AgentOrchestrator } from './agent.orchestrator.js';
 
 /**
  * LLM Server: llama-server HTTP API와 통신하는 백엔드 서비스
  */
 export class LLMServer {
   private readonly axiosInstance: AxiosInstance;
-  private readonly baseUrl: string = 'http://localhost:8080'; // llama-server 기본 포트
+  private readonly baseUrl: string = 'http://localhost:8888'; // llama-server 전용 포트
   private readonly modelsDir: string;
+  private orchestrator: AgentOrchestrator | null = null;
+  private abortController: AbortController | null = null;
+  private lastContext: number[] | null = null;
+  private onChunk: ((chunk: string) => void) | null = null;
+  private activeSession: LLMSession | null = null;
 
   constructor() {
     this.axiosInstance = axios.create({
       baseURL: this.baseUrl,
-      timeout: 120000,
+      timeout: 300000, // 스트리밍을 위해 타임아웃 5분으로 확장
       headers: { 'Content-Type': 'application/json' },
     });
     this.modelsDir = path.join(process.cwd(), 'models');
+  }
+
+  /**
+   * 활성 세션을 설정합니다.
+   */
+  public setSession(session: LLMSession | null) {
+    this.activeSession = session;
+    this.lastContext = session?.context || null;
+  }
+
+  /**
+   * 현재 활성 세션을 가져옵니다.
+   */
+  public getActiveSession(): LLMSession | null {
+    return this.activeSession;
+  }
+
+  /**
+   * 오케스트레이터를 설정합니다.
+   */
+  public setOrchestrator(orchestrator: AgentOrchestrator) {
+    this.orchestrator = orchestrator;
+  }
+
+  /**
+   * 텍스트 청크 콜백을 설정합니다.
+   */
+  public setOnChunk(callback: (chunk: string) => void) {
+    this.onChunk = callback;
+  }
+
+  /**
+   * 컨텍스트를 초기화합니다.
+   */
+  public resetContext() {
+    this.lastContext = null;
+    if (this.activeSession) {
+      this.activeSession.context = [];
+    }
+  }
+
+  /**
+   * 생성을 중단합니다.
+   */
+  public abortGeneration(): void {
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = null;
+      console.log('[LLM] Generation aborted by user.');
+    }
   }
 
   /**
@@ -58,60 +115,194 @@ export class LLMServer {
 
   /**
    * 프롬프트를 기반으로 텍스트를 생성합니다. (llama.cpp /completion 엔드포인트 활용)
+   * 에이전트 루프 및 스트리밍이 포함된 버전입니다.
    */
   public async generate(model: string, prompt: string, system?: string): Promise<LLMGenerateResponse> {
+    this.abortController = new AbortController();
+    let fullResponseText = '';
+
+    // 세션이 있는 경우 메시지 추가 (User)
+    if (this.activeSession) {
+      this.activeSession.messages.push({ role: 'user', content: prompt });
+    }
+
     try {
-      // 소형 로컬 모델을 위한 ChatML 포맷 적용 (Qwen, Llama 등)
-      let formattedPrompt = '';
-      if (system) {
-        formattedPrompt += `<|im_start|>system\n${system}<|im_end|>\n`;
-      } else {
-        formattedPrompt += `<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n`;
+      if (!this.orchestrator) {
+        const response = await this.generateSimple(model, prompt, system);
+        if (this.activeSession) {
+          this.activeSession.messages.push({ role: 'assistant', content: response.text });
+          this.activeSession.context = this.lastContext || [];
+        }
+        return response;
       }
-      formattedPrompt += `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n`;
 
-      // llama-server의 /completion API에 맞춰 매핑
-      const requestData = {
-        prompt: formattedPrompt,
-        n_predict: 512,
-        stream: false,
-        stop: ['<|im_end|>', '<|im_start|>', '\nuser', '\nassistant', 'user:', 'assistant:'],
-        repeat_penalty: 1.1,
-        temperature: 0.7
-      };
+      let currentPrompt = prompt;
+      let systemPrompt = system || AGENT_SYSTEM_PROMPT;
+      
+      // 에이전트 루프 (최대 5회)
+      if (this.orchestrator) this.orchestrator.resetLastAction();
 
-      const response = await this.axiosInstance.post('/completion', requestData);
-      let text = response.data.content || '';
-      
-      // 불필요한 메타 토큰 및 뒷정리 수행
-      text = text.replace(/<\|im_end\|>/g, '').replace(/<\|im_start\|>/g, '').trim();
-      
-      return {
-        text: text,
+      for (let i = 0; i < 5; i++) {
+        if (this.abortController?.signal.aborted) break;
+        console.log(`[Agent] Loop ${i + 1} starting...`);
+        
+        const response = await this.generateSimple(model, currentPrompt, systemPrompt);
+        const text = response.text;
+
+        // 동일한 텍스트 반복 방지
+        if (fullResponseText.includes(text) && text.length > 0) {
+          console.log('[Agent] Repetitive response detected, ending loop.');
+          break;
+        }
+
+        fullResponseText += (fullResponseText ? '\n' : '') + text;
+
+        if (this.orchestrator?.isFinalAnswer(text)) {
+          console.log('[Agent] Final Answer reached.');
+          break;
+        }
+
+        const action = this.orchestrator?.parseAction(text);
+        if (action) {
+          if (this.orchestrator?.isDuplicateAction(action)) {
+            console.log('[Agent] Duplicate Action detected, ending loop.');
+            if (this.onChunk) this.onChunk('\n[중복된 행동 감지로 중단됨]');
+            break;
+          }
+
+          if (this.abortController?.signal.aborted) break;
+          console.log(`[Agent] Executing Action: ${action.action} on ${action.path}`);
+          const observation = await this.orchestrator!.executeAction(action);
+          const observationText = this.orchestrator!.formatObservation(observation);
+          
+          console.log(`[Agent] ${observationText}`);
+          if (this.onChunk) this.onChunk(`\n\n${observationText}\n\n`);
+          
+          // 다음 루프를 위해 컨텍스트 업데이트
+          currentPrompt += `\n${text}\n${observationText}`;
+        } else {
+          // Action이 없으면 답변이 완료된 것으로 간주
+          console.log('[Agent] No action found, ending loop.');
+          break;
+        }
+      }
+
+      const finalResponse = {
+        text: fullResponseText,
         model: model,
         done: true
       };
+
+      // 세션 메시지 및 컨텍스트 업데이트 (Assistant)
+      if (this.activeSession) {
+        this.activeSession.messages.push({ role: 'assistant', content: fullResponseText });
+        this.activeSession.context = this.lastContext || [];
+      }
+
+      return finalResponse;
     } catch (error: any) {
-      console.error('[LLM] Generate request failed:', error);
-      throw new Error(`LLM 생성 요청 중 오류가 발생했습니다: ${error.message}`);
+      if (axios.isCancel(error) || error.name === 'AbortError') {
+        const abortedText = fullResponseText + '\n[사용자에 의해 중단됨]';
+        if (this.activeSession) {
+          this.activeSession.messages.push({ role: 'assistant', content: abortedText });
+          this.activeSession.context = this.lastContext || [];
+        }
+        return { text: abortedText, model, done: true };
+      }
+      console.error('[LLM Agent] Generate request failed:', error);
+      throw new Error(`LLM 에이전트 요청 중 오류가 발생했습니다: ${error.message}`);
+    } finally {
+      this.abortController = null;
+    }
+  }
+
+  /**
+   * 단순 텍스트 생성 (스트리밍 및 컨텍스트 지원)
+   */
+  private async generateSimple(model: string, prompt: string, system?: string): Promise<LLMGenerateResponse> {
+    try {
+      // 소형 로컬 모델을 위한 ChatML 포맷 적용
+      let formattedPrompt = '';
+      if (!this.lastContext) {
+        if (system) {
+          formattedPrompt += `<|im_start|>system\n${system}<|im_end|>\n`;
+        } else {
+          formattedPrompt += `<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n`;
+        }
+      }
+      formattedPrompt += `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n`;
+
+      const requestData = {
+        prompt: formattedPrompt,
+        n_predict: 4096, // 토큰 제한 확장
+        stream: true,    // 스트리밍 활성화
+        stop: ['<|im_end|>', '<|im_start|>', '\nuser', '\nassistant', 'user:', 'assistant:', 'Observation:'],
+        repeat_penalty: 1.1,
+        temperature: 0.2,
+        context: this.lastContext || undefined
+      };
+
+      const response = await this.axiosInstance.post('/completion', requestData, {
+        responseType: 'stream',
+        signal: this.abortController?.signal
+      });
+
+      let fullText = '';
+      
+      return new Promise((resolve, reject) => {
+        response.data.on('data', (chunk: Buffer) => {
+          const lines = chunk.toString().split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                const content = data.content || '';
+                fullText += content;
+                
+                if (this.onChunk) {
+                  this.onChunk(content);
+                }
+
+                if (data.stop) {
+                  this.lastContext = data.context || null;
+                }
+              } catch (e) {
+                // 파싱 실패 무시 (완전한 JSON이 아닐 수 있음)
+              }
+            }
+          }
+        });
+
+        response.data.on('end', () => {
+          resolve({
+            text: fullText.trim(),
+            model: model,
+            done: true
+          });
+        });
+
+        response.data.on('error', (err: Error) => {
+          reject(err);
+        });
+      });
+    } catch (error: any) {
+      console.error('[LLM] Simple Streaming Generate request failed:', error);
+      throw error;
     }
   }
 
   /**
    * GGUF 모델을 직접 다운로드합니다.
-   * progressCallback을 통해 다운로드 진척도를 렌더러로 실시간 전송합니다.
    */
   public async pullModel(modelUrlOrName: string, progressCallback: (message: string) => void): Promise<void> {
     let downloadUrl = modelUrlOrName;
     let fileName = '';
 
-    // URL이 아닌 일반 이름이 왔을 때 기본 모델(예: Qwen 0.5B)을 다운로드하도록 매핑
     if (!modelUrlOrName.startsWith('http://') && !modelUrlOrName.startsWith('https://')) {
       if (modelUrlOrName.toLowerCase().includes('qwen')) {
         downloadUrl = 'https://huggingface.co/Qwen/Qwen2.5-Coder-0.5B-Instruct-GGUF/resolve/main/qwen2.5-coder-0.5b-instruct-q4_k_m.gguf';
         fileName = 'qwen2.5-coder-0.5b-instruct-q4_k_m.gguf';
       } else {
-        // 기본 Fallback 모델
         downloadUrl = 'https://huggingface.co/Qwen/Qwen2.5-Coder-0.5B-Instruct-GGUF/resolve/main/qwen2.5-coder-0.5b-instruct-q4_k_m.gguf';
         fileName = 'qwen2.5-coder-0.5b-instruct-q4_k_m.gguf';
       }
@@ -124,8 +315,6 @@ export class LLMServer {
     }
 
     const targetPath = path.join(this.modelsDir, fileName);
-    console.log(`[LLM] Downloading model from ${downloadUrl} to ${targetPath}`);
-
     const response = await axios({
       method: 'get',
       url: downloadUrl,
@@ -152,11 +341,7 @@ export class LLMServer {
         }
       });
 
-      writer.on('finish', () => {
-        console.log(`[LLM] Download completed: ${fileName}`);
-        resolve();
-      });
-
+      writer.on('finish', resolve);
       writer.on('error', (err) => {
         fs.unlink(targetPath, () => {});
         reject(err);
@@ -171,7 +356,6 @@ export class LLMServer {
     const filePath = path.join(this.modelsDir, modelName);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
-      console.log(`[LLM] Model file deleted: ${modelName}`);
     } else {
       throw new Error(`모델 파일이 존재하지 않습니다: ${modelName}`);
     }

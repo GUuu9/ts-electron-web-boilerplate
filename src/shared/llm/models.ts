@@ -2,6 +2,30 @@
  * LLM 모듈의 공통 데이터 인터페이스 및 모델 정의
  */
 
+export interface ChatMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}
+
+export interface LLMSession {
+  id: string;
+  title: string;
+  model: string;
+  messages: ChatMessage[];
+  context: number[];
+  systemPrompt?: string;
+  n_ctx?: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface LLMSessionMetadata {
+  id: string;
+  title: string;
+  model: string;
+  updatedAt: number;
+}
+
 export interface LLMGenerateRequest {
   model: string;
   prompt: string;
@@ -44,4 +68,19 @@ export interface LLMModel {
 
 export interface LLMTagsResponse {
   models: LLMModel[];
+}
+
+/**
+ * 에이전트 액션 및 관찰 인터페이스
+ */
+export interface AgentAction {
+  action: 'WRITE_FILE' | 'READ_FILE' | 'LIST_FILES' | 'DELETE_FILE';
+  path: string;
+  content?: string;
+}
+
+export interface AgentObservation {
+  success: boolean;
+  data?: string;
+  error?: string;
 }
