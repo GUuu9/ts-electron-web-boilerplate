@@ -29,10 +29,7 @@
   "license": "ISC",
   "devDependencies": {
     "@nut-tree-fork/nut-js": "^4.2.6",
-    "@types/dotenv": "^8.2.3",
     "@types/node": "^22.13.4",
-    "@types/serialport": "^10.2.0",
-    "@types/socket.io-client": "^3.0.0",
     "@types/w3c-web-hid": "^1.0.7",
     "@types/w3c-web-usb": "^1.0.14",
     "@types/web-bluetooth": "^0.0.21",
@@ -95,6 +92,7 @@
     "axios": "^1.15.0",
     "dotenv": "^17.4.2",
     "electron-store": "^11.0.2",
+    "node-llama-cpp": "^3.18.1",
     "phaser": "^4.1.0",
     "serialport": "^13.0.0",
     "socket.io": "^4.8.3",

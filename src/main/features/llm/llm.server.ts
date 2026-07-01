@@ -1,32 +1,48 @@
-import axios, { AxiosInstance } from 'axios';
 import fs from 'fs';
 import path from 'path';
+import axios from 'axios';
 import { 
-  LLMGenerateResponse, LLMSession
+  LLMGenerateResponse, LLMSession, ChatMessage
 } from '../../../shared/llm/models.js';
 import { AGENT_SYSTEM_PROMPT } from '../../../shared/llm/prompts.js';
 import { AgentOrchestrator } from './agent.orchestrator.js';
+import { getLlama, LlamaModel, LlamaContext, LlamaChatSession, ChatHistoryItem, Llama } from 'node-llama-cpp';
 
 /**
- * LLM Server: llama-server HTTP API와 통신하는 백엔드 서비스
+ * LLM Server: node-llama-cpp 패키지를 활용하여 로컬 LLM을 실행 및 제어하는 서비스
  */
 export class LLMServer {
-  private readonly axiosInstance: AxiosInstance;
-  private readonly baseUrl: string = 'http://localhost:8888'; // llama-server 전용 포트
   private readonly modelsDir: string;
   private orchestrator: AgentOrchestrator | null = null;
   private abortController: AbortController | null = null;
-  private lastContext: number[] | null = null;
   private onChunk: ((chunk: string) => void) | null = null;
   private activeSession: LLMSession | null = null;
 
+  // node-llama-cpp 관련 인스턴스들
+  private llama: Llama | null = null;
+  private modelInstance: LlamaModel | null = null;
+  private contextInstance: LlamaContext | null = null;
+  private chatSessionInstance: LlamaChatSession | null = null;
+  public currentModelName: string | null = null;
+  private currentContextSize: number = 2048;
+
   constructor() {
-    this.axiosInstance = axios.create({
-      baseURL: this.baseUrl,
-      timeout: 300000, // 스트리밍을 위해 타임아웃 5분으로 확장
-      headers: { 'Content-Type': 'application/json' },
-    });
     this.modelsDir = path.join(process.cwd(), 'models');
+  }
+
+  /**
+   * ChatMessage 형식을 node-llama-cpp의 ChatHistoryItem 형식으로 변환합니다.
+   */
+  private convertToLlamaHistory(messages: ChatMessage[]): ChatHistoryItem[] {
+    return messages.map(msg => {
+      if (msg.role === 'system') {
+        return { type: 'system', text: msg.content };
+      } else if (msg.role === 'user') {
+        return { type: 'user', text: msg.content };
+      } else {
+        return { type: 'model', response: [msg.content] };
+      }
+    });
   }
 
   /**
@@ -34,7 +50,10 @@ export class LLMServer {
    */
   public setSession(session: LLMSession | null) {
     this.activeSession = session;
-    this.lastContext = session?.context || null;
+    if (session && this.chatSessionInstance) {
+      const history = this.convertToLlamaHistory(session.messages);
+      this.chatSessionInstance.setChatHistory(history);
+    }
   }
 
   /**
@@ -62,8 +81,11 @@ export class LLMServer {
    * 컨텍스트를 초기화합니다.
    */
   public resetContext() {
-    this.lastContext = null;
+    if (this.chatSessionInstance) {
+      this.chatSessionInstance.resetChatHistory();
+    }
     if (this.activeSession) {
+      this.activeSession.messages = [];
       this.activeSession.context = [];
     }
   }
@@ -76,6 +98,58 @@ export class LLMServer {
       this.abortController.abort();
       this.abortController = null;
       console.log('[LLM] Generation aborted by user.');
+    }
+  }
+
+  /**
+   * 지정한 GGUF 모델을 로드합니다.
+   */
+  public async loadModel(modelName: string, n_ctx: number = 2048): Promise<boolean> {
+    try {
+      console.log(`[LLM] Loading model: ${modelName} with context size ${n_ctx}`);
+      
+      // 기존 리소스 정리
+      this.chatSessionInstance = null;
+      this.contextInstance = null;
+      this.modelInstance = null;
+      
+      if (!this.llama) {
+        this.llama = await getLlama();
+      }
+      
+      const modelPath = path.join(this.modelsDir, modelName);
+      if (!fs.existsSync(modelPath)) {
+        throw new Error(`Model file not found: ${modelPath}`);
+      }
+      
+      this.modelInstance = await this.llama.loadModel({
+        modelPath: modelPath
+      });
+      
+      this.contextInstance = await this.modelInstance.createContext({
+        contextSize: n_ctx
+      });
+      
+      // LlamaChatSession 생성
+      this.chatSessionInstance = new LlamaChatSession({
+        contextSequence: this.contextInstance.getSequence(),
+        systemPrompt: this.activeSession?.systemPrompt || AGENT_SYSTEM_PROMPT
+      });
+      
+      // 세션이 있는 경우 히스토리 동기화
+      if (this.activeSession) {
+        const history = this.convertToLlamaHistory(this.activeSession.messages);
+        this.chatSessionInstance.setChatHistory(history);
+      }
+      
+      this.currentModelName = modelName;
+      this.currentContextSize = n_ctx;
+      
+      console.log(`[LLM] Model loaded successfully: ${modelName}`);
+      return true;
+    } catch (error) {
+      console.error('[LLM] Failed to load model:', error);
+      return false;
     }
   }
 
@@ -114,8 +188,7 @@ export class LLMServer {
   }
 
   /**
-   * 프롬프트를 기반으로 텍스트를 생성합니다. (llama.cpp /completion 엔드포인트 활용)
-   * 에이전트 루프 및 스트리밍이 포함된 버전입니다.
+   * 프롬프트를 기반으로 텍스트를 생성합니다. (node-llama-cpp 활용)
    */
   public async generate(model: string, prompt: string, system?: string): Promise<LLMGenerateResponse> {
     this.abortController = new AbortController();
@@ -127,85 +200,118 @@ export class LLMServer {
     }
 
     try {
-      if (!this.orchestrator) {
-        const response = await this.generateSimple(model, prompt, system);
-        if (this.activeSession) {
-          this.activeSession.messages.push({ role: 'assistant', content: response.text });
-          this.activeSession.context = this.lastContext || [];
+      // 모델 로드 확인 및 다를 경우 로드
+      if (!this.modelInstance || this.currentModelName !== model) {
+        const success = await this.loadModel(model, this.currentContextSize);
+        if (!success) {
+          throw new Error(`Failed to load model: ${model}`);
         }
-        return response;
       }
 
-      let currentPrompt = prompt;
-      let systemPrompt = system || AGENT_SYSTEM_PROMPT;
-      
-      // 에이전트 루프 (최대 5회)
-      if (this.orchestrator) this.orchestrator.resetLastAction();
+      // LlamaChatSession 생성 확인
+      if (!this.chatSessionInstance && this.contextInstance) {
+        this.chatSessionInstance = new LlamaChatSession({
+          contextSequence: this.contextInstance.getSequence(),
+          systemPrompt: system || AGENT_SYSTEM_PROMPT
+        });
+        if (this.activeSession) {
+          const history = this.convertToLlamaHistory(this.activeSession.messages);
+          this.chatSessionInstance.setChatHistory(history);
+        }
+      }
 
-      for (let i = 0; i < 5; i++) {
-        if (this.abortController?.signal.aborted) break;
-        console.log(`[Agent] Loop ${i + 1} starting...`);
+      if (!this.chatSessionInstance) {
+        throw new Error('LlamaChatSession is not initialized.');
+      }
+
+      if (!this.orchestrator) {
+        // 에이전트 오케스트레이터가 없는 경우 단순 텍스트 생성
+        const text = await this.chatSessionInstance.prompt(prompt, {
+          signal: this.abortController.signal,
+          stopOnAbortSignal: true,
+          onTextChunk: (chunk) => {
+            if (this.onChunk) {
+              this.onChunk(chunk);
+            }
+          }
+        });
         
-        const response = await this.generateSimple(model, currentPrompt, systemPrompt);
-        const text = response.text;
+        fullResponseText = text;
+      } else {
+        // 에이전트 루프 (최대 5회)
+        this.orchestrator.resetLastAction();
+        let currentPrompt = prompt;
 
-        // 동일한 텍스트 반복 방지
-        if (fullResponseText.includes(text) && text.length > 0) {
-          console.log('[Agent] Repetitive response detected, ending loop.');
-          break;
-        }
+        for (let i = 0; i < 5; i++) {
+          if (this.abortController?.signal.aborted) break;
+          console.log(`[Agent] Loop ${i + 1} starting...`);
+          
+          const text = await this.chatSessionInstance.prompt(currentPrompt, {
+            signal: this.abortController.signal,
+            stopOnAbortSignal: true,
+            onTextChunk: (chunk) => {
+              if (this.onChunk) {
+                this.onChunk(chunk);
+              }
+            }
+          });
 
-        fullResponseText += (fullResponseText ? '\n' : '') + text;
-
-        if (this.orchestrator?.isFinalAnswer(text)) {
-          console.log('[Agent] Final Answer reached.');
-          break;
-        }
-
-        const action = this.orchestrator?.parseAction(text);
-        if (action) {
-          if (this.orchestrator?.isDuplicateAction(action)) {
-            console.log('[Agent] Duplicate Action detected, ending loop.');
-            if (this.onChunk) this.onChunk('\n[중복된 행동 감지로 중단됨]');
+          // 동일한 텍스트 반복 방지
+          if (fullResponseText.includes(text) && text.length > 0) {
+            console.log('[Agent] Repetitive response detected, ending loop.');
             break;
           }
 
-          if (this.abortController?.signal.aborted) break;
-          console.log(`[Agent] Executing Action: ${action.action} on ${action.path}`);
-          const observation = await this.orchestrator!.executeAction(action);
-          const observationText = this.orchestrator!.formatObservation(observation);
-          
-          console.log(`[Agent] ${observationText}`);
-          if (this.onChunk) this.onChunk(`\n\n${observationText}\n\n`);
-          
-          // 다음 루프를 위해 컨텍스트 업데이트
-          currentPrompt += `\n${text}\n${observationText}`;
-        } else {
-          // Action이 없으면 답변이 완료된 것으로 간주
-          console.log('[Agent] No action found, ending loop.');
-          break;
+          fullResponseText += (fullResponseText ? '\n' : '') + text;
+
+          if (this.orchestrator.isFinalAnswer(text)) {
+            console.log('[Agent] Final Answer reached.');
+            break;
+          }
+
+          const action = this.orchestrator.parseAction(text);
+          if (action) {
+            if (this.orchestrator.isDuplicateAction(action)) {
+              console.log('[Agent] Duplicate Action detected, ending loop.');
+              if (this.onChunk) this.onChunk('\n[중복된 행동 감지로 중단됨]');
+              break;
+            }
+
+            if (this.abortController?.signal.aborted) break;
+            console.log(`[Agent] Executing Action: ${action.action} on ${action.path}`);
+            const observation = await this.orchestrator.executeAction(action);
+            const observationText = this.orchestrator.formatObservation(observation);
+            
+            console.log(`[Agent] ${observationText}`);
+            if (this.onChunk) this.onChunk(`\n\n${observationText}\n\n`);
+            
+            // 다음 루프를 위해 prompt를 Observation으로 설정
+            currentPrompt = observationText;
+          } else {
+            console.log('[Agent] No action found, ending loop.');
+            break;
+          }
         }
       }
 
-      const finalResponse = {
+      // 최종 응답을 activeSession에 기록하고 반환
+      if (this.activeSession) {
+        this.activeSession.messages.push({ role: 'assistant', content: fullResponseText });
+        this.activeSession.context = [];
+      }
+
+      return {
         text: fullResponseText,
         model: model,
         done: true
       };
 
-      // 세션 메시지 및 컨텍스트 업데이트 (Assistant)
-      if (this.activeSession) {
-        this.activeSession.messages.push({ role: 'assistant', content: fullResponseText });
-        this.activeSession.context = this.lastContext || [];
-      }
-
-      return finalResponse;
     } catch (error: any) {
-      if (axios.isCancel(error) || error.name === 'AbortError') {
+      if (error.name === 'AbortError' || this.abortController?.signal.aborted) {
         const abortedText = fullResponseText + '\n[사용자에 의해 중단됨]';
         if (this.activeSession) {
           this.activeSession.messages.push({ role: 'assistant', content: abortedText });
-          this.activeSession.context = this.lastContext || [];
+          this.activeSession.context = [];
         }
         return { text: abortedText, model, done: true };
       }
@@ -213,81 +319,6 @@ export class LLMServer {
       throw new Error(`LLM 에이전트 요청 중 오류가 발생했습니다: ${error.message}`);
     } finally {
       this.abortController = null;
-    }
-  }
-
-  /**
-   * 단순 텍스트 생성 (스트리밍 및 컨텍스트 지원)
-   */
-  private async generateSimple(model: string, prompt: string, system?: string): Promise<LLMGenerateResponse> {
-    try {
-      // 소형 로컬 모델을 위한 ChatML 포맷 적용
-      let formattedPrompt = '';
-      if (!this.lastContext) {
-        if (system) {
-          formattedPrompt += `<|im_start|>system\n${system}<|im_end|>\n`;
-        } else {
-          formattedPrompt += `<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n`;
-        }
-      }
-      formattedPrompt += `<|im_start|>user\n${prompt}<|im_end|>\n<|im_start|>assistant\n`;
-
-      const requestData = {
-        prompt: formattedPrompt,
-        n_predict: 4096, // 토큰 제한 확장
-        stream: true,    // 스트리밍 활성화
-        stop: ['<|im_end|>', '<|im_start|>', '\nuser', '\nassistant', 'user:', 'assistant:', 'Observation:'],
-        repeat_penalty: 1.1,
-        temperature: 0.2,
-        context: this.lastContext || undefined
-      };
-
-      const response = await this.axiosInstance.post('/completion', requestData, {
-        responseType: 'stream',
-        signal: this.abortController?.signal
-      });
-
-      let fullText = '';
-      
-      return new Promise((resolve, reject) => {
-        response.data.on('data', (chunk: Buffer) => {
-          const lines = chunk.toString().split('\n');
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                const content = data.content || '';
-                fullText += content;
-                
-                if (this.onChunk) {
-                  this.onChunk(content);
-                }
-
-                if (data.stop) {
-                  this.lastContext = data.context || null;
-                }
-              } catch (e) {
-                // 파싱 실패 무시 (완전한 JSON이 아닐 수 있음)
-              }
-            }
-          }
-        });
-
-        response.data.on('end', () => {
-          resolve({
-            text: fullText.trim(),
-            model: model,
-            done: true
-          });
-        });
-
-        response.data.on('error', (err: Error) => {
-          reject(err);
-        });
-      });
-    } catch (error: any) {
-      console.error('[LLM] Simple Streaming Generate request failed:', error);
-      throw error;
     }
   }
 
@@ -321,7 +352,8 @@ export class LLMServer {
       responseType: 'stream'
     });
 
-    const totalLength = parseInt(response.headers['content-length'] || '0', 10);
+    const contentLength = response.headers['content-length'];
+    const totalLength = typeof contentLength === 'string' ? parseInt(contentLength, 10) : (typeof contentLength === 'number' ? contentLength : 0);
     let downloadedBytes = 0;
 
     const writer = fs.createWriteStream(targetPath);

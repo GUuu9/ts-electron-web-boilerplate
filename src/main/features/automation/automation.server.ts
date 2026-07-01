@@ -1,5 +1,4 @@
 import { mouse, keyboard, Key, Button, sleep } from "@nut-tree-fork/nut-js";
-
 /**
  * Automation Server: 하위 수준의 입력 제어 서비스
  */

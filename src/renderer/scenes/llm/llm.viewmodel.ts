@@ -7,6 +7,7 @@ import { LLMSceneService } from './llmTest.service.js';
 export class LLMViewModel {
   public readonly state = new LLMState();
   private unsubs: (() => void)[] = [];
+  private runningModelName: string | null = null;
 
   constructor(private readonly llmSceneService: LLMSceneService) {
     this.initialize();
@@ -22,6 +23,8 @@ export class LLMViewModel {
     const activeModel = await this.llmSceneService.getActiveModel();
     if (activeModel) {
       this.state.selectedModel = activeModel;
+      this.state.serverStatus = 'ready';
+      this.runningModelName = activeModel;
     } else if (models.length > 0) {
       this.state.selectedModel = models[0].name;
     }
@@ -41,10 +44,14 @@ export class LLMViewModel {
       } else if (status === 'ready') {
         this.state.isLoading = false;
         this.state.loadingMessage = '';
-        if (modelName) this.state.selectedModel = modelName;
+        if (modelName) {
+          this.state.selectedModel = modelName;
+          this.runningModelName = modelName;
+        }
       } else if (status === 'stopped') {
         this.state.isLoading = false;
         this.state.loadingMessage = '';
+        this.runningModelName = null;
       }
     }));
 
@@ -69,7 +76,7 @@ export class LLMViewModel {
   // --- 모델 관리 ---
 
   public async setSelectedModel(modelName: string) {
-    if (this.state.selectedModel === modelName) return;
+    if (this.runningModelName === modelName && this.state.serverStatus === 'ready') return;
     
     this.state.isLoading = true;
     this.state.loadingMessage = `로컬 AI 모델 '${modelName}' 구동 준비 중...`;

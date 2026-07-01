@@ -11,7 +11,7 @@ export class LLMState extends BaseState {
   private _messages: ChatMessage[] = [];
   private _isLoading: boolean = false;
   private _loadingMessage: string = '';
-  private _systemPrompt: string = 'You are a helpful assistant.';
+  private _systemPrompt: string = '';
   private _agentStatus: string = '';
   private _isStreaming: boolean = false;
   private _currentStreamingMessage: string = '';

@@ -104,6 +104,14 @@ export class LLMBinder {
           pathInput.value = '';
         }
         break;
+      case 'run-model-btn':
+        const modelSelect = document.getElementById('model-select-chat') as HTMLSelectElement;
+        if (modelSelect && modelSelect.value) {
+          this.viewModel.setSelectedModel(modelSelect.value);
+        } else {
+          alert('먼저 구동할 모델을 선택해주세요.');
+        }
+        break;
       case 'refresh-chat-models-btn':
         this.viewModel.refreshModels();
         break;
@@ -186,7 +194,9 @@ export class LLMBinder {
     const target = event.target as HTMLElement;
     if (target.id === 'model-select-chat') {
       const selected = (target as HTMLSelectElement).value;
-      if (selected) this.viewModel.setSelectedModel(selected);
+      if (selected) {
+        this.viewModel.state.selectedModel = selected;
+      }
     }
   }
 
