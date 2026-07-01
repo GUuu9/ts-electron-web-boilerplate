@@ -138,17 +138,20 @@ src/
 
 ## 🤖 로컬 AI/LLM 개발 설정
 
-이 프로젝트는 로컬 환경에서 실행되는 `llama.cpp` (`llama-server`)를 데스크탑 앱 내부에서 통합하여 실행할 수 있도록 지원합니다.
+~~이 프로젝트는 로컬 환경에서 실행되는 `llama.cpp` (`llama-server`)를 데스크탑 앱 내부에서 통합하여 실행할 수 있도록 지원합니다.~~
 
-### 1. llama-server 바이너리 배치 경로
-프로젝트 루트의 `bin/` 디렉토리에 실행 환경에 맞추어 `llama-server` 바이너리를 직접 내장해 주세요.
-* **macOS (ARM64/Intel)**: `bin/darwin/llama-server`
-* **Windows (64-bit)**: `bin/win32/llama-server.exe`
-* **Linux (x64)**: `bin/linux/llama-server`
+
+### 1. ~~llama-server 바이너리 배치 경로~~
+~~프로젝트 루트의 `bin/` 디렉토리에 실행 환경에 맞추어 `llama-server` 바이너리를 직접 내장해 주세요.~~
+* ~~**macOS (ARM64/Intel)**: `bin/darwin/llama-server`~~
+* ~~**Windows (64-bit)**: `bin/win32/llama-server.exe`~~
+* ~~**Linux (x64)**: `bin/linux/llama-server`~~
+
 
 ### 2. GGUF 모델 설정 및 다운로드
 * 앱 실행 후 **모델 관리 (Pull)** 탭에서 예약 키워드 `qwen`을 입력하고 다운로드 버튼을 누르면 기본 성능이 우수한 `Qwen2.5-Coder-0.5B-Instruct` 모델이 다운로드 경로인 `models/` 폴더에 자동으로 다운로드되어 저장됩니다.
 * 개별적인 모델을 이용하려면 Hugging Face의 direct LFS 다운로드 URL(예: `.gguf` 확장자 경로)을 직접 입력하여 저장할 수 있습니다.
 
 > [!NOTE]
-> 상세한 바이너리 다운로드 명령어 가이드 및 OS별 바이너리 설치 매뉴얼은 [Local AI 개발 가이드](./docs/LLM_GUIDE.md) 문서를 참고해 주시기 바랍니다.
+> 상세한 바이너리 다운로드 명령어 가이드 및 OS별 바이너리 설치 매뉴얼은 [Local AI 개발 가이드](./docs/LLM_GUIDE.md) 문서를 참고해 주시기 바랍니다.  
+> 패키지 사용으로 변경하여 서버를 직접 실행하키지 않도록 변경
